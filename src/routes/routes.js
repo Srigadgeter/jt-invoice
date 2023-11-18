@@ -1,7 +1,7 @@
 import { lazy } from "react";
 
 // Pages import
-const SignIn = lazy(() => import("../components/signIn/SignIn"));
+const SignIn = lazy(() => import("components/signIn/SignIn"));
 
 const routes = {
   SIGN_IN: {

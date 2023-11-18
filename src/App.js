@@ -2,8 +2,8 @@
 import React, { Suspense } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 
+import AllRoutes from "routes/AllRoutes";
 import ErrorBoundary from "components/common/ErrorBoundary";
-import AllRoutes from "./routes/AllRoutes";
 
 // stylesheets
 import "./App.css";
