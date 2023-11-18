@@ -2,7 +2,7 @@
 import React, { Suspense } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 
-// AllRoutes import
+import ErrorBoundary from "components/common/ErrorBoundary";
 import AllRoutes from "./routes/AllRoutes";
 
 // stylesheets
@@ -12,7 +12,9 @@ const App = () => (
   <Suspense
     fallback={<CircularProgress />} // based on theme, the CircularProgress component should be updated
   >
-    <AllRoutes />
+    <ErrorBoundary>
+      <AllRoutes />
+    </ErrorBoundary>
   </Suspense>
 );
 
