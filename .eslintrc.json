@@ -1,0 +1,74 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true,
+    "browser": true
+  },
+  "extends": [
+    "airbnb",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["react", "react-hooks"],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "moduleDirectory": ["node_modules", "src/"]
+      }
+    }
+  },
+  "rules": {
+    "semi": "off",
+    "indent": "off",
+    "max-len": "off",
+    "eol-last": "off",
+    "jsx-quotes": "off",
+    "quote-props": "off",
+    "comma-dangle": "off",
+    "linebreak-style": "off",
+    "react/prop-types": "off",
+    "default-param-last": "off",
+    "switch-colon-spacing": "error",
+    "import/prefer-default-export": "off",
+    "no-console": [
+      "error",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
+    "arrow-body-style": ["error", "as-needed"],
+    "arrow-parens": "off",
+    "import/no-unresolved": [
+      2,
+      {
+        "caseSensitive": false
+      }
+    ],
+    "import/no-extraneous-dependencies": "off",
+    "react/jsx-indent": "off",
+    "react/display-name": "off",
+    "react/jsx-fragments": "off",
+    "react/jsx-indent-props": "off",
+    "react/jsx-filename-extension": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/function-component-definition": "off",
+    "react/no-unstable-nested-components": [
+      "error",
+      {
+        "allowAsProps": true
+      }
+    ],
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "off",
+    "jsx-a11y/label-has-associated-control": "off"
+  },
+  "overrides": []
+}
