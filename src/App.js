@@ -1,8 +1,19 @@
-import React from "react";
+// external imports
+import React, { Suspense } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
+
+// AllRoutes import
+import AllRoutes from "./routes/AllRoutes";
+
+// stylesheets
 import "./App.css";
 
-function App() {
-  return <div className="App">JT Invoice</div>;
-}
+const App = () => (
+  <Suspense
+    fallback={<CircularProgress />} // based on theme, the CircularProgress component should be updated
+  >
+    <AllRoutes />
+  </Suspense>
+);
 
 export default App;
