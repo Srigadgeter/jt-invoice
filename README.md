@@ -1,2 +1,3 @@
 # jt-invoice
-Generate invoices for Jayanthi Tex Company
+
+Invoice generator for JT Company

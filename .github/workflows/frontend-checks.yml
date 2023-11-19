@@ -1,0 +1,25 @@
+name: Frontend Checks
+on: [push]
+jobs:
+  standard-checks:
+    name: Linting, Testing & Building
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+
+      - name: Clean install dependencies
+        run: rm -rf node_modules && yarn
+
+      - name: Run ESlint
+        run: yarn lint
+
+      # - name: Run Tests
+      #   run: yarn test
+
+      - name: Build & Bundle
+        run: yarn build
