@@ -4,7 +4,7 @@ const initialState = {
   invoices: []
 };
 
-const invoicesReducer = createSlice({
+const invoicesSlice = createSlice({
   name: "invoices",
   initialState,
   reducers: {
@@ -15,6 +15,6 @@ const invoicesReducer = createSlice({
   }
 });
 
-export const { setInvoices } = invoicesReducer.actions;
+export const { setInvoices } = invoicesSlice.actions;
 
-export default invoicesReducer.reducer;
+export default invoicesSlice.reducer;
