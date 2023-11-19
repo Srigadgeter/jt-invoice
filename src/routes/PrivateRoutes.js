@@ -1,12 +1,21 @@
-import React from "react";
+import React, { lazy } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import routes from "./routes";
 
+const Header = lazy(() => import("components/common/Header"));
+
 const PrivateRoutes = () => {
   const { SIGN_IN } = routes;
-  const loggedIn = false; // TODO: rework logic
+  const loggedIn = true; // TODO: rework logic
 
-  return loggedIn ? <Outlet /> : <Navigate to={SIGN_IN.path} replace />;
+  const content = (
+    <>
+      <Header />
+      <Outlet />
+    </>
+  );
+
+  return loggedIn ? content : <Navigate to={SIGN_IN.path} replace />;
 };
 
 export default PrivateRoutes;
