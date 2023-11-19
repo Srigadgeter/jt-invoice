@@ -1,5 +1,6 @@
 // external imports
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { deepmerge } from "@mui/utils";
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -9,6 +10,7 @@ import themes from "./themes";
 
 export default ({ children }) => {
   const [options, setOptions] = useState({});
+  const { appTheme } = useSelector((state) => state.app);
 
   const themePicker = async (themeName) => {
     const selectedTheme = themes.find((item) => item === themeName);
@@ -22,8 +24,8 @@ export default ({ children }) => {
   };
 
   useEffect(() => {
-    themePicker(process.env.REACT_APP_THEME || "DEFAULT_LIGHT").then((res) => setOptions(res));
-  }, []);
+    themePicker(appTheme).then((res) => setOptions(res));
+  }, [appTheme]);
 
   return (
     <ThemeProvider
