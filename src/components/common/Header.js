@@ -1,14 +1,27 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { styled } from "@mui/material/styles";
-import { Box, Switch } from "@mui/material";
+import { Avatar, Box, Stack, Switch } from "@mui/material";
 
 import { DEFAULT_DARK } from "utils/constants";
 import { toggleTheme } from "store/slices/appSlice";
-// import Logo from "assets/logo.svg";
+import Logo from "assets/logo.svg";
 
 const styles = {
-  themeSwitch: { m: 1 }
+  header: {
+    pl: 2,
+    pr: 3,
+    mb: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  themeSwitch: { m: 1 },
+  avatar: {
+    bgcolor: "#5961df",
+    width: 34,
+    height: 34
+  }
 };
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
@@ -34,7 +47,7 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
     }
   },
   "& .MuiSwitch-thumb": {
-    backgroundColor: theme.palette.mode === "dark" ? "#003892" : "#001e3c",
+    backgroundColor: theme.palette.mode === "dark" ? "#5961df" : "#f574b9",
     width: 32,
     height: 32,
     "&:before": {
@@ -63,15 +76,18 @@ const Header = () => {
   const dispatch = useDispatch();
 
   return (
-    <Box>
-      {/* <Logo width={10} height={10} /> */}
-      <MaterialUISwitch
-        sx={styles.themeSwitch}
-        onChange={() => {
-          dispatch(toggleTheme());
-        }}
-        checked={appTheme === DEFAULT_DARK}
-      />
+    <Box sx={styles.header}>
+      <Avatar alt="JT" src={Logo} variant="square" sx={styles.logo} />
+      <Stack direction="row" alignItems="center">
+        <MaterialUISwitch
+          sx={styles.themeSwitch}
+          onChange={() => {
+            dispatch(toggleTheme());
+          }}
+          checked={appTheme === DEFAULT_DARK}
+        />
+        <Avatar sx={styles.avatar}>JT</Avatar>
+      </Stack>
     </Box>
   );
 };
