@@ -1,6 +1,9 @@
 const Options = {
   palette: {
-    mode: "light"
+    mode: "light",
+    common: {
+      pink: "#f574b9"
+    }
   }
 };
 
