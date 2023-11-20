@@ -9,3 +9,9 @@ export const PAGE_INFO = {
 // theme constants
 export const DEFAULT_LIGHT = "DEFAULT_LIGHT";
 export const DEFAULT_DARK = "DEFAULT_DARK";
+
+export const MODES = {
+  NEW: "NEW",
+  VIEW: "VIEW",
+  EDIT: "EDIT"
+};
