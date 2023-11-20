@@ -18,7 +18,7 @@ const styles = {
   },
   themeSwitch: { m: 1 },
   avatar: {
-    bgcolor: "#5961df",
+    bgcolor: "primary.main",
     width: 34,
     height: 34
   }
@@ -47,7 +47,8 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
     }
   },
   "& .MuiSwitch-thumb": {
-    backgroundColor: theme.palette.mode === "dark" ? "#5961df" : "#f574b9",
+    backgroundColor:
+      theme.palette.mode === "dark" ? theme.palette.primary.main : theme.palette.common.pink,
     width: 32,
     height: 32,
     "&:before": {
