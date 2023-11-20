@@ -4,6 +4,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import EditIcon from "@mui/icons-material/Edit";
 import DownloadIcon from "@mui/icons-material/Download";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { PAGE_INFO } from "utils/constants";
 
 const styles = {
@@ -19,7 +20,14 @@ const styles = {
     fontSize: 70
   },
   dataGrid: {
-    mt: 3
+    mt: 3,
+    ".MuiDataGrid-virtualScroller": {
+      overflowX: "hidden",
+      height: "calc(100vh - 345px)",
+      "&::-webkit-scrollbar": {
+        display: "block"
+      }
+    }
   }
 };
 
@@ -62,7 +70,8 @@ const Invoices = () => {
     },
     {
       invoiceNumber: "JT20232024TX00012",
-      customerName: "SRI BHAVANI HANDLOOM STORES",
+      customerName:
+        "SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES",
       createdDate: "14/11/2023",
       status: "paid",
       amount: 16500
@@ -115,10 +124,10 @@ const Invoices = () => {
     {
       field: "invoiceNumber",
       headerName: "Invoice Number",
-      width: 200
+      width: 180
     },
     { field: "customerName", headerName: "Customer Name", flex: 1 },
-    { field: "createdDate", headerName: "Created Date", width: 130 },
+    { field: "createdDate", headerName: "Invoice Date", width: 130 },
     {
       field: "status",
       headerName: "Status",
@@ -144,10 +153,15 @@ const Invoices = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 130,
+      width: 150,
       sortable: false,
       renderCell: () => (
         <Box>
+          <Tooltip title="View">
+            <IconButton aria-label="view" size="large">
+              <VisibilityIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Edit">
             <IconButton aria-label="edit" size="large">
               <EditIcon />
@@ -185,6 +199,9 @@ const Invoices = () => {
         columns={columns}
         getRowId={(row) => row.invoiceNumber}
         initialState={{
+          sorting: {
+            sortModel: [{ field: "invoiceNumber", sort: "asc" }]
+          },
           pagination: {
             paginationModel: { page: 0, pageSize: 10 }
           }
