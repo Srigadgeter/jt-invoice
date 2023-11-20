@@ -1,29 +1,40 @@
 import React from "react";
-import { Box, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import EditIcon from "@mui/icons-material/Edit";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { PAGE_INFO } from "utils/constants";
+import AddIcon from "@mui/icons-material/Add";
+
+import { setInvoice, setViewMode } from "store/slices/invoicesSlice";
+import { PAGE_INFO, MODES } from "utils/constants";
+import routes from "routes/routes";
 
 const styles = {
   titleCard: {
     p: 4,
-    color: "common.white",
+    mb: 1,
+    color: (theme) => (theme.palette.mode === "dark" ? "common.black" : "common.white"),
     borderRadius: "15px",
-    boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
-    backgroundImage:
-      "linear-gradient( 64.5deg,  rgba(245,116,185,1) 14.7%, rgba(89,97,223,1) 88.7% )"
+    boxShadow: (theme) => (theme.palette.mode === "dark" ? "#c0bfbf59" : "#00000059"),
+    backgroundImage: (theme) =>
+      `linear-gradient( 64.5deg, ${theme.palette.common.pink} 14.7%, ${theme.palette.primary.main} 88.7% )`
   },
   titleIcon: {
     fontSize: 70
   },
+  box: {
+    display: "flex",
+    justifyContent: "flex-end"
+  },
   dataGrid: {
-    mt: 3,
+    mt: 1,
     ".MuiDataGrid-virtualScroller": {
       overflowX: "hidden",
-      height: "calc(100vh - 345px)",
+      height: "calc(100vh - 370px)",
       "&::-webkit-scrollbar": {
         display: "block"
       }
@@ -32,93 +43,24 @@ const styles = {
 };
 
 const Invoices = () => {
-  const invoices = [
-    {
-      invoiceNumber: "JT20232024TX00001",
-      customerName: "SRINIWAS & CO",
-      createdDate: "10/11/2023",
-      status: "paid",
-      amount: 30000
-    },
-    {
-      invoiceNumber: "JT20232024TX00002",
-      customerName: "SIVANANDA TEXTILES & READYMADES",
-      createdDate: "11/11/2023",
-      status: "unpaid",
-      amount: 13000
-    },
-    {
-      invoiceNumber: "JT20232024TX00003",
-      customerName: "SHREE VENKATESHWARA SILKS",
-      createdDate: "12/11/2023",
-      status: "unpaid",
-      amount: 25000
-    },
-    {
-      invoiceNumber: "JT20232024TX00004",
-      customerName: "SHREE VENKATESHWARA SILKS",
-      createdDate: "13/11/2023",
-      status: "unpaid",
-      amount: 10000
-    },
-    {
-      invoiceNumber: "JT20232024TX00005",
-      customerName: "SRI BHAVANI HANDLOOM STORES",
-      createdDate: "14/11/2023",
-      status: "paid",
-      amount: 16500
-    },
-    {
-      invoiceNumber: "JT20232024TX00012",
-      customerName:
-        "SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES",
-      createdDate: "14/11/2023",
-      status: "paid",
-      amount: 16500
-    },
-    {
-      invoiceNumber: "JT20232024TX00011",
-      customerName: "RANJANAAS READYMADES & SAREES",
-      createdDate: "15/11/2023",
-      status: "unpaid",
-      amount: 21500
-    },
-    {
-      invoiceNumber: "JT20232024TX00006",
-      customerName: "RANJANAAS READYMADES & SAREES",
-      createdDate: "15/11/2023",
-      status: "unpaid",
-      amount: 21500
-    },
-    {
-      invoiceNumber: "JT20232024TX00007",
-      customerName: "SRINIWAS & CO",
-      createdDate: "10/11/2023",
-      status: "paid",
-      amount: 30000
-    },
-    {
-      invoiceNumber: "JT20232024TX00008",
-      customerName: "SIVANANDA TEXTILES & READYMADES",
-      createdDate: "11/11/2023",
-      status: "unpaid",
-      amount: 13000
-    },
-    {
-      invoiceNumber: "JT20232024TX00009",
-      customerName: "SHREE VENKATESHWARA SILKS",
-      createdDate: "12/11/2023",
-      status: "unpaid",
-      amount: 25000
-    },
-    {
-      invoiceNumber: "JT20232024TX00010",
-      customerName: "SHREE VENKATESHWARA SILKS",
-      createdDate: "13/11/2023",
-      status: "unpaid",
-      amount: 10000
-    }
-  ];
+  const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
+  const { NEW, VIEW, EDIT } = MODES;
+  const { invoices } = useSelector((state) => state.invoices);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleOpen = (type, invoiceNumber) => {
+    dispatch(setInvoice(invoiceNumber));
+    dispatch(setViewMode(type));
+    navigate(type === VIEW ? INVOICE_VIEW.to(invoiceNumber) : INVOICE_EDIT.to(invoiceNumber));
+  };
+
+  const handleDownload = () => {};
+
+  const handleNew = () => {
+    dispatch(setViewMode(NEW));
+    navigate(INVOICE_NEW.to());
+  };
 
   const columns = [
     {
@@ -155,20 +97,29 @@ const Invoices = () => {
       headerName: "Actions",
       width: 150,
       sortable: false,
-      renderCell: () => (
+      renderCell: (params) => (
         <Box>
           <Tooltip title="View">
-            <IconButton aria-label="view" size="large">
+            <IconButton
+              aria-label={VIEW}
+              size="large"
+              onClick={() => handleOpen(VIEW, params.row.invoiceNumber)}>
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Edit">
-            <IconButton aria-label="edit" size="large">
+            <IconButton
+              aria-label={EDIT}
+              size="large"
+              onClick={() => handleOpen(EDIT, params.row.invoiceNumber)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Download">
-            <IconButton aria-label="download invoice" size="large">
+            <IconButton
+              aria-label="download invoice"
+              size="large"
+              onClick={() => handleDownload(params.row.invoiceNumber)}>
               <DownloadIcon />
             </IconButton>
           </Tooltip>
@@ -192,6 +143,12 @@ const Invoices = () => {
         </Stack>
         <ReceiptLongIcon sx={styles.titleIcon} />
       </Stack>
+
+      <Box sx={styles.box}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleNew()}>
+          New
+        </Button>
+      </Box>
 
       <DataGrid
         sx={styles.dataGrid}
