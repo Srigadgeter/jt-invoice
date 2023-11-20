@@ -7,13 +7,14 @@ const PrivateRoutes = lazy(() => import("./PrivateRoutes"));
 const NotFound = lazy(() => import("components/common/NotFound"));
 
 const AllRoutes = () => {
-  const { SIGN_IN, INVOICES } = routes;
+  const { SIGN_IN, HOME, INVOICES } = routes;
 
   return (
     <Routes>
       <Route exact path={SIGN_IN.path} element={<SIGN_IN.component />} />
       <Route path="*" element={<NotFound />} />
       <Route exact element={<PrivateRoutes />}>
+        <Route exact path={HOME.path} element={<HOME.component />} />
         <Route exact path={INVOICES.path} element={<INVOICES.component />} />
       </Route>
     </Routes>

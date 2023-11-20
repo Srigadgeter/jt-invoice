@@ -10,6 +10,11 @@ const routes = {
     to: () => "/signin",
     component: SignIn
   },
+  HOME: {
+    path: "/",
+    to: () => "/",
+    component: Invoices
+  },
   INVOICES: {
     path: "/invoices",
     to: () => "/invoices",
