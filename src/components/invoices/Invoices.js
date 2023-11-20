@@ -69,7 +69,7 @@ const Invoices = () => {
       width: 180
     },
     { field: "customerName", headerName: "Customer Name", flex: 1 },
-    { field: "createdDate", headerName: "Invoice Date", width: 130 },
+    { field: "createdAt", headerName: "Invoice Date", width: 130 },
     {
       field: "status",
       headerName: "Status",
