@@ -75,7 +75,8 @@
         "props": true,
         "ignorePropertyModificationsFor": ["state"]
       }
-    ]
+    ],
+    "import/no-cycle": "off"
   },
   "overrides": []
 }
