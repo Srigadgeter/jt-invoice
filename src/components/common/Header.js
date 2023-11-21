@@ -12,9 +12,14 @@ const styles = {
     pl: 2,
     pr: 3,
     mb: 1,
+    top: 0,
+    zIndex: 2,
     display: "flex",
+    position: "sticky",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    bgcolor: (theme) =>
+      theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.common.white
   },
   themeSwitch: { m: 1 },
   avatar: {
