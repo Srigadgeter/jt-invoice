@@ -31,3 +31,10 @@
   scrollbar-color: #d3d3d3 transparent; /* scrollbar-color: thumb-color track-color */
 }
 /* >>>>>>>>>>>>>>><<<<<<<<<<<<<<< */
+
+div,
+span,
+select,
+img {
+  user-select: none;
+}

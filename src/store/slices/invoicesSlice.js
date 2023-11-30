@@ -7,7 +7,21 @@ const initialState = {
       customerName: "SRINIWAS & CO",
       createdAt: "10/11/2023",
       status: "paid",
-      amount: 30000
+      amount: 30000,
+      products: [
+        {
+          productName: "PLATINUM WHITE SHIRT (H)",
+          productQuantityPieces: 50,
+          productQuantityMeters: null,
+          productRate: 185
+        },
+        {
+          productName: "PLATINUM WHITE SHIRT (F)",
+          productQuantityPieces: 30,
+          productQuantityMeters: null,
+          productRate: 205
+        }
+      ]
     },
     {
       invoiceNumber: "JT20232024TX00002",
@@ -101,9 +115,10 @@ const invoicesSlice = createSlice({
       state.invoices = action.payload;
     },
     setInvoice: (state, action) => {
-      state.selectedInvoice = state.invoices.filter(
+      const filteredInvoice = state.invoices.filter(
         (item) => item.invoiceNumber === action.payload
-      );
+      )[0];
+      state.selectedInvoice = filteredInvoice;
     },
     setViewMode: (state, action) => {
       state.viewMode = action.payload;

@@ -3,6 +3,9 @@ export const PAGE_INFO = {
   INVOICES: {
     title: "Invoices",
     description: "List of all bills"
+  },
+  INVOICE: {
+    title: "Invoice Details"
   }
 };
 
@@ -11,7 +14,7 @@ export const DEFAULT_LIGHT = "DEFAULT_LIGHT";
 export const DEFAULT_DARK = "DEFAULT_DARK";
 
 export const MODES = {
-  NEW: "NEW",
-  VIEW: "VIEW",
-  EDIT: "EDIT"
+  NEW: "new",
+  VIEW: "view",
+  EDIT: "edit"
 };

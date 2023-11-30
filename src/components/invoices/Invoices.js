@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -9,7 +9,6 @@ import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
 
-import { setInvoice, setViewMode } from "store/slices/invoicesSlice";
 import { PAGE_INFO, MODES } from "utils/constants";
 import routes from "routes/routes";
 
@@ -44,21 +43,17 @@ const styles = {
 
 const Invoices = () => {
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
-  const { NEW, VIEW, EDIT } = MODES;
+  const { VIEW, EDIT } = MODES;
   const { invoices } = useSelector((state) => state.invoices);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleOpen = (type, invoiceNumber) => {
-    dispatch(setInvoice(invoiceNumber));
-    dispatch(setViewMode(type));
     navigate(type === VIEW ? INVOICE_VIEW.to(invoiceNumber) : INVOICE_EDIT.to(invoiceNumber));
   };
 
   const handleDownload = () => {};
 
   const handleNew = () => {
-    dispatch(setViewMode(NEW));
     navigate(INVOICE_NEW.to());
   };
 
