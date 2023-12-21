@@ -10,6 +10,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
 
 import { PAGE_INFO, MODES } from "utils/constants";
+import { isMobile } from "utils/utilites";
 import routes from "routes/routes";
 
 const styles = {
@@ -32,7 +33,6 @@ const styles = {
   dataGrid: {
     mt: 1,
     ".MuiDataGrid-virtualScroller": {
-      overflowX: "hidden",
       height: "calc(100vh - 370px)",
       "&::-webkit-scrollbar": {
         display: "block"
@@ -77,7 +77,7 @@ const Invoices = () => {
       )
     },
     {
-      field: "amount",
+      field: "totalAmount",
       headerName: "Amount",
       type: "number",
       width: 130,
@@ -123,8 +123,12 @@ const Invoices = () => {
     }
   ];
 
+  if (isMobile()) {
+    columns.splice(1, 1, { field: "customerName", headerName: "Customer Name", width: 300 });
+  }
+
   return (
-    <Box px={3}>
+    <Box px={3} mt={1}>
       <Stack
         direction="row"
         alignItems="center"
