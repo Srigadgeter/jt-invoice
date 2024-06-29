@@ -5,9 +5,12 @@ const initialState = {
     {
       invoiceNumber: "JT20232024TX00001",
       customerName: "SRINIWAS & CO",
-      createdAt: "10/11/2023",
+      createdAt: "2023-11-10",
       status: "paid",
-      amount: 30000,
+      totalAmount: 22440,
+      noOfBales: 2,
+      lrNumber: "ABC123",
+      lrDate: "2023-11-10",
       products: [
         {
           productName: "PLATINUM WHITE SHIRT (H)",
@@ -20,86 +23,98 @@ const initialState = {
           productQuantityPieces: 30,
           productQuantityMeters: null,
           productRate: 205
+        },
+        {
+          productName: "Gray Cloth",
+          productQuantityPieces: 10,
+          productQuantityMeters: 200,
+          productRate: 3.2
+        },
+        {
+          productName: "Gray Cloth - B",
+          productQuantityPieces: null,
+          productQuantityMeters: 200,
+          productRate: 3.2
         }
       ]
     },
     {
       invoiceNumber: "JT20232024TX00002",
       customerName: "SIVANANDA TEXTILES & READYMADES",
-      createdAt: "11/11/2023",
+      createdAt: "2023-11-11",
       status: "unpaid",
-      amount: 13000
+      totalAmount: 13000
     },
     {
       invoiceNumber: "JT20232024TX00003",
       customerName: "SHREE VENKATESHWARA SILKS",
-      createdAt: "12/11/2023",
+      createdAt: "2023-11-12",
       status: "unpaid",
-      amount: 25000
+      totalAmount: 25000
     },
     {
       invoiceNumber: "JT20232024TX00004",
       customerName: "SHREE VENKATESHWARA SILKS",
-      createdAt: "13/11/2023",
+      createdAt: "2023-11-13",
       status: "unpaid",
-      amount: 10000
+      totalAmount: 10000
     },
     {
       invoiceNumber: "JT20232024TX00005",
       customerName: "SRI BHAVANI HANDLOOM STORES",
-      createdAt: "14/11/2023",
+      createdAt: "2023-11-14",
       status: "paid",
-      amount: 16500
+      totalAmount: 16500
     },
     {
       invoiceNumber: "JT20232024TX00012",
       customerName:
         "SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES",
-      createdAt: "14/11/2023",
+      createdAt: "2023-11-14",
       status: "paid",
-      amount: 16500
+      totalAmount: 16500
     },
     {
       invoiceNumber: "JT20232024TX00011",
       customerName: "RANJANAAS READYMADES & SAREES",
-      createdAt: "15/11/2023",
+      createdAt: "2023-11-15",
       status: "unpaid",
-      amount: 21500
+      totalAmount: 21500
     },
     {
       invoiceNumber: "JT20232024TX00006",
       customerName: "RANJANAAS READYMADES & SAREES",
-      createdAt: "15/11/2023",
+      createdAt: "2023-11-15",
       status: "unpaid",
-      amount: 21500
+      totalAmount: 21500
     },
     {
       invoiceNumber: "JT20232024TX00007",
       customerName: "SRINIWAS & CO",
-      createdAt: "10/11/2023",
+      createdAt: "2023-11-10",
       status: "paid",
-      amount: 30000
+      totalAmount: 30000
     },
     {
       invoiceNumber: "JT20232024TX00008",
       customerName: "SIVANANDA TEXTILES & READYMADES",
-      createdAt: "11/11/2023",
+      createdAt: "2023-11-11",
       status: "unpaid",
-      amount: 13000
+      totalAmount: 13000
     },
     {
       invoiceNumber: "JT20232024TX00009",
       customerName: "SHREE VENKATESHWARA SILKS",
-      createdAt: "12/11/2023",
+      createdAt: "2023-11-12",
       status: "unpaid",
-      amount: 25000
+      totalAmount: 25000
     },
     {
       invoiceNumber: "JT20232024TX00010",
       customerName: "SHREE VENKATESHWARA SILKS",
-      createdAt: "13/11/2023",
+      createdAt: "2023-11-13",
       status: "unpaid",
-      amount: 10000
+      totalAmount: 10000
     }
   ],
   selectedInvoice: {},
