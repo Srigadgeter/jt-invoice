@@ -11,13 +11,16 @@ const styles = {
   header: {
     pl: 2,
     pr: 3,
-    mb: 1,
     top: 0,
-    zIndex: 2,
+    zIndex: 3,
     display: "flex",
     position: "sticky",
     alignItems: "center",
     justifyContent: "space-between",
+    boxShadow: (theme) =>
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.1) 0px 4px 12px"
+        : "rgba(0, 0, 0, 0.1) 0px 4px 12px",
     bgcolor: (theme) =>
       theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.common.white
   },
