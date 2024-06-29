@@ -18,3 +18,8 @@ export const MODES = {
   VIEW: "view",
   EDIT: "edit"
 };
+
+export const INVOICE_STATUS = {
+  PAID: "paid",
+  UNPAID: "unpaid"
+};
