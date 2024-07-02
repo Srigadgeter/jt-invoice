@@ -36,6 +36,13 @@ export default ({ children }) => {
             // Add all the default MUI Component Overrides here
             // It'll apply to whole project irrespective of any theme selection
             // Refer here: https://mui.com/customization/theme-components/
+            MuiInputBase: {
+              styleOverrides: {
+                root: {
+                  borderRadius: "8px !important"
+                }
+              }
+            }
           },
           options.components
         )
