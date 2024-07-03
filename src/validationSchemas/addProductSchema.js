@@ -12,9 +12,19 @@ const addProductSchema = yup
           .min(3, "New Product Name must be at least 3 characters")
           .trim()
     }),
-    productQuantityPieces: yup.number().positive().integer().nullable(),
-    productQuantityMeters: yup.number().positive().integer().nullable(),
-    productRate: yup.number().required("Product Rate is required").positive()
+    productQuantityPieces: yup
+      .number()
+      .positive("Product Quantity (in Pcs) must be a positive number")
+      .integer("Product Quantity (in Pcs) must be an integer")
+      .nullable(),
+    productQuantityMeters: yup
+      .number()
+      .positive("Product Quantity (in Mtrs) must be a positive number")
+      .nullable(),
+    productRate: yup
+      .number()
+      .required("Product Rate is required")
+      .positive("Product Rate must be a positive number")
   })
   // Don't use arrow fn, use only ES5 function since test fn won't work if it is arrow fn
   .test("atLeastOneFilled", null, function (values) {
