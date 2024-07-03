@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
@@ -27,12 +27,13 @@ const styles = {
 };
 
 const AddProductModal = ({ open, handleClose }) => {
+  const [amount, setAmount] = useState(0);
   const initialValues = {
     productName: "",
     newProductName: "",
-    productQuantityPieces: "",
-    productQuantityMeters: "",
-    productRate: ""
+    productQuantityPieces: null,
+    productQuantityMeters: null,
+    productRate: null
   };
 
   const {
@@ -67,6 +68,20 @@ const AddProductModal = ({ open, handleClose }) => {
     }
   });
 
+  useEffect(() => {
+    let amt = 0;
+    if (Object.keys(values).length > 0) {
+      if (!(errors?.productQuantityPieces || errors?.productQuantityMeters || errors.productRate)) {
+        amt =
+          (values?.productQuantityPieces ?? 1) *
+          (values?.productQuantityMeters ?? 1) *
+          values.productRate;
+      }
+    }
+
+    setAmount(parseFloat(amt.toFixed(2)));
+  }, [values, errors]);
+
   const handleCancel = () => {
     // reset the form
     resetForm();
@@ -86,12 +101,7 @@ const AddProductModal = ({ open, handleClose }) => {
           Amount:
         </Typography>
         <Typography variant="h6" style={styles.amount}>
-          Rs.
-          {values?.productQuantityPieces || values?.productQuantityMeters
-            ? ((values?.productQuantityPieces ?? 0) > 0 ? values.productQuantityPieces : 1) *
-              ((values?.productQuantityMeters ?? 0) > 0 ? values.productQuantityMeters : 1) *
-              (values?.productRate ?? 1)
-            : 0}
+          Rs. {amount}
         </Typography>
       </Stack>
 
