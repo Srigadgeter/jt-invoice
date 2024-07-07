@@ -40,7 +40,24 @@ export default ({ children }) => {
             // It'll apply to whole project irrespective of any theme selection
             // Refer here: https://mui.com/customization/theme-components/
             MuiCssBaseline: {
-              styleOverrides: {}
+              styleOverrides: {
+                /* >>> Scrollbar Customization <<< */
+                /* Rules for Chrome, Edge, Opera, Safari Browsers */
+                "::-webkit-scrollbar": {
+                  width: "7px",
+                  height: "7px",
+                  display: "none",
+                  "--webkit-appearance": "none"
+                },
+                "::-webkit-scrollbar-thumb": {
+                  borderRadius: "5px",
+                  backgroundColor: "#cccccc"
+                },
+                /* Rules only for Firefox Browser */
+                scrollbarWidth: "none",
+                scrollbarColor: "#d3d3d3 transparent" /* scrollbar-color: thumb-color track-color */
+                /* >>>>>>>>>>>>>>><<<<<<<<<<<<<<< */
+              }
             },
             MuiInputBase: {
               styleOverrides: {
