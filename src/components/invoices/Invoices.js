@@ -136,7 +136,7 @@ const Invoices = () => {
         sx={styles.titleCard}>
         <Stack>
           <Typography variant="h3">{PAGE_INFO.INVOICES.title}</Typography>
-          <Typography variant="caption" pl={0.25}>
+          <Typography variant="body1" pl={0.25}>
             {PAGE_INFO.INVOICES.description}
           </Typography>
         </Stack>
