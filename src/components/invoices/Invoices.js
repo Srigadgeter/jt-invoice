@@ -77,7 +77,7 @@ const Invoices = () => {
       )
     },
     {
-      field: "totalAmount",
+      field: "totalAmountInclGST",
       headerName: "Amount",
       type: "number",
       width: 130,
