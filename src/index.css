@@ -1,5 +1,12 @@
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
-  font-family: "Roboto", sans-serif;
+  font-family: "CharlieDisplay", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
