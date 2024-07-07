@@ -32,7 +32,7 @@ export default ({ children }) => {
       theme={createTheme({
         ...options,
         typography: {
-          fontFamily: "CharlieDisplay, sans-serif"
+          fontFamily: "CharlieDisplay, sans-serif" // Order of font selection for all MUI components
         },
         components: deepmerge(
           {
