@@ -5,7 +5,7 @@ import { Avatar, Box, Stack, Switch } from "@mui/material";
 
 import { DEFAULT_DARK } from "utils/constants";
 import { toggleTheme } from "store/slices/appSlice";
-import Logo from "assets/logo.svg";
+import Logo from "assets/svg/logo.svg";
 
 const styles = {
   header: {
