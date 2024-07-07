@@ -6,6 +6,7 @@ import { CssBaseline } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 // internal imports
+import CharlieDisplayFont from "assets/fonts/charlie-display.ttf";
 import themes from "./themes";
 
 export default ({ children }) => {
@@ -31,11 +32,25 @@ export default ({ children }) => {
     <ThemeProvider
       theme={createTheme({
         ...options,
+        typography: {
+          fontFamily: "CharlieDisplay, sans-serif"
+        },
         components: deepmerge(
           {
             // Add all the default MUI Component Overrides here
             // It'll apply to whole project irrespective of any theme selection
             // Refer here: https://mui.com/customization/theme-components/
+            MuiCssBaseline: {
+              styleOverrides: `
+                @font-face {
+                  font-family: 'CharlieDisplay';
+                  font-style: normal;
+                  font-display: swap;
+                  font-weight: normal;
+                  src: local('CharlieDisplay'), url(${CharlieDisplayFont}) format('ttf');
+                }
+              `
+            },
             MuiInputBase: {
               styleOverrides: {
                 root: {
