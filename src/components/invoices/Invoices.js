@@ -33,9 +33,13 @@ const styles = {
   dataGrid: {
     mt: 1,
     ".MuiDataGrid-virtualScroller": {
+      overflowX: "hidden",
       height: "calc(100vh - 370px)",
-      "&::-webkit-scrollbar": {
-        display: "block"
+      scrollbarWidth: "7px",
+      ":hover": {
+        "::-webkit-scrollbar": {
+          display: "block"
+        }
       }
     }
   }
