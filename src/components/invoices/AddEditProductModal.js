@@ -15,7 +15,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 
 import AppModal from "components/common/AppModal";
 import { isMobile, trimString } from "utils/utilites";
-import addProductSchema from "validationSchemas/addProductSchema";
+import addEditProductSchema from "validationSchemas/addEditProductSchema";
 
 const styles = {
   fullWidth: {
@@ -26,7 +26,7 @@ const styles = {
   }
 };
 
-const AddProductModal = ({ open, handleClose }) => {
+const AddEditProductModal = ({ open, handleClose }) => {
   const [amount, setAmount] = useState(0);
   const initialValues = {
     productName: "",
@@ -49,7 +49,7 @@ const AddProductModal = ({ open, handleClose }) => {
     setFieldValue
   } = useFormik({
     initialValues,
-    validationSchema: addProductSchema,
+    validationSchema: addEditProductSchema,
     onSubmit: (val) => {
       // trim the values
       const formValues = {};
@@ -244,4 +244,4 @@ const AddProductModal = ({ open, handleClose }) => {
   );
 };
 
-export default AddProductModal;
+export default AddEditProductModal;

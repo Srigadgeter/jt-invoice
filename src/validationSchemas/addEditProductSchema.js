@@ -1,7 +1,7 @@
 import * as yup from "yup";
 
-// Schema for the AddProductModal component
-const addProductSchema = yup
+// Schema for the AddEditProductModal component
+const addEditProductSchema = yup
   .object({
     productName: yup.string().trim().required("Product Name is required"),
     newProductName: yup.string().when("productName", {
@@ -38,4 +38,4 @@ const addProductSchema = yup
     return true;
   });
 
-export default addProductSchema;
+export default addEditProductSchema;
