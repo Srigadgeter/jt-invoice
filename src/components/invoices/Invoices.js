@@ -10,7 +10,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
 
 import { PAGE_INFO, MODES } from "utils/constants";
-import { isMobile } from "utils/utilites";
+import { indianCurrencyFormatter, isMobile } from "utils/utilites";
 import routes from "routes/routes";
 
 const styles = {
@@ -73,10 +73,10 @@ const Invoices = () => {
       field: "status",
       headerName: "Status",
       width: 100,
-      renderCell: (params) => (
+      renderCell: ({ value }) => (
         <Chip
-          label={params.value.toLowerCase() === "paid" ? "Paid" : "Unpaid"}
-          color={params.value.toLowerCase() === "paid" ? "success" : "error"}
+          label={value.toLowerCase() === "paid" ? "Paid" : "Unpaid"}
+          color={value.toLowerCase() === "paid" ? "success" : "error"}
         />
       )
     },
@@ -84,10 +84,10 @@ const Invoices = () => {
       field: "totalAmountInclGST",
       headerName: "Amount",
       type: "number",
-      width: 130,
-      renderCell: (params) => (
-        <Typography fontSize={18} fontWeight="bold">
-          &#8377;{params.value}
+      width: 150,
+      renderCell: ({ value }) => (
+        <Typography fontSize={16} fontWeight={700}>
+          {indianCurrencyFormatter(value)}
         </Typography>
       )
     },
