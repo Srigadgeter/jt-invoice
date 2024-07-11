@@ -5,7 +5,13 @@ export const PAGE_INFO = {
     description: "List of all bills"
   },
   INVOICE: {
-    title: "Invoice Details"
+    title: "Invoice",
+    titleNew: "Add Invoice",
+    titleEdit: "Edit Invoice",
+    invoiceDetails: "Invoice Details",
+    customerDetails: "Customer Details",
+    products: "Products",
+    extras: "Extras"
   }
 };
 
