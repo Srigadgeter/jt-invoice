@@ -10,6 +10,7 @@ const addEditProductSchema = yup
         schema
           .required("New Product Name is required")
           .min(3, "New Product Name must be at least 3 characters")
+          .max(30, "New Product Name should not be more than 30 characters")
           .trim()
     }),
     productQuantityPieces: yup
