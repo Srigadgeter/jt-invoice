@@ -1,8 +1,126 @@
+/* Thin */
 @font-face {
   font-family: "CharlieDisplay";
-  src: url("./assets/fonts/charlie-display.ttf") format("truetype");
-  font-weight: normal;
+  src: url("./assets/fonts/charlie-display-thin.ttf") format("truetype");
+  font-weight: 100;
   font-style: normal;
+  font-display: swap;
+}
+
+/* Light */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Regular */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Semibold */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Bold */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Black */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Ultra */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-ultra.ttf") format("truetype");
+  font-weight: 950;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Thin */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-thin-italic.ttf") format("truetype");
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Light */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-light-italic.ttf") format("truetype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Regular */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-regular-italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Semibold */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-semibold-italic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Bold */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-bold-italic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Black */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-black-italic.ttf") format("truetype");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Ultra */
+@font-face {
+  font-family: "CharlieDisplay";
+  src: url("./assets/fonts/charlie-display-ultra-italic.ttf") format("truetype");
+  font-weight: 950;
+  font-style: italic;
   font-display: swap;
 }
 
