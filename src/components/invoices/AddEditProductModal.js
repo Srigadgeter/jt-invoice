@@ -37,8 +37,24 @@ const INITIAL_VALUES = {
 };
 
 const productList = [
-  { value: "platinum-white-shirt-h", label: "Platinum white shirt (H)" },
-  { value: "platinum-white-shirt-f", label: "Platinum white shirt (F)" }
+  { value: "platinum-white-shirt-f", label: "Platinum White Shirt (F)" },
+  { value: "platinum-white-shirt-h", label: "Platinum White Shirt (H)" },
+  { value: "aim-spray-shirt-f", label: "Aim Spray Shirt (F)" },
+  { value: "aim-spray-shirt-h", label: "Aim Spray Shirt (H)" },
+  { value: "style-one-shirt-f", label: "Style One Shirt (F)" },
+  { value: "style-one-shirt-h", label: "Style One Shirt (H)" },
+  { value: "gray-cloth-20x20", label: "Gray Cloth 20x20" },
+  { value: "gray-cloth-20x40", label: "Gray Cloth 20x40" },
+  { value: "gray-cloth-40x50", label: "Gray Cloth 40x50" },
+  { value: "platinum-white-shirt-f-2", label: "Platinum White Shirt (F)" },
+  { value: "platinum-white-shirt-h-2", label: "Platinum White Shirt (H)" },
+  { value: "aim-spray-shirt-f-2", label: "Aim Spray Shirt (F)" },
+  { value: "aim-spray-shirt-h-2", label: "Aim Spray Shirt (H)" },
+  { value: "style-one-shirt-f-2", label: "Style One Shirt (F)" },
+  { value: "style-one-shirt-h-2", label: "Style One Shirt (H)" },
+  { value: "gray-cloth-20x20-2", label: "Gray Cloth 20x20" },
+  { value: "gray-cloth-20x40-2", label: "Gray Cloth 20x40" },
+  { value: "gray-cloth-40x50-2", label: "Gray Cloth 40x50" }
 ];
 
 const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES }) => {
