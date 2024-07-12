@@ -140,9 +140,9 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
   return (
     <AppModal
       open={open}
-      title="Add Product"
       handleClose={handleCancel}
-      footer={footerContent(values, isValid, dirty, handleSubmit)}>
+      footer={footerContent(values, isValid, dirty, handleSubmit)}
+      title={`${initialValues?.productName?.value ? "Edit" : "Add"} Product`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
         <Stack direction="row" spacing={2} sx={styles.fullWidth}>
           <FormControl
