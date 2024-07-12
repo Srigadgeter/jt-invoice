@@ -13,6 +13,7 @@ import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
 import InputAdornment from "@mui/material/InputAdornment";
 
+import commonStyles from "utils/commonStyles";
 import AppModal from "components/common/AppModal";
 import { isMobile, trimString } from "utils/utilites";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
@@ -23,7 +24,8 @@ const styles = {
   },
   amount: {
     fontWeight: 400
-  }
+  },
+  ...commonStyles
 };
 
 const INITIAL_VALUES = {
@@ -36,8 +38,7 @@ const INITIAL_VALUES = {
 
 const productList = [
   { value: "platinum-white-shirt-h", label: "Platinum white shirt (H)" },
-  { value: "platinum-white-shirt-f", label: "Platinum white shirt (F)" },
-  { value: "new", label: "New" }
+  { value: "platinum-white-shirt-f", label: "Platinum white shirt (F)" }
 ];
 
 const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES }) => {
@@ -100,6 +101,8 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
   const handleSelectChange = ({ target: { name, value } }, list) => {
     if (value === "") {
       setFieldValue(name, { label: "None", value: "" });
+    } else if (value === "new") {
+      setFieldValue(name, { label: "New", value: "new" });
     } else {
       const selectedOption = list.find((option) => option.value === value);
       setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
@@ -157,8 +160,9 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
               label="Product Name"
               onBlur={handleBlur}
               value={values?.productName?.value ?? ""}
+              MenuProps={{ sx: styles.selectDropdownMenuStyle }}
               onChange={(e) => handleSelectChange(e, productList)}>
-              <MenuItem value="">
+              <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
                 <em>None</em>
               </MenuItem>
               {productList &&
@@ -168,6 +172,9 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
                     {item?.label}
                   </MenuItem>
                 ))}
+              <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
+                <em>New</em>
+              </MenuItem>
             </Select>
             {touched?.productName && Boolean(errors?.productName?.value) && (
               <FormHelperText
