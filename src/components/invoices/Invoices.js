@@ -42,7 +42,18 @@ const styles = {
         }
       }
     }
-  }
+  },
+  chip: (value) => ({
+    width: "70px",
+    height: "auto",
+    borderRadius: 1,
+    color: value === "paid" ? "common.success" : "common.error",
+    bgcolor: value === "paid" ? "background.success" : "background.error",
+    ".MuiChip-label": {
+      px: 0.75,
+      py: 0.5
+    }
+  })
 };
 
 const Invoices = () => {
@@ -76,7 +87,7 @@ const Invoices = () => {
       renderCell: ({ value }) => (
         <Chip
           label={value.toLowerCase() === "paid" ? "Paid" : "Unpaid"}
-          color={value.toLowerCase() === "paid" ? "success" : "error"}
+          sx={styles.chip(value?.toLowerCase())}
         />
       )
     },
@@ -86,7 +97,7 @@ const Invoices = () => {
       type: "number",
       width: 150,
       renderCell: ({ value }) => (
-        <Typography fontSize={16} fontWeight={700}>
+        <Typography fontSize={16} fontWeight={600} color="primary.main">
           {indianCurrencyFormatter(value)}
         </Typography>
       )
