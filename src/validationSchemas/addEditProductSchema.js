@@ -3,8 +3,11 @@ import * as yup from "yup";
 // Schema for the AddEditProductModal component
 const addEditProductSchema = yup
   .object({
-    productName: yup.string().trim().required("Product Name is required"),
-    newProductName: yup.string().when("productName", {
+    productName: yup.object({
+      label: yup.string().trim(),
+      value: yup.string().trim().required("Product Name is required")
+    }),
+    newProductName: yup.string().when("productName.value", {
       is: "new",
       then: (schema) =>
         schema

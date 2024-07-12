@@ -26,15 +26,22 @@ const styles = {
   }
 };
 
-const AddEditProductModal = ({ open, handleClose }) => {
+const INITIAL_VALUES = {
+  productName: { value: "", label: "" },
+  newProductName: "",
+  productQuantityPieces: null,
+  productQuantityMeters: null,
+  productRate: null
+};
+
+const productList = [
+  { value: "platinum-white-shirt-h", label: "Platinum white shirt (H)" },
+  { value: "platinum-white-shirt-f", label: "Platinum white shirt (F)" },
+  { value: "new", label: "New" }
+];
+
+const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES }) => {
   const [amount, setAmount] = useState(0);
-  const initialValues = {
-    productName: "",
-    newProductName: "",
-    productQuantityPieces: null,
-    productQuantityMeters: null,
-    productRate: null
-  };
 
   const {
     dirty,
@@ -90,8 +97,13 @@ const AddEditProductModal = ({ open, handleClose }) => {
     handleClose();
   };
 
-  const handleSelectChange = ({ target: { name, value } }) => {
-    setFieldValue(name, value);
+  const handleSelectChange = ({ target: { name, value } }, list) => {
+    if (value === "") {
+      setFieldValue(name, { label: "None", value: "" });
+    } else {
+      const selectedOption = list.find((option) => option.value === value);
+      setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
+    }
   };
 
   const footerContent = () => (
@@ -137,30 +149,35 @@ const AddEditProductModal = ({ open, handleClose }) => {
             fullWidth
             size="small"
             margin="dense"
-            error={touched?.productName && Boolean(errors?.productName)}>
+            error={touched?.productName && Boolean(errors?.productName?.value)}>
             <InputLabel id="productName">Product Name</InputLabel>
             <Select
               id="productName"
               name="productName"
               label="Product Name"
               onBlur={handleBlur}
-              onChange={handleSelectChange}
-              value={values?.productName ?? ""}>
+              value={values?.productName?.value ?? ""}
+              onChange={(e) => handleSelectChange(e, productList)}>
               <MenuItem value="">
                 <em>None</em>
               </MenuItem>
-              <MenuItem value="ten">Ten</MenuItem>
-              <MenuItem value="new">New</MenuItem>
+              {productList &&
+                Array.isArray(productList) &&
+                productList.map((item) => (
+                  <MenuItem key={item?.value} value={item?.value}>
+                    {item?.label}
+                  </MenuItem>
+                ))}
             </Select>
-            {touched?.productName && Boolean(errors?.productName) && (
+            {touched?.productName && Boolean(errors?.productName?.value) && (
               <FormHelperText
                 htmlFor="form-selector"
-                error={touched?.productName && Boolean(errors?.productName)}>
-                {errors?.productName}
+                error={touched?.productName && Boolean(errors?.productName?.value)}>
+                {errors?.productName?.value}
               </FormHelperText>
             )}
           </FormControl>
-          {values?.productName === "new" && (
+          {values?.productName?.value === "new" && (
             <TextField
               fullWidth
               id="newProductName"
