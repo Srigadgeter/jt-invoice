@@ -1,5 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+import { MODES } from "utils/constants";
+import { getSum } from "utils/utilites";
+
 const initialState = {
   invoices: [
     {
@@ -174,10 +177,106 @@ const invoicesSlice = createSlice({
     },
     setPageMode: (state, action) => {
       state.pageMode = action?.payload;
+    },
+    setTotalAmount: (state, action) => {
+      const { key = null } = action?.payload ?? {};
+      if (key) {
+        state[key] = {
+          ...state[key],
+          totalAmount: Math.ceil(
+            getSum([...(state[key]?.products ?? [])], "productAmountInclGST") +
+              getSum([...(state[key]?.extras ?? [])], "amount")
+          )
+        };
+      }
+    },
+    addProduct: (state, action) => {
+      const { NEW, EDIT } = MODES;
+      const currentInvoice = {
+        ...(state?.pageMode === NEW ? state?.newInvoice : state?.selectedInvoice)
+      };
+      const isProductAlreadyPresent = currentInvoice?.products?.find(
+        (item) => item?.productName?.value === action?.payload?.productName?.value
+      );
+
+      if (!isProductAlreadyPresent) {
+        if (state?.pageMode === NEW) {
+          state.newInvoice = {
+            ...state.newInvoice,
+            products: [...(state?.newInvoice?.products ?? []), action?.payload]
+          };
+          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "newInvoice" } });
+        } else if (state?.pageMode === EDIT) {
+          state.selectedInvoice = {
+            ...state.selectedInvoice,
+            products: [...(state?.selectedInvoice?.products ?? []), action?.payload]
+          };
+          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "selectedInvoice" } });
+        }
+      } else throw new Error("Product already added to the invoice");
+    },
+    editProduct: (state, action) => {
+      const { NEW, EDIT } = MODES;
+      const currentInvoice = {
+        ...(state?.pageMode === NEW ? state?.newInvoice : state?.selectedInvoice)
+      };
+      const indexFound = currentInvoice?.products?.findIndex(
+        (item) => item?.productName?.value === action?.payload?.product?.productName?.value
+      );
+      const isProductAlreadyPresent = indexFound >= 0 && indexFound !== action?.payload?.itemIndex;
+
+      if (!isProductAlreadyPresent) {
+        const getModifiedProductsAndTotal = (invoice) =>
+          invoice?.products?.map((item, index) => {
+            if (action?.payload?.itemIndex === index) {
+              return action?.payload?.product;
+            }
+            return item;
+          });
+
+        if (state?.pageMode === NEW) {
+          const modifiedProducts = getModifiedProductsAndTotal(state?.newInvoice ?? {});
+          state.newInvoice = {
+            ...state.newInvoice,
+            products: [...modifiedProducts]
+          };
+          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "newInvoice" } });
+        } else if (state?.pageMode === EDIT) {
+          const modifiedProducts = getModifiedProductsAndTotal(state?.selectedInvoice ?? {});
+          state.selectedInvoice = {
+            ...state.selectedInvoice,
+            products: [...modifiedProducts]
+          };
+          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "selectedInvoice" } });
+        }
+      } else throw new Error("Product already added to the invoice");
+    },
+    removeProduct: (state, action) => {
+      const { NEW, EDIT } = MODES;
+      const currentInvoice = {
+        ...(state?.pageMode === NEW ? state?.newInvoice : state?.selectedInvoice)
+      };
+      const filteredProducts = currentInvoice?.products?.filter(
+        (item) => item?.productName?.value !== action?.payload?.productName?.value
+      );
+      if (state?.pageMode === NEW) {
+        state.newInvoice = {
+          ...state.newInvoice,
+          products: [...filteredProducts]
+        };
+        invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "newInvoice" } });
+      } else if (state?.pageMode === EDIT) {
+        state.selectedInvoice = {
+          ...state.selectedInvoice,
+          products: [...filteredProducts]
+        };
+        invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "selectedInvoice" } });
+      }
     }
   }
 });
 
-export const { setInvoices, setInvoice, setPageMode } = invoicesSlice.actions;
+export const { setInvoices, setInvoice, setPageMode, addProduct, editProduct, removeProduct } =
+  invoicesSlice.actions;
 
 export default invoicesSlice.reducer;
