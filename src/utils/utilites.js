@@ -16,3 +16,14 @@ export const generateKeyValuePair = (label) => ({
   label,
   value: label?.toLowerCase().split(" ").join("-")
 });
+
+export const getSum = (arr, key = null, initialValue = 0) => {
+  if (arr && Array.isArray(arr)) {
+    if (arr.length > 0) {
+      if (key) return arr.reduce((sum, item) => sum + item[key], initialValue);
+      return arr.reduce((sum, item) => sum + item, initialValue);
+    }
+    return 0;
+  }
+  return 0;
+};
