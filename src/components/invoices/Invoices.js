@@ -92,7 +92,7 @@ const Invoices = () => {
       )
     },
     {
-      field: "totalAmountInclGST",
+      field: "totalAmount",
       headerName: "Amount",
       type: "number",
       width: 150,
@@ -171,7 +171,7 @@ const Invoices = () => {
         getRowId={(row) => row.invoiceNumber}
         initialState={{
           sorting: {
-            sortModel: [{ field: "invoiceNumber", sort: "asc" }]
+            sortModel: [{ field: "createdAt", sort: "desc" }]
           },
           pagination: {
             paginationModel: { page: 0, pageSize: 10 }
