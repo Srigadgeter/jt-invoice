@@ -182,101 +182,152 @@ const invoicesSlice = createSlice({
       const { key = null } = action?.payload ?? {};
       if (key) {
         state[key] = {
-          ...state[key],
+          ...state?.[key],
           totalAmount: Math.ceil(
-            getSum([...(state[key]?.products ?? [])], "productAmountInclGST") +
-              getSum([...(state[key]?.extras ?? [])], "amount")
+            getSum([...(state?.[key]?.products ?? [])], "productAmountInclGST") +
+              getSum([...(state?.[key]?.extras ?? [])], "amount")
           )
         };
       }
     },
-    addProduct: (state, action) => {
-      const { NEW, EDIT } = MODES;
-      const currentInvoice = {
-        ...(state?.pageMode === NEW ? state?.newInvoice : state?.selectedInvoice)
-      };
-      const isProductAlreadyPresent = currentInvoice?.products?.find(
-        (item) => item?.productName?.value === action?.payload?.productName?.value
-      );
+    addFn: (state, action) => {
+      const { fieldKey = null, propKey = null, errorMessage = "", ...rest } = action?.payload ?? {};
 
-      if (!isProductAlreadyPresent) {
-        if (state?.pageMode === NEW) {
-          state.newInvoice = {
-            ...state.newInvoice,
-            products: [...(state?.newInvoice?.products ?? []), action?.payload]
+      if (fieldKey && propKey && errorMessage) {
+        const stateKey = state?.pageMode === MODES?.NEW ? "newInvoice" : "selectedInvoice";
+
+        const isProductAlreadyPresent = state?.[stateKey]?.[fieldKey]?.find(
+          (item) => item?.[propKey]?.value === action?.payload?.[propKey]?.value
+        );
+
+        if (!isProductAlreadyPresent) {
+          state[stateKey] = {
+            ...state?.[stateKey],
+            [fieldKey]: [...(state?.[stateKey]?.[fieldKey] ?? []), { ...rest }]
           };
-          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "newInvoice" } });
-        } else if (state?.pageMode === EDIT) {
-          state.selectedInvoice = {
-            ...state.selectedInvoice,
-            products: [...(state?.selectedInvoice?.products ?? []), action?.payload]
-          };
-          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "selectedInvoice" } });
-        }
-      } else throw new Error("Product already added to the invoice");
+          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: stateKey } });
+        } else throw new Error(errorMessage);
+      }
     },
-    editProduct: (state, action) => {
-      const { NEW, EDIT } = MODES;
-      const currentInvoice = {
-        ...(state?.pageMode === NEW ? state?.newInvoice : state?.selectedInvoice)
-      };
-      const indexFound = currentInvoice?.products?.findIndex(
-        (item) => item?.productName?.value === action?.payload?.product?.productName?.value
-      );
-      const isProductAlreadyPresent = indexFound >= 0 && indexFound !== action?.payload?.itemIndex;
+    editFn: (state, action) => {
+      const {
+        itemIndex,
+        fieldKey = null,
+        propKey = null,
+        errorMessage = "",
+        ...rest
+      } = action?.payload ?? {};
 
-      if (!isProductAlreadyPresent) {
-        const getModifiedProductsAndTotal = (invoice) =>
-          invoice?.products?.map((item, index) => {
-            if (action?.payload?.itemIndex === index) {
-              return action?.payload?.product;
-            }
+      if (fieldKey && propKey && errorMessage && itemIndex >= 0) {
+        const stateKey = state?.pageMode === MODES?.NEW ? "newInvoice" : "selectedInvoice";
+
+        const indexFound = state?.[stateKey]?.[fieldKey]?.findIndex(
+          (item) => item?.[propKey]?.value === action?.payload?.[propKey]?.value
+        );
+
+        const isProductAlreadyPresent = indexFound >= 0 && indexFound !== itemIndex;
+
+        if (!isProductAlreadyPresent) {
+          const modifiedProducts = state?.[stateKey]?.[fieldKey]?.map((item, index) => {
+            if (itemIndex === index) return { ...rest };
             return item;
           });
+          state[stateKey] = {
+            ...state?.[stateKey],
+            [fieldKey]: [...modifiedProducts]
+          };
+          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: stateKey } });
+        } else throw new Error(errorMessage);
+      }
+    },
+    removeFn: (state, action) => {
+      const { fieldKey = null, propKey = null } = action?.payload ?? {};
 
-        if (state?.pageMode === NEW) {
-          const modifiedProducts = getModifiedProductsAndTotal(state?.newInvoice ?? {});
-          state.newInvoice = {
-            ...state.newInvoice,
-            products: [...modifiedProducts]
-          };
-          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "newInvoice" } });
-        } else if (state?.pageMode === EDIT) {
-          const modifiedProducts = getModifiedProductsAndTotal(state?.selectedInvoice ?? {});
-          state.selectedInvoice = {
-            ...state.selectedInvoice,
-            products: [...modifiedProducts]
-          };
-          invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "selectedInvoice" } });
+      if (fieldKey && propKey) {
+        const stateKey = state?.pageMode === MODES?.NEW ? "newInvoice" : "selectedInvoice";
+
+        const filteredProducts = state?.[stateKey]?.[fieldKey]?.filter(
+          (item) => item?.[propKey]?.value !== action?.payload?.[propKey]?.value
+        );
+
+        state[stateKey] = {
+          ...state?.[stateKey],
+          [fieldKey]: [...filteredProducts]
+        };
+        invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: stateKey } });
+      }
+    },
+    addProduct: (state, action) => {
+      invoicesSlice.caseReducers.addFn(state, {
+        payload: {
+          ...(action?.payload ?? {}),
+          fieldKey: "products",
+          propKey: "productName",
+          errorMessage: "Product already added to the invoice"
         }
-      } else throw new Error("Product already added to the invoice");
+      });
+    },
+    editProduct: (state, action) => {
+      invoicesSlice.caseReducers.editFn(state, {
+        payload: {
+          ...(action?.payload ?? {}),
+          fieldKey: "products",
+          propKey: "productName",
+          errorMessage: "Product already added to the invoice"
+        }
+      });
     },
     removeProduct: (state, action) => {
-      const { NEW, EDIT } = MODES;
-      const currentInvoice = {
-        ...(state?.pageMode === NEW ? state?.newInvoice : state?.selectedInvoice)
-      };
-      const filteredProducts = currentInvoice?.products?.filter(
-        (item) => item?.productName?.value !== action?.payload?.productName?.value
-      );
-      if (state?.pageMode === NEW) {
-        state.newInvoice = {
-          ...state.newInvoice,
-          products: [...filteredProducts]
-        };
-        invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "newInvoice" } });
-      } else if (state?.pageMode === EDIT) {
-        state.selectedInvoice = {
-          ...state.selectedInvoice,
-          products: [...filteredProducts]
-        };
-        invoicesSlice.caseReducers.setTotalAmount(state, { payload: { key: "selectedInvoice" } });
-      }
+      invoicesSlice.caseReducers.removeFn(state, {
+        payload: {
+          ...(action?.payload ?? {}),
+          fieldKey: "products",
+          propKey: "productName"
+        }
+      });
+    },
+    addExtra: (state, action) => {
+      invoicesSlice.caseReducers.addFn(state, {
+        payload: {
+          ...(action?.payload ?? {}),
+          fieldKey: "extras",
+          propKey: "reason",
+          errorMessage: "This extra already added to the invoice"
+        }
+      });
+    },
+    editExtra: (state, action) => {
+      invoicesSlice.caseReducers.editFn(state, {
+        payload: {
+          ...(action?.payload ?? {}),
+          fieldKey: "extras",
+          propKey: "reason",
+          errorMessage: "This extra already added to the invoice"
+        }
+      });
+    },
+    removeExtra: (state, action) => {
+      invoicesSlice.caseReducers.removeFn(state, {
+        payload: {
+          ...(action?.payload ?? {}),
+          fieldKey: "extras",
+          propKey: "reason"
+        }
+      });
     }
   }
 });
 
-export const { setInvoices, setInvoice, setPageMode, addProduct, editProduct, removeProduct } =
-  invoicesSlice.actions;
+export const {
+  setInvoices,
+  setInvoice,
+  setPageMode,
+  addProduct,
+  editProduct,
+  removeProduct,
+  addExtra,
+  editExtra,
+  removeExtra
+} = invoicesSlice.actions;
 
 export default invoicesSlice.reducer;
