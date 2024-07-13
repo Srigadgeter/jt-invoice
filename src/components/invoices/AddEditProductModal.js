@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import Stack from "@mui/material/Stack";
+import { useDispatch } from "react-redux";
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -15,7 +16,9 @@ import InputAdornment from "@mui/material/InputAdornment";
 
 import commonStyles from "utils/commonStyles";
 import AppModal from "components/common/AppModal";
-import { isMobile, trimString } from "utils/utilites";
+import { GST_PERCENTAGE } from "utils/constants";
+import { generateKeyValuePair, isMobile } from "utils/utilites";
+import { addProduct, editProduct } from "store/slices/invoicesSlice";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
 
 const styles = {
@@ -57,8 +60,10 @@ const productList = [
   { value: "gray-cloth-40x50-2", label: "Gray Cloth 40x50" }
 ];
 
-const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES }) => {
+const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValues = null }) => {
   const [amount, setAmount] = useState(0);
+
+  const dispatch = useDispatch();
 
   const {
     dirty,
@@ -72,34 +77,56 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
     handleSubmit,
     setFieldValue
   } = useFormik({
-    initialValues,
+    enableReinitialize: true,
+    initialValues: initialValues ?? INITIAL_VALUES,
     validationSchema: addEditProductSchema,
-    onSubmit: (val) => {
-      // trim the values
-      const formValues = {};
-      Object.entries(val).forEach(([key, value]) => {
-        formValues[key] = trimString(value);
-      });
+    onSubmit: async (val, { setErrors }) => {
+      try {
+        const gstAmount = parseFloat(((amount * GST_PERCENTAGE) / 100).toFixed(2));
 
-      // >>> TODO; API call - create new product if newProductName has value <<<
-      // >>> TODO; add product to redux store <<<
+        // trim & frame the form values
+        const formValues = {
+          productQuantityPieces: val?.productQuantityPieces,
+          productQuantityMeters: val?.productQuantityMeters,
+          productRate: val?.productRate,
+          productAmount: amount,
+          producGstAmount: gstAmount,
+          productAmountInclGST: amount + gstAmount
+        };
+        if (val?.newProductName) formValues.productName = generateKeyValuePair(val?.newProductName);
+        else formValues.productName = val?.productName;
 
-      // reset the form
-      resetForm();
+        // add or update data to the store
+        if (itemIndex === null) await dispatch(addProduct(formValues));
+        else await dispatch(editProduct({ ...formValues, itemIndex }));
 
-      // close the modal
-      handleClose();
+        // reset the form
+        resetForm();
+
+        // close the modal
+        handleClose();
+      } catch (error) {
+        setErrors({
+          productName: {
+            value: error?.message
+          }
+        });
+      }
     }
   });
 
   useEffect(() => {
     let amt = 0;
-    if (Object.keys(values).length > 0) {
-      if (!(errors?.productQuantityPieces || errors?.productQuantityMeters || errors.productRate)) {
-        amt =
-          (values?.productQuantityPieces ?? 1) *
-          (values?.productQuantityMeters ?? 1) *
-          values.productRate;
+    if (values) {
+      if (Object.keys(values).length > 0) {
+        if (
+          !(errors?.productQuantityPieces || errors?.productQuantityMeters || errors.productRate)
+        ) {
+          amt =
+            (values?.productQuantityPieces ?? 1) *
+            (values?.productQuantityMeters ?? 1) *
+            values.productRate;
+        }
       }
     }
 
@@ -161,7 +188,7 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
       open={open}
       handleClose={handleCancel}
       footer={footerContent(values, isValid, dirty, handleSubmit)}
-      title={`${initialValues?.productName?.value ? "Edit" : "Add"} Product`}>
+      title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Product`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
         <Stack direction="row" spacing={2} sx={styles.fullWidth}>
           <FormControl
@@ -231,11 +258,11 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
           onChange={handleChange}
           value={values?.productQuantityPieces ?? ""}
           helperText={
-            touched?.productQuantityPieces &&
+            (touched?.productQuantityPieces || touched?.productQuantityMeters) &&
             (errors?.productQuantityPieces || errors?.atLeastOneFilled)
           }
           error={
-            touched?.productQuantityPieces &&
+            (touched?.productQuantityPieces || touched?.productQuantityMeters) &&
             Boolean(errors?.productQuantityPieces || errors?.atLeastOneFilled)
           }
         />
@@ -254,11 +281,11 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
           onChange={handleChange}
           value={values?.productQuantityMeters ?? ""}
           helperText={
-            touched?.productQuantityMeters &&
+            (touched?.productQuantityPieces || touched?.productQuantityMeters) &&
             (errors?.productQuantityMeters || errors?.atLeastOneFilled)
           }
           error={
-            touched?.productQuantityMeters &&
+            (touched?.productQuantityPieces || touched?.productQuantityMeters) &&
             Boolean(errors?.productQuantityMeters || errors?.atLeastOneFilled)
           }
         />
