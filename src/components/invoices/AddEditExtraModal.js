@@ -1,6 +1,7 @@
 import React from "react";
 import { useFormik } from "formik";
 import Stack from "@mui/material/Stack";
+import { useDispatch } from "react-redux";
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -14,7 +15,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 
 import commonStyles from "utils/commonStyles";
 import AppModal from "components/common/AppModal";
-import { isMobile, trimString } from "utils/utilites";
+import { generateKeyValuePair, isMobile } from "utils/utilites";
+import { addExtra, editExtra } from "store/slices/invoicesSlice";
 import addEditExtraSchema from "validationSchemas/addEditExtraSchema";
 
 const styles = {
@@ -26,12 +28,15 @@ const styles = {
 
 const INITIAL_VALUES = {
   reason: { value: "", label: "" },
+  newReason: "",
   amount: null
 };
 
 const extraList = [{ value: "bus-fare", label: "Bus Fare" }];
 
-const AddEditExtraModal = ({ open, handleClose, initialValues = INITIAL_VALUES }) => {
+const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues = null }) => {
+  const dispatch = useDispatch();
+
   const {
     dirty,
     values,
@@ -44,23 +49,34 @@ const AddEditExtraModal = ({ open, handleClose, initialValues = INITIAL_VALUES }
     handleSubmit,
     setFieldValue
   } = useFormik({
-    initialValues,
+    enableReinitialize: true,
+    initialValues: initialValues ?? INITIAL_VALUES,
     validationSchema: addEditExtraSchema,
-    onSubmit: (val) => {
-      // trim the values
-      const formValues = {};
-      Object.entries(val).forEach(([key, value]) => {
-        formValues[key] = trimString(value);
-      });
+    onSubmit: async (val, { setErrors }) => {
+      try {
+        // trim & frame the form values
+        const formValues = {
+          amount: val?.amount
+        };
+        if (val?.newReason) formValues.reason = generateKeyValuePair(val?.newReason);
+        else formValues.reason = val?.reason;
 
-      // >>> TODO; API call - create new extra if newReason has value <<<
-      // >>> TODO; add extra to redux store <<<
+        // add or update data to the store
+        if (itemIndex === null) await dispatch(addExtra(formValues));
+        else await dispatch(editExtra({ ...formValues, itemIndex }));
 
-      // reset the form
-      resetForm();
+        // reset the form
+        resetForm();
 
-      // close the modal
-      handleClose();
+        // close the modal
+        handleClose();
+      } catch (error) {
+        setErrors({
+          reason: {
+            value: error?.message
+          }
+        });
+      }
     }
   });
 
@@ -110,7 +126,7 @@ const AddEditExtraModal = ({ open, handleClose, initialValues = INITIAL_VALUES }
       open={open}
       handleClose={handleCancel}
       footer={footerContent(values, isValid, dirty, handleSubmit)}
-      title={`${initialValues?.reason?.value ? "Edit" : "Add"} Extra`}>
+      title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Extra`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
         <Stack direction="row" spacing={2} sx={styles.fullWidth}>
           <FormControl
