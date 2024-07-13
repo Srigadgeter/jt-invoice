@@ -130,6 +130,9 @@ const AddEditExtraModal = ({ open, handleClose, initialValues = INITIAL_VALUES }
               <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
                 <em>None</em>
               </MenuItem>
+              <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
+                <em>New</em>
+              </MenuItem>
               {extraList &&
                 Array.isArray(extraList) &&
                 extraList.map((item) => (
@@ -137,9 +140,6 @@ const AddEditExtraModal = ({ open, handleClose, initialValues = INITIAL_VALUES }
                     {item?.label}
                   </MenuItem>
                 ))}
-              <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
-                <em>New</em>
-              </MenuItem>
             </Select>
             {touched?.reason && Boolean(errors?.reason?.value) && (
               <FormHelperText

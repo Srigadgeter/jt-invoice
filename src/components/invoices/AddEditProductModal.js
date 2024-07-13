@@ -181,6 +181,9 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
               <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
                 <em>None</em>
               </MenuItem>
+              <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
+                <em>New</em>
+              </MenuItem>
               {productList &&
                 Array.isArray(productList) &&
                 productList.map((item) => (
@@ -188,9 +191,6 @@ const AddEditProductModal = ({ open, handleClose, initialValues = INITIAL_VALUES
                     {item?.label}
                   </MenuItem>
                 ))}
-              <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
-                <em>New</em>
-              </MenuItem>
             </Select>
             {touched?.productName && Boolean(errors?.productName?.value) && (
               <FormHelperText
