@@ -19,13 +19,18 @@ export const PAGE_INFO = {
 export const DEFAULT_LIGHT = "DEFAULT_LIGHT";
 export const DEFAULT_DARK = "DEFAULT_DARK";
 
+// page mode constants
 export const MODES = {
   NEW: "new",
   VIEW: "view",
   EDIT: "edit"
 };
 
+// invoice statuses
 export const INVOICE_STATUS = {
   PAID: "paid",
   UNPAID: "unpaid"
 };
+
+// GST constants
+export const GST_PERCENTAGE = 5;
