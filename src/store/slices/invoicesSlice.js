@@ -164,20 +164,20 @@ const invoicesSlice = createSlice({
   reducers: {
     setInvoices: (state, action) => {
       // TODO: rework logic
-      state.invoices = action.payload;
+      state.invoices = action?.payload;
     },
     setInvoice: (state, action) => {
-      const filteredInvoice = state.invoices.filter(
-        (item) => item.invoiceNumber === action.payload
+      const filteredInvoice = state?.invoices?.filter(
+        (item) => item?.invoiceNumber === action?.payload
       )[0];
       state.selectedInvoice = filteredInvoice;
     },
-    setViewMode: (state, action) => {
-      state.viewMode = action.payload;
+    setPageMode: (state, action) => {
+      state.pageMode = action?.payload;
     }
   }
 });
 
-export const { setInvoices, setInvoice, setViewMode } = invoicesSlice.actions;
+export const { setInvoices, setInvoice, setPageMode } = invoicesSlice.actions;
 
 export default invoicesSlice.reducer;
