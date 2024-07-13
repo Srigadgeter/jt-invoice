@@ -11,3 +11,8 @@ export const indianCurrencyFormatter = (number) => {
     }).format(number);
   throw new Error(`'${number}' is not a number`);
 };
+
+export const generateKeyValuePair = (label) => ({
+  label,
+  value: label?.toLowerCase().split(" ").join("-")
+});
