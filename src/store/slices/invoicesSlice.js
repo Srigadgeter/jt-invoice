@@ -13,28 +13,64 @@ const initialState = {
       lrDate: "2023-11-10",
       products: [
         {
-          productName: "PLATINUM WHITE SHIRT (H)",
+          productName: { value: "platinum-white-shirt-f", label: "Platinum White Shirt (F)" },
           productQuantityPieces: 50,
           productQuantityMeters: null,
-          productRate: 185
+          productRate: 185,
+          productAmount: 1000,
+          producGstAmount: 50,
+          productAmountInclGST: 1050
         },
         {
-          productName: "PLATINUM WHITE SHIRT (F)",
+          productName: { value: "platinum-white-shirt-h", label: "Platinum White Shirt (H)" },
+          productQuantityPieces: 50,
+          productQuantityMeters: null,
+          productRate: 185,
+          productAmount: 1000,
+          producGstAmount: 50,
+          productAmountInclGST: 1050
+        },
+        {
+          productName: { value: "aim-spray-shirt-f", label: "Aim Spray Shirt (F)" },
           productQuantityPieces: 30,
           productQuantityMeters: null,
-          productRate: 205
+          productRate: 205,
+          productAmount: 1000,
+          producGstAmount: 50,
+          productAmountInclGST: 1050
         },
         {
-          productName: "Gray Cloth",
+          productName: { value: "style-one-shirt-h", label: "Style One Shirt (H)" },
+          productQuantityPieces: 10,
+          productQuantityMeters: null,
+          productRate: 130,
+          productAmount: 1234567.89,
+          producGstAmount: 50,
+          productAmountInclGST: 1050
+        },
+        {
+          productName: { value: "gray-cloth-20x20", label: "Gray Cloth 20x20" },
           productQuantityPieces: 10,
           productQuantityMeters: 200,
-          productRate: 3.2
+          productRate: 3,
+          productAmount: 1000,
+          producGstAmount: 50,
+          productAmountInclGST: 1050
         },
         {
-          productName: "Gray Cloth - B",
-          productQuantityPieces: null,
+          productName: { value: "gray-cloth-40x50", label: "Gray Cloth 40x50" },
+          productQuantityPieces: 30,
           productQuantityMeters: 200,
-          productRate: 3.2
+          productRate: 3.3,
+          productAmount: 1000,
+          producGstAmount: 50,
+          productAmountInclGST: 1050
+        }
+      ],
+      extras: [
+        {
+          reason: "Bus Fare",
+          amount: 1000
         }
       ]
     },
@@ -43,14 +79,14 @@ const initialState = {
       customerName: "SIVANANDA TEXTILES & READYMADES",
       createdAt: "2023-11-11",
       status: "unpaid",
-      totalAmount: 13000
+      totalAmount: 1300
     },
     {
       invoiceNumber: "JT20232024TX00003",
       customerName: "SHREE VENKATESHWARA SILKS",
       createdAt: "2023-11-12",
       status: "unpaid",
-      totalAmount: 25000
+      totalAmount: 2500
     },
     {
       invoiceNumber: "JT20232024TX00004",
@@ -100,25 +136,26 @@ const initialState = {
       customerName: "SIVANANDA TEXTILES & READYMADES",
       createdAt: "2023-11-11",
       status: "unpaid",
-      totalAmount: 13000
+      totalAmount: 1300
     },
     {
       invoiceNumber: "JT20232024TX00009",
       customerName: "SHREE VENKATESHWARA SILKS",
       createdAt: "2023-11-12",
       status: "unpaid",
-      totalAmount: 25000
+      totalAmount: 2500
     },
     {
       invoiceNumber: "JT20232024TX00010",
       customerName: "SHREE VENKATESHWARA SILKS",
       createdAt: "2023-11-13",
       status: "unpaid",
-      totalAmount: 10000
+      totalAmount: 1000
     }
   ],
   selectedInvoice: {},
-  viewMode: ""
+  newInvoice: {},
+  pageMode: ""
 };
 
 const invoicesSlice = createSlice({
