@@ -10,7 +10,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
 
 import { PAGE_INFO, MODES } from "utils/constants";
-import { indianCurrencyFormatter, isMobile } from "utils/utilites";
+import { formatDate, getDaysDiff, indianCurrencyFormatter, isMobile } from "utils/utilites";
 import routes from "routes/routes";
 
 const styles = {
@@ -79,7 +79,12 @@ const Invoices = () => {
       width: 180
     },
     { field: "customerName", headerName: "Customer Name", flex: 1 },
-    { field: "invoiceDate", headerName: "Invoice Date", width: 130 },
+    {
+      field: "invoiceDate",
+      headerName: "Invoice Date",
+      width: 130,
+      valueFormatter: ({ value }) => formatDate(value)
+    },
     {
       field: "paymentStatus",
       headerName: "Payment Status",
@@ -91,7 +96,19 @@ const Invoices = () => {
         />
       )
     },
-    { field: "paymentDate", headerName: "Payment Date", width: 120 },
+    {
+      field: "paymentDate",
+      headerName: "Payment Date",
+      width: 120,
+      valueFormatter: ({ value }) => (value ? formatDate(value) : null)
+    },
+    {
+      field: "daysTaken",
+      headerName: "Invoiced before",
+      width: 120,
+      renderCell: ({ row }) =>
+        row?.paymentStatus === "paid" ? null : getDaysDiff(row?.invoiceDate)
+    },
     {
       field: "totalAmount",
       headerName: "Amount",
@@ -114,7 +131,7 @@ const Invoices = () => {
             <IconButton
               aria-label={VIEW}
               size="large"
-              onClick={() => handleOpen(VIEW, params.row.invoiceNumber)}>
+              onClick={() => handleOpen(VIEW, params?.row?.invoiceNumber)}>
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
@@ -122,7 +139,7 @@ const Invoices = () => {
             <IconButton
               aria-label={EDIT}
               size="large"
-              onClick={() => handleOpen(EDIT, params.row.invoiceNumber)}>
+              onClick={() => handleOpen(EDIT, params?.row?.invoiceNumber)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
@@ -130,7 +147,7 @@ const Invoices = () => {
             <IconButton
               aria-label="download invoice"
               size="large"
-              onClick={() => handleDownload(params.row.invoiceNumber)}>
+              onClick={() => handleDownload(params?.row?.invoiceNumber)}>
               <DownloadIcon />
             </IconButton>
           </Tooltip>
@@ -151,9 +168,9 @@ const Invoices = () => {
         justifyContent="space-between"
         sx={styles.titleCard}>
         <Stack>
-          <Typography variant="h3">{PAGE_INFO.INVOICES.title}</Typography>
+          <Typography variant="h3">{PAGE_INFO?.INVOICES?.title}</Typography>
           <Typography variant="body1" pl={0.25}>
-            {PAGE_INFO.INVOICES.description}
+            {PAGE_INFO?.INVOICES?.description}
           </Typography>
         </Stack>
         <ReceiptLongIcon sx={styles.titleIcon} />
@@ -169,10 +186,10 @@ const Invoices = () => {
         sx={styles.dataGrid}
         rows={invoices}
         columns={columns}
-        getRowId={(row) => row.invoiceNumber}
+        getRowId={(row) => row?.invoiceNumber}
         initialState={{
           sorting: {
-            sortModel: [{ field: "createdAt", sort: "desc" }]
+            sortModel: [{ field: "invoiceDate", sort: "desc" }]
           },
           pagination: {
             paginationModel: { page: 0, pageSize: 10 }
