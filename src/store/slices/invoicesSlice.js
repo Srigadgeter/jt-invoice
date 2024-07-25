@@ -9,7 +9,9 @@ const initialState = {
       invoiceNumber: "JT20232024TX00001",
       customerName: "SRINIWAS & CO",
       createdAt: "2023-11-10",
-      status: "paid",
+      invoiceDate: "2023-11-10",
+      paymentStatus: "paid",
+      paymentDate: "2023-12-08",
       totalAmount: 22440,
       noOfBales: 2,
       lrNumber: "ABC123",
@@ -81,28 +83,33 @@ const initialState = {
       invoiceNumber: "JT20232024TX00002",
       customerName: "SIVANANDA TEXTILES & READYMADES",
       createdAt: "2023-11-11",
-      status: "unpaid",
+      invoiceDate: "2023-11-11",
+      paymentStatus: "unpaid",
       totalAmount: 1300
     },
     {
       invoiceNumber: "JT20232024TX00003",
       customerName: "SHREE VENKATESHWARA SILKS",
       createdAt: "2023-11-12",
-      status: "unpaid",
+      invoiceDate: "2023-11-12",
+      paymentStatus: "unpaid",
       totalAmount: 2500
     },
     {
       invoiceNumber: "JT20232024TX00004",
       customerName: "SHREE VENKATESHWARA SILKS",
       createdAt: "2023-11-13",
-      status: "unpaid",
+      invoiceDate: "2023-11-13",
+      paymentStatus: "unpaid",
       totalAmount: 10000
     },
     {
       invoiceNumber: "JT20232024TX00005",
       customerName: "SRI BHAVANI HANDLOOM STORES",
       createdAt: "2023-11-14",
-      status: "paid",
+      invoiceDate: "2023-11-14",
+      paymentStatus: "paid",
+      paymentDate: "2023-12-01",
       totalAmount: 16500
     },
     {
@@ -110,49 +117,58 @@ const initialState = {
       customerName:
         "SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES",
       createdAt: "2023-11-14",
-      status: "paid",
+      invoiceDate: "2023-11-14",
+      paymentStatus: "paid",
+      paymentDate: "2023-12-03",
       totalAmount: 16500
     },
     {
       invoiceNumber: "JT20232024TX00011",
       customerName: "RANJANAAS READYMADES & SAREES",
       createdAt: "2023-11-15",
-      status: "unpaid",
+      invoiceDate: "2023-11-15",
+      paymentStatus: "unpaid",
       totalAmount: 21500
     },
     {
       invoiceNumber: "JT20232024TX00006",
       customerName: "RANJANAAS READYMADES & SAREES",
       createdAt: "2023-11-15",
-      status: "unpaid",
+      invoiceDate: "2023-11-15",
+      paymentStatus: "unpaid",
       totalAmount: 21500
     },
     {
       invoiceNumber: "JT20232024TX00007",
       customerName: "SRINIWAS & CO",
       createdAt: "2023-11-10",
-      status: "paid",
+      invoiceDate: "2023-11-10",
+      paymentStatus: "paid",
+      paymentDate: "2023-12-05",
       totalAmount: 30000
     },
     {
       invoiceNumber: "JT20232024TX00008",
       customerName: "SIVANANDA TEXTILES & READYMADES",
       createdAt: "2023-11-11",
-      status: "unpaid",
+      invoiceDate: "2023-11-11",
+      paymentStatus: "unpaid",
       totalAmount: 1300
     },
     {
       invoiceNumber: "JT20232024TX00009",
       customerName: "SHREE VENKATESHWARA SILKS",
       createdAt: "2023-11-12",
-      status: "unpaid",
+      invoiceDate: "2023-11-12",
+      paymentStatus: "unpaid",
       totalAmount: 2500
     },
     {
       invoiceNumber: "JT20232024TX00010",
       customerName: "SHREE VENKATESHWARA SILKS",
       createdAt: "2023-11-13",
-      status: "unpaid",
+      invoiceDate: "2023-11-13",
+      paymentStatus: "unpaid",
       totalAmount: 1000
     }
   ],

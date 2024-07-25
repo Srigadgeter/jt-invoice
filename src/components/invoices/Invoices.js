@@ -79,11 +79,11 @@ const Invoices = () => {
       width: 180
     },
     { field: "customerName", headerName: "Customer Name", flex: 1 },
-    { field: "createdAt", headerName: "Invoice Date", width: 130 },
+    { field: "invoiceDate", headerName: "Invoice Date", width: 130 },
     {
-      field: "status",
-      headerName: "Status",
-      width: 100,
+      field: "paymentStatus",
+      headerName: "Payment Status",
+      width: 120,
       renderCell: ({ value }) => (
         <Chip
           label={value.toLowerCase() === "paid" ? "Paid" : "Unpaid"}
@@ -91,6 +91,7 @@ const Invoices = () => {
         />
       )
     },
+    { field: "paymentDate", headerName: "Payment Date", width: 120 },
     {
       field: "totalAmount",
       headerName: "Amount",
