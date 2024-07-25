@@ -1,4 +1,6 @@
 /* eslint-disable no-restricted-globals */
+import dayjs from "dayjs";
+
 export const isMobile = () => window.innerWidth <= 768;
 
 export const trimString = (text) => (typeof text === "string" ? text.trim() : text);
@@ -26,4 +28,13 @@ export const getSum = (arr, key = null, initialValue = 0) => {
     return 0;
   }
   return 0;
+};
+
+export const formatDate = (date) => dayjs(date).format("DD MMM YYYY");
+
+export const getDaysDiff = (d1, d2 = new Date(), numberOnly = false) => {
+  const date1 = dayjs(d1);
+  const date2 = dayjs(d2);
+  const diff = date2.diff(date1, "d");
+  return numberOnly ? diff : `${diff} day${diff > 1 ? "s" : ""}`;
 };
