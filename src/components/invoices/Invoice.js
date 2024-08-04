@@ -586,18 +586,20 @@ const Invoice = () => {
                     error={touched?.paymentDate && Boolean(errors?.paymentDate)}
                   />
                 )}
-                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                  <Typography>Unpaid</Typography>
-                  <Switch
-                    id="paymentStatus"
-                    name="paymentStatus"
-                    disabled={isViewMode}
-                    onChange={handleSwitchChange}
-                    inputProps={{ "aria-label": "payment status" }}
-                    checked={isPaid}
-                  />
-                  <Typography>Paid</Typography>
-                </Stack>
+                {!isEditMode && (
+                  <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+                    <Typography>Unpaid</Typography>
+                    <Switch
+                      id="paymentStatus"
+                      name="paymentStatus"
+                      disabled={isViewMode}
+                      onChange={handleSwitchChange}
+                      inputProps={{ "aria-label": "payment status" }}
+                      checked={isPaid}
+                    />
+                    <Typography>Paid</Typography>
+                  </Stack>
+                )}
               </Stack>
               <Stack direction="row" spacing={2}>
                 <TextField
