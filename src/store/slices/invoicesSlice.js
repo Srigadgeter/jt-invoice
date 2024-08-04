@@ -7,15 +7,16 @@ const initialState = {
   invoices: [
     {
       invoiceNumber: "JT20232024TX00001",
-      customerName: "SRINIWAS & CO",
       createdAt: "2023-11-10",
       invoiceDate: "2023-11-10",
+      baleCount: 2,
       paymentStatus: "paid",
       paymentDate: "2023-12-08",
-      totalAmount: 22440,
-      noOfBales: 2,
-      lrNumber: "ABC123",
+      lrNumber: "ABC1234",
       lrDate: "2023-11-10",
+      logistics: { value: "mss", label: "MSS" },
+      transportDestination: { value: "namakkal", label: "Namakkal" },
+      customerName: { value: "sriniwas-&-co", label: "Sriniwas & Co" },
       products: [
         {
           productName: { value: "platinum-white-shirt-f", label: "Platinum White Shirt (F)" },
@@ -49,7 +50,7 @@ const initialState = {
           productQuantityPieces: 10,
           productQuantityMeters: null,
           productRate: 130,
-          productAmount: 1234567.89,
+          productAmount: 1000,
           producGstAmount: 50,
           productAmountInclGST: 1050
         },
@@ -74,102 +75,11 @@ const initialState = {
       ],
       extras: [
         {
-          reason: "Bus Fare",
+          reason: { value: "bus-fare", label: "Bus Fare" },
           amount: 1000
         }
-      ]
-    },
-    {
-      invoiceNumber: "JT20232024TX00002",
-      customerName: "SIVANANDA TEXTILES & READYMADES",
-      createdAt: "2023-11-11",
-      invoiceDate: "2023-11-11",
-      paymentStatus: "unpaid",
-      totalAmount: 1300
-    },
-    {
-      invoiceNumber: "JT20232024TX00003",
-      customerName: "SHREE VENKATESHWARA SILKS",
-      createdAt: "2023-11-12",
-      invoiceDate: "2023-11-12",
-      paymentStatus: "unpaid",
-      totalAmount: 2500
-    },
-    {
-      invoiceNumber: "JT20232024TX00004",
-      customerName: "SHREE VENKATESHWARA SILKS",
-      createdAt: "2023-11-13",
-      invoiceDate: "2023-11-13",
-      paymentStatus: "unpaid",
-      totalAmount: 10000
-    },
-    {
-      invoiceNumber: "JT20232024TX00005",
-      customerName: "SRI BHAVANI HANDLOOM STORES",
-      createdAt: "2023-11-14",
-      invoiceDate: "2023-11-14",
-      paymentStatus: "paid",
-      paymentDate: "2023-12-01",
-      totalAmount: 16500
-    },
-    {
-      invoiceNumber: "JT20232024TX00012",
-      customerName:
-        "SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES SRI BHAVANI HANDLOOM STORES",
-      createdAt: "2023-11-14",
-      invoiceDate: "2023-11-14",
-      paymentStatus: "paid",
-      paymentDate: "2023-12-03",
-      totalAmount: 16500
-    },
-    {
-      invoiceNumber: "JT20232024TX00011",
-      customerName: "RANJANAAS READYMADES & SAREES",
-      createdAt: "2023-11-15",
-      invoiceDate: "2023-11-15",
-      paymentStatus: "unpaid",
-      totalAmount: 21500
-    },
-    {
-      invoiceNumber: "JT20232024TX00006",
-      customerName: "RANJANAAS READYMADES & SAREES",
-      createdAt: "2023-11-15",
-      invoiceDate: "2023-11-15",
-      paymentStatus: "unpaid",
-      totalAmount: 21500
-    },
-    {
-      invoiceNumber: "JT20232024TX00007",
-      customerName: "SRINIWAS & CO",
-      createdAt: "2023-11-10",
-      invoiceDate: "2023-11-10",
-      paymentStatus: "paid",
-      paymentDate: "2023-12-05",
-      totalAmount: 30000
-    },
-    {
-      invoiceNumber: "JT20232024TX00008",
-      customerName: "SIVANANDA TEXTILES & READYMADES",
-      createdAt: "2023-11-11",
-      invoiceDate: "2023-11-11",
-      paymentStatus: "unpaid",
-      totalAmount: 1300
-    },
-    {
-      invoiceNumber: "JT20232024TX00009",
-      customerName: "SHREE VENKATESHWARA SILKS",
-      createdAt: "2023-11-12",
-      invoiceDate: "2023-11-12",
-      paymentStatus: "unpaid",
-      totalAmount: 2500
-    },
-    {
-      invoiceNumber: "JT20232024TX00010",
-      customerName: "SHREE VENKATESHWARA SILKS",
-      createdAt: "2023-11-13",
-      invoiceDate: "2023-11-13",
-      paymentStatus: "unpaid",
-      totalAmount: 1000
+      ],
+      totalAmount: 7300
     }
   ],
   selectedInvoice: {},
@@ -190,6 +100,21 @@ const invoicesSlice = createSlice({
         (item) => item?.invoiceNumber === action?.payload
       )[0];
       state.selectedInvoice = filteredInvoice;
+    },
+    addInvoice: (state, action) => {
+      const updatedInvoices = [...state.invoices];
+      const newNumber = state.invoices.length + 1;
+      updatedInvoices.push({ ...action?.payload, invoiceNumber: `JT20232024TX0000${newNumber}` });
+      state.invoices = updatedInvoices;
+      state.newInvoice = {};
+    },
+    editInvoice: (state, action) => {
+      const modifiedInvoices = state?.invoices?.map((item) => {
+        if (item?.invoiceNumber === action?.payload?.invoiceNumber) return { ...action?.payload };
+        return item;
+      });
+      state.invoices = modifiedInvoices;
+      state.selectedInvoice = {};
     },
     setPageMode: (state, action) => {
       state.pageMode = action?.payload;
@@ -337,6 +262,8 @@ const invoicesSlice = createSlice({
 export const {
   setInvoices,
   setInvoice,
+  addInvoice,
+  editInvoice,
   setPageMode,
   addProduct,
   editProduct,
