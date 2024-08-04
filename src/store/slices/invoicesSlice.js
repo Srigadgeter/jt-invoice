@@ -83,6 +83,7 @@ const initialState = {
       totalAmount: 7300
     }
   ],
+  selectedInvoiceInitialValue: {},
   selectedInvoice: {},
   newInvoice: {},
   pageMode: ""
@@ -101,6 +102,7 @@ const invoicesSlice = createSlice({
         (item) => item?.invoiceNumber === action?.payload
       )[0];
       state.selectedInvoice = filteredInvoice;
+      state.selectedInvoiceInitialValue = filteredInvoice;
     },
     addInvoice: (state, action) => {
       const updatedInvoices = [...state.invoices];

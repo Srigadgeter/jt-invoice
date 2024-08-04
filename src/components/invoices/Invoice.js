@@ -148,9 +148,10 @@ const Invoice = () => {
   const { HOME, INVOICE_EDIT } = routes;
   const { INVOICE } = PAGE_INFO;
   const {
-    selectedInvoice = {},
+    pageMode = "",
     newInvoice = {},
-    pageMode = ""
+    selectedInvoice = {},
+    selectedInvoiceInitialValue = {}
   } = useSelector((state) => state.invoices);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -468,6 +469,20 @@ const Invoice = () => {
   }
 
   const isPaid = values?.paymentStatus === INVOICE_STATUS.PAID;
+
+  const areProductsUpdated =
+    JSON.stringify(selectedInvoiceInitialValue?.products || []) !==
+    JSON.stringify(currentPageData?.products || []);
+  const areExtrasUpdated =
+    JSON.stringify(selectedInvoiceInitialValue?.extras || []) !==
+    JSON.stringify(currentPageData?.extras || []);
+
+  const isSubmitEnabled =
+    ((dirty && isValid) ||
+      (isEditMode && !dirty && isValid && (areProductsUpdated || areExtrasUpdated)) ||
+      (isEditMode && dirty && isValid && (areProductsUpdated || areExtrasUpdated))) &&
+    !!currentPageData?.products &&
+    currentPageData?.products?.length > 0;
 
   return (
     <Box>
@@ -928,11 +943,7 @@ const Invoice = () => {
             variant="contained"
             onClick={handleSubmit}
             size={isMobile() ? "small" : "medium"}
-            disabled={
-              !(dirty && isValid) ||
-              !currentPageData?.products ||
-              currentPageData?.products?.length === 0
-            }>
+            disabled={!isSubmitEnabled}>
             {isNewMode ? "Submit" : "Save"}
           </Button>
         )}
