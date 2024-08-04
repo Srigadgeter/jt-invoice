@@ -1,20 +1,14 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-console */
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
-  Avatar,
   Box,
   Button,
-  Fab,
   FormControl,
-  Grid,
+  FormHelperText,
   IconButton,
-  InputAdornment,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
   Stack,
   Switch,
@@ -22,19 +16,30 @@ import {
   Tooltip,
   Typography
 } from "@mui/material";
+import dayjs from "dayjs";
 import { DataGrid } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PersonIcon from "@mui/icons-material/Person";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import { Formik } from "formik";
+import { useFormik } from "formik";
 
-import { removeExtra, removeProduct, setInvoice, setPageMode } from "store/slices/invoicesSlice";
-import { MODES, PAGE_INFO, INVOICE_STATUS, GST_PERCENTAGE } from "utils/constants";
 import routes from "routes/routes";
-import { indianCurrencyFormatter, isMobile } from "utils/utilites";
+import commonStyles from "utils/commonStyles";
 import invoiceSchema from "validationSchemas/invoiceSchema";
+import { generateKeyValuePair, indianCurrencyFormatter, isMobile } from "utils/utilites";
+import { MODES, PAGE_INFO, INVOICE_STATUS, GST_PERCENTAGE } from "utils/constants";
+import {
+  addInvoice,
+  editInvoice,
+  removeExtra,
+  removeProduct,
+  setPageMode
+} from "store/slices/invoicesSlice";
 import AddEditProductModal from "./AddEditProductModal";
 import AddEditExtraModal from "./AddEditExtraModal";
 
@@ -98,10 +103,48 @@ const styles = {
       } 0px 7px 29px 0px`,
     bgcolor: (theme) =>
       theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.common.white
-  }
+  },
+  ...commonStyles
+};
+
+const customerList = [
+  { value: "abcd-pvt-ltd", label: "ABCD Pvt Ltd" },
+  { value: "abc-&-co", label: "ABC & Co" },
+  { value: "sriniwas-&-co", label: "Sriniwas & Co" }
+];
+
+const logisticsList = [
+  { value: "mss", label: "MSS" },
+  { value: "velan", label: "Velan" }
+];
+
+const transportDestinationList = [
+  { value: "namakkal", label: "Namakkal" },
+  { value: "vellore", label: "Vellore" }
+];
+
+const today = dayjs().format("YYYY-MM-DD");
+
+const INITIAL_VALUES = {
+  invoiceDate: today,
+  baleCount: 0,
+  paymentStatus: INVOICE_STATUS.UNPAID,
+  paymentDate: "",
+  lrNum: "",
+  lrDate: today,
+  logistics: { value: "", label: "" },
+  newLogistics: "",
+  transportDestination: { value: "", label: "" },
+  newTransportDestination: "",
+  customerName: "",
+  newCustomerName: "",
+  newCustomerGSTNumber: "",
+  newCustomerPhoneNumber: "",
+  newCustomerAddress: ""
 };
 
 const Invoice = () => {
+  const { HOME, INVOICE_EDIT } = routes;
   const { INVOICE } = PAGE_INFO;
   const {
     selectedInvoice = {},
@@ -109,31 +152,11 @@ const Invoice = () => {
     pageMode = ""
   } = useSelector((state) => state.invoices);
 
-  const initialValues = {
-    noOfBales: 0,
-    lrNum: "",
-    lrDate: ""
-  };
-
-  const [currentProducts, setCurrentProducts] = useState([]);
-  const [currentExtras, setCurrentExtras] = useState([]);
-  const [invoiceNo, setInvoiceNo] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState("");
-  const [selectedLogistics, setSelectedLogistics] = useState("");
-  const [newLogistics, setNewLogistics] = useState("");
-  const [selectedTransportDestination, setSelectedTransportDestination] = useState("");
-  const [newTransportDestination, setNewTransportDestination] = useState("");
-  const [selectedCustomerName, setSelectedCustomerName] = useState("");
-  const [newCustomerName, setNewCustomerName] = useState("");
-  const [newCustomerGSTNumber, setNewCustomerGSTNumber] = useState("");
-  const [newCustomerPhoneNumber, setNewCustomerPhoneNumber] = useState("");
-  const [newCustomerAddress, setNewCustomerAddress] = useState("");
+  const [pageData, setPageData] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
   const [selectedExtra, setSelectedExtra] = useState(null);
   const [selectedExtraIndex, setSelectedExtraIndex] = useState(null);
-  const [currentStatus, setCurrentStatus] = useState(INVOICE_STATUS.UNPAID);
-  const [totalAmount, setTotalAmount] = useState(0);
 
   const dispatch = useDispatch();
   const location = useLocation();
@@ -141,81 +164,99 @@ const Invoice = () => {
   const { invoiceNumber = "" } = useParams();
   const { NEW, VIEW, EDIT } = MODES;
 
+  const { pathname } = location;
+  const currentPageData = pathname.includes(NEW) ? newInvoice : selectedInvoice;
+
+  const isViewMode = pageMode === MODES.VIEW;
+  const isNewMode = pageMode === MODES.NEW;
+
+  const handleBack = () => navigate(HOME.to());
+
+  const {
+    dirty,
+    values,
+    errors,
+    touched,
+    isValid,
+    resetForm,
+    handleBlur,
+    handleChange,
+    handleSubmit,
+    setFieldValue
+  } = useFormik({
+    enableReinitialize: true,
+    initialValues: { ...INITIAL_VALUES, ...pageData },
+    validationSchema: invoiceSchema,
+    onSubmit: async (val) => {
+      try {
+        // trim & frame the form values
+        const formValues = {};
+        Object.entries(val).forEach(([key, value]) => {
+          if (value) formValues[key] = value;
+        });
+
+        if (val?.newLogistics) formValues.logistics = generateKeyValuePair(val?.newLogistics);
+        else formValues.logistics = val?.logistics;
+        if (val?.newTransportDestination)
+          formValues.transportDestination = generateKeyValuePair(val?.newTransportDestination);
+        else formValues.transportDestination = val?.transportDestination;
+        if (val?.newCustomerName)
+          formValues.customerName = generateKeyValuePair(val?.newCustomerName);
+        else formValues.customerName = val?.customerName;
+
+        formValues.createdAt = today;
+        formValues.products = currentPageData?.products;
+        if (!!currentPageData?.extras && currentPageData?.extras?.length > 0)
+          formValues.extras = currentPageData?.extras;
+        formValues.totalAmount = currentPageData?.totalAmount || 0;
+
+        // add or update data to the store
+        if (pathname.includes(NEW)) await dispatch(addInvoice(formValues));
+        if (pathname.includes(NEW)) await dispatch(editInvoice(formValues));
+
+        // reset the form
+        resetForm();
+
+        // navigate back to invoices page
+        handleBack();
+      } catch (error) {
+        console.error("error >>", error);
+      }
+    }
+  });
+
   useEffect(() => {
-    console.log("invoiceNo >>", invoiceNumber);
-    if (invoiceNumber) dispatch(setInvoice(invoiceNumber));
-
-    const { pathname } = location;
-
     if (pathname.includes(NEW)) dispatch(setPageMode(NEW));
     else if (pathname.includes(EDIT)) dispatch(setPageMode(EDIT));
     else dispatch(setPageMode(VIEW));
+
+    setPageData(currentPageData);
 
     return () => {
       dispatch(setPageMode(""));
     };
   }, []);
 
-  useEffect(() => {
-    console.log("selectedInvoice >>", selectedInvoice);
-    console.log("newInvoice >>", newInvoice);
-    const {
-      products = [],
-      extras = [],
-      invoiceNumber: invoiceNum = "",
-      createdAt = "",
-      customerName = "",
-      status = "",
-      noOfBales: baleCount = 0,
-      lrNumber = "",
-      lrDate: lrd = "",
-      totalAmount: tAmount = 0
-    } = newInvoice || selectedInvoice;
-    console.log("products >>", products);
-    if (invoiceNum) setInvoiceNo(invoiceNum);
-    if (createdAt) setInvoiceDate(createdAt);
-    if (customerName) setSelectedCustomerName(customerName);
-    if (status) setCurrentStatus(status);
-    // if (baleCount) setNoOfBales(baleCount);
-    // if (lrNumber) setLrNum(lrNumber);
-    // if (lrd) setLrDate(lrd);
-    if (tAmount >= 0) setTotalAmount(tAmount);
-    if (products && Array.isArray(products)) setCurrentProducts(products);
-    if (extras && Array.isArray(extras)) setCurrentExtras(extras);
-  }, [selectedInvoice, newInvoice]);
-
-  console.log("currentProducts >>", currentProducts);
-
-  const handleTextFieldChange = ({ target: { id, value } }) => {
-    console.log("textfield >>", id, value);
-    if (id === "createdAt") setInvoiceDate(value);
-    // if (id === "noOfBales") setNoOfBales(value);
-    // if (id === "lrNumber") setLrNum(value);
-    // if (id === "lrDate") setLrDate(value);
+  const handleSwitchChange = ({ target: { name, checked } }) => {
+    setFieldValue(name, checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID);
+    setFieldValue("paymentDate", checked ? today : "");
   };
 
-  const handleDropdownChange = () => {
-    // console.log("select >>", id, value);
-  };
-
-  const handleSwitchChange = ({ target: { id, checked } }) => {
-    console.log("switch >>", id, checked);
-    setCurrentStatus(checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID);
+  const handleSelectChange = ({ target: { name, value } }, list) => {
+    if (value === "") {
+      setFieldValue(name, { label: "None", value: "" });
+    } else if (value === "new") {
+      setFieldValue(name, { label: "New", value: "new" });
+    } else {
+      const selectedOption = list.find((option) => option.value === value);
+      setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
+    }
   };
 
   const handleChangePageMode = (selectedMode) => {
     dispatch(setPageMode(selectedMode));
-    navigate(routes.INVOICE_EDIT.to(invoiceNumber));
+    navigate(INVOICE_EDIT.to(invoiceNumber));
   };
-
-  const handleBack = () => navigate(routes.HOME.to());
-
-  useEffect(() => {
-    // TODO: set total & totalincl.gst
-  }, [currentProducts, currentExtras]);
-
-  const isViewMode = pageMode === MODES.VIEW;
-  const isNewMode = pageMode === MODES.NEW;
 
   // ----------------------------------------
   const [openAddEditProductModal, setOpenAddEditProductModal] = React.useState(false);
@@ -317,38 +358,6 @@ const Invoice = () => {
           {indianCurrencyFormatter(value)}
         </Typography>
       )
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 150,
-      sortable: false,
-      renderCell: (params) => (
-        <Box>
-          &nbsp; &nbsp; &nbsp;
-          <Tooltip title="Edit">
-            <IconButton
-              aria-label={EDIT}
-              size="large"
-              onClick={() =>
-                handleEditProduct(
-                  params.row,
-                  params.api.state.rows.dataRowIds.findIndex((id) => id === params.id)
-                )
-              }>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Remove">
-            <IconButton
-              aria-label="remove"
-              size="large"
-              onClick={() => dispatch(removeProduct(params.row))}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )
     }
   ];
 
@@ -379,8 +388,44 @@ const Invoice = () => {
           {indianCurrencyFormatter(value)}
         </Typography>
       )
-    },
-    {
+    }
+  ];
+
+  if (!isViewMode) {
+    productTableColumns.push({
+      field: "actions",
+      headerName: "Actions",
+      width: 150,
+      sortable: false,
+      renderCell: (params) => (
+        <Box>
+          &nbsp; &nbsp; &nbsp;
+          <Tooltip title="Edit">
+            <IconButton
+              aria-label={EDIT}
+              size="large"
+              onClick={() =>
+                handleEditProduct(
+                  params.row,
+                  params.api.state.rows.dataRowIds.findIndex((id) => id === params.id)
+                )
+              }>
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Remove">
+            <IconButton
+              aria-label="remove"
+              size="large"
+              onClick={() => dispatch(removeProduct(params.row))}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )
+    });
+
+    extraTableColumns.push({
       field: "actions",
       headerName: "Actions",
       width: 150,
@@ -411,362 +456,479 @@ const Invoice = () => {
           </Tooltip>
         </Box>
       )
-    }
-  ];
+    });
+  }
+
+  const isPaid = values?.paymentStatus === INVOICE_STATUS.PAID;
 
   return (
-    <Formik
-      initialValues={initialValues}
-      validationSchema={invoiceSchema}
-      onSubmit={(values) => {
-        console.log(values);
-      }}>
-      {({ values, handleChange, handleSubmit, errors, touched, handleBlur, isValid, dirty }) => (
-        <Box>
-          <AddEditProductModal
-            open={openAddEditProductModal}
-            initialValues={selectedProduct}
-            itemIndex={selectedProductIndex}
-            handleClose={handleCloseAddEditProductModal}
-          />
-          <AddEditExtraModal
-            open={openAddEditExtraModal}
-            initialValues={selectedExtra}
-            itemIndex={selectedExtraIndex}
-            handleClose={handleCloseAddEditExtraModal}
-          />
-          <Stack direction="row" justifyContent="space-between" sx={styles.headerStack}>
-            <Typography variant="h5" fontWeight="500">
-              {isNewMode ? INVOICE.titleNew : isViewMode ? INVOICE.title : INVOICE.titleEdit}
-            </Typography>
-            <Stack direction="row" justifyContent="space-between" spacing={2}>
-              {isViewMode && (
-                <Button
-                  variant="contained"
-                  startIcon={<EditIcon />}
-                  onClick={() => handleChangePageMode(EDIT)}
-                  size={isMobile() ? "small" : "medium"}>
-                  Edit
-                </Button>
-              )}
-              <Button
-                variant="outlined"
-                onClick={() => handleBack()}
-                startIcon={<ArrowBackIosNewIcon />}
-                size={isMobile() ? "small" : "medium"}>
-                Back
-              </Button>
-            </Stack>
-          </Stack>
+    <Box>
+      <AddEditProductModal
+        open={openAddEditProductModal}
+        initialValues={selectedProduct}
+        itemIndex={selectedProductIndex}
+        handleClose={handleCloseAddEditProductModal}
+      />
+      <AddEditExtraModal
+        open={openAddEditExtraModal}
+        initialValues={selectedExtra}
+        itemIndex={selectedExtraIndex}
+        handleClose={handleCloseAddEditExtraModal}
+      />
+      <Stack direction="row" justifyContent="space-between" sx={styles.headerStack}>
+        <Typography variant="h5" fontWeight="500">
+          {isNewMode ? INVOICE.titleNew : isViewMode ? INVOICE.title : INVOICE.titleEdit}
+        </Typography>
+        <Stack direction="row" justifyContent="space-between" spacing={2}>
+          {isViewMode && (
+            <Button
+              variant="contained"
+              startIcon={<EditIcon />}
+              onClick={() => handleChangePageMode(EDIT)}
+              size={isMobile() ? "small" : "medium"}>
+              Edit
+            </Button>
+          )}
+          <Button
+            variant="outlined"
+            onClick={() => handleBack()}
+            startIcon={<ArrowBackIosNewIcon />}
+            size={isMobile() ? "small" : "medium"}>
+            Back
+          </Button>
+        </Stack>
+      </Stack>
 
-          <Box sx={styles.invoiceForm}>
-            <Box px={3} pb={5}>
+      <Box sx={styles.invoiceForm}>
+        <Box px={3} pb={5}>
+          <Stack mb={3}>
+            <Stack direction="row" alignItems="center" gap={1} mb={1}>
+              <ReceiptLongIcon sx={styles.subHeading} />
               <Typography variant="h5" sx={styles.subHeading}>
                 {INVOICE.invoiceDetails}
               </Typography>
-              <Paper elevation={2} sx={styles.paper}>
-                <Grid container spacing={2}>
-                  <Grid item md={3} xs={12}>
-                    <TextField
-                      disabled
-                      fullWidth
-                      value={invoiceNo}
-                      id="invoiceNumber"
-                      label="Invoice Number"
-                      margin="dense"
-                      size="small"
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <ReceiptLongIcon />
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                  </Grid>
-                  <Grid item md={3} xs={12}>
-                    <TextField
-                      fullWidth
-                      id="createdAt"
-                      label="Invoice Date"
-                      margin="dense"
-                      size="small"
-                      type="date"
-                      InputProps={{
-                        startAdornment: " "
-                      }}
-                      value={invoiceDate}
-                      onChange={handleTextFieldChange}
-                      disabled={isViewMode}
-                    />
-                  </Grid>
-                </Grid>
-                <Grid container spacing={2}>
-                  <Grid item md={3} xs={12}>
-                    <TextField
-                      fullWidth
-                      id="noOfBales"
-                      label="Nof of Bales"
-                      margin="dense"
-                      size="small"
-                      type="number"
-                      value={values?.noOfBales}
-                      onChange={handleTextFieldChange}
-                      disabled={isViewMode}
-                    />
-                  </Grid>
-                  <Grid item md={3} xs={12}>
-                    <TextField
-                      fullWidth
-                      id="lrNumber"
-                      label="LR Number"
-                      margin="dense"
-                      size="small"
-                      value={values?.lrNum}
-                      onChange={handleTextFieldChange}
-                      disabled={isViewMode}
-                    />
-                  </Grid>
-                  <Grid item md={3} xs={12}>
-                    <TextField
-                      fullWidth
-                      id="lrDate"
-                      label="LR Date"
-                      margin="dense"
-                      size="small"
-                      type="date"
-                      InputProps={{
-                        startAdornment: " "
-                      }}
-                      value={values?.lrDate}
-                      onChange={handleTextFieldChange}
-                      disabled={isViewMode}
-                    />
-                  </Grid>
-                  <Grid item md={3} xs={12}>
-                    {/* switch for payment status (paid/unpaid) */}
-                    <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                      <Typography>Unpaid</Typography>
-                      <Switch
-                        onChange={handleSwitchChange}
-                        inputProps={{ "aria-label": "status" }}
-                        checked={currentStatus === INVOICE_STATUS.PAID}
-                        disabled={isViewMode}
-                      />
-                      <Typography>Paid</Typography>
-                    </Stack>
-                  </Grid>
-                </Grid>
-                <Grid container spacing={2}>
-                  <Grid item md={3} xs={12}>
-                    <FormControl fullWidth size="small" margin="dense">
-                      <InputLabel id="logistics">Logistics</InputLabel>
-                      <Select
-                        id="logistics"
-                        labelId="logistics"
-                        value=""
-                        label="Logistics"
-                        //   onChange={handleChange}
-                        disabled={isViewMode}>
-                        <MenuItem value="">
-                          <em>None</em>
+            </Stack>
+            <Stack direction="column" spacing={2}>
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  fullWidth
+                  id="invoiceDate"
+                  name="invoiceDate"
+                  label="Invoice Date"
+                  margin="dense"
+                  size="small"
+                  type="date"
+                  InputProps={{
+                    startAdornment: " "
+                  }}
+                  disabled={isViewMode}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values?.invoiceDate ?? ""}
+                  helperText={touched?.invoiceDate && errors?.invoiceDate}
+                  error={touched?.invoiceDate && Boolean(errors?.invoiceDate)}
+                />
+                <TextField
+                  fullWidth
+                  id="baleCount"
+                  name="baleCount"
+                  label="Number of Bales"
+                  margin="dense"
+                  size="small"
+                  type="number"
+                  disabled={isViewMode}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values?.baleCount ?? 0}
+                  helperText={touched?.baleCount && errors?.baleCount}
+                  error={touched?.baleCount && Boolean(errors?.baleCount)}
+                />
+                {isPaid && !isViewMode && (
+                  <TextField
+                    fullWidth
+                    id="paymentDate"
+                    name="paymentDate"
+                    label="Payment Date"
+                    margin="dense"
+                    size="small"
+                    type="date"
+                    InputProps={{
+                      startAdornment: " "
+                    }}
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values?.paymentDate ?? ""}
+                    helperText={touched?.paymentDate && errors?.paymentDate}
+                    error={touched?.paymentDate && Boolean(errors?.paymentDate)}
+                  />
+                )}
+                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+                  <Typography>Unpaid</Typography>
+                  <Switch
+                    id="paymentStatus"
+                    name="paymentStatus"
+                    disabled={isViewMode}
+                    onChange={handleSwitchChange}
+                    inputProps={{ "aria-label": "payment status" }}
+                    checked={isPaid}
+                  />
+                  <Typography>Paid</Typography>
+                </Stack>
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  fullWidth
+                  id="lrNumber"
+                  name="lrNumber"
+                  label="LR Number"
+                  margin="dense"
+                  size="small"
+                  disabled={isViewMode}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values?.lrNumber?.toUpperCase() ?? ""}
+                  helperText={touched?.lrNumber && errors?.lrNumber}
+                  error={touched?.lrNumber && Boolean(errors?.lrNumber)}
+                />
+                <TextField
+                  fullWidth
+                  id="lrDate"
+                  name="lrDate"
+                  label="LR Date"
+                  margin="dense"
+                  size="small"
+                  type="date"
+                  InputProps={{
+                    startAdornment: " "
+                  }}
+                  disabled={isViewMode}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values?.lrDate ?? ""}
+                  helperText={touched?.lrDate && errors?.lrDate}
+                  error={touched?.lrDate && Boolean(errors?.lrDate)}
+                />
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <FormControl
+                  fullWidth
+                  size="small"
+                  margin="dense"
+                  error={touched?.logistics && Boolean(errors?.logistics?.value)}>
+                  <InputLabel id="logistics">Logistics</InputLabel>
+                  <Select
+                    id="logistics"
+                    name="logistics"
+                    label="Logistics"
+                    onBlur={handleBlur}
+                    disabled={isViewMode}
+                    value={values?.logistics?.value ?? ""}
+                    MenuProps={{ sx: styles.selectDropdownMenuStyle }}
+                    onChange={(e) => handleSelectChange(e, logisticsList)}>
+                    <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
+                      <em>None</em>
+                    </MenuItem>
+                    <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
+                      <em>New</em>
+                    </MenuItem>
+                    {logisticsList &&
+                      Array.isArray(logisticsList) &&
+                      logisticsList.map((item) => (
+                        <MenuItem key={item?.value} value={item?.value}>
+                          {item?.label}
                         </MenuItem>
-                        <MenuItem value="ten">Ten</MenuItem>
-                        <MenuItem value="new">New</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  {!isViewMode && (
-                    <Grid item md={3} xs={12}>
-                      <TextField
-                        fullWidth
-                        id="newLogistics"
-                        label="New Logistics"
-                        margin="dense"
-                        size="small"
-                        disabled={isViewMode}
-                      />
-                    </Grid>
+                      ))}
+                  </Select>
+                  {touched?.logistics && Boolean(errors?.logistics?.value) && (
+                    <FormHelperText
+                      htmlFor="form-selector"
+                      error={touched?.logistics && Boolean(errors?.logistics?.value)}>
+                      {errors?.logistics?.value}
+                    </FormHelperText>
                   )}
-                  <Grid item md={3} xs={12}>
-                    <FormControl fullWidth size="small" margin="dense">
-                      <InputLabel id="transportDestination">Transport Destination</InputLabel>
-                      <Select
-                        id="transportDestination"
-                        labelId="transportDestination"
-                        value=""
-                        label="Transport Destination"
-                        //   onChange={handleChange}
-                        disabled={isViewMode}>
-                        <MenuItem value="">
-                          <em>None</em>
+                </FormControl>
+                {values?.logistics?.value === "new" && !isViewMode && (
+                  <TextField
+                    fullWidth
+                    id="newLogistics"
+                    name="newLogistics"
+                    label="New Logistics"
+                    margin="dense"
+                    size="small"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values?.newLogistics ?? ""}
+                    helperText={touched?.newLogistics && errors?.newLogistics}
+                    error={touched?.newLogistics && Boolean(errors?.newLogistics)}
+                  />
+                )}
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <FormControl
+                  fullWidth
+                  size="small"
+                  margin="dense"
+                  error={
+                    touched?.transportDestination && Boolean(errors?.transportDestination?.value)
+                  }>
+                  <InputLabel id="transportDestination">Transport Destination</InputLabel>
+                  <Select
+                    id="transportDestination"
+                    name="transportDestination"
+                    label="Transport Destination"
+                    onBlur={handleBlur}
+                    disabled={isViewMode}
+                    value={values?.transportDestination?.value ?? ""}
+                    MenuProps={{ sx: styles.selectDropdownMenuStyle }}
+                    onChange={(e) => handleSelectChange(e, transportDestinationList)}>
+                    <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
+                      <em>None</em>
+                    </MenuItem>
+                    <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
+                      <em>New</em>
+                    </MenuItem>
+                    {transportDestinationList &&
+                      Array.isArray(transportDestinationList) &&
+                      transportDestinationList.map((item) => (
+                        <MenuItem key={item?.value} value={item?.value}>
+                          {item?.label}
                         </MenuItem>
-                        <MenuItem value="ten">Ten</MenuItem>
-                        <MenuItem value="new">New</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  {!isViewMode && (
-                    <Grid item md={3} xs={12}>
-                      <TextField
-                        fullWidth
-                        id="newTransportDestination"
-                        label="New Transport Destination"
-                        margin="dense"
-                        size="small"
-                        disabled={isViewMode}
-                      />
-                    </Grid>
-                  )}
-                </Grid>
-              </Paper>
+                      ))}
+                  </Select>
+                  {touched?.transportDestination &&
+                    Boolean(errors?.transportDestination?.value) && (
+                      <FormHelperText
+                        htmlFor="form-selector"
+                        error={
+                          touched?.transportDestination &&
+                          Boolean(errors?.transportDestination?.value)
+                        }>
+                        {errors?.transportDestination?.value}
+                      </FormHelperText>
+                    )}
+                </FormControl>
+                {values?.transportDestination?.value === "new" && !isViewMode && (
+                  <TextField
+                    fullWidth
+                    id="newTransportDestination"
+                    name="newTransportDestination"
+                    label="New Transport Destination"
+                    margin="dense"
+                    size="small"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values?.newTransportDestination ?? ""}
+                    helperText={touched?.newTransportDestination && errors?.newTransportDestination}
+                    error={
+                      touched?.newTransportDestination && Boolean(errors?.newTransportDestination)
+                    }
+                  />
+                )}
+              </Stack>
+            </Stack>
+          </Stack>
+
+          <Stack mb={3}>
+            <Stack direction="row" alignItems="center" gap={1} mb={1}>
+              <PersonIcon sx={styles.subHeading} />
               <Typography variant="h5" sx={styles.subHeading}>
                 {INVOICE.customerDetails}
               </Typography>
-              <Paper elevation={2} sx={styles.paper}>
-                <Grid container spacing={2}>
-                  <Grid item md={3} xs={12}>
-                    <FormControl fullWidth size="small" margin="dense">
-                      <InputLabel id="customerName">Customer Name</InputLabel>
-                      <Select
-                        id="customerName"
-                        labelId="customerName"
-                        value=""
-                        label="Customer Name"
-                        //   onChange={handleChange}
-                      >
-                        <MenuItem value="">
-                          <em>None</em>
-                        </MenuItem>
-                        <MenuItem value="ten">Ten</MenuItem>
-                        <MenuItem value="new">New</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  {!isViewMode && (
-                    <>
-                      <Grid item md={3} xs={12}>
-                        <TextField
-                          fullWidth
-                          id="newCustomerName"
-                          label="New Customer Name"
-                          margin="dense"
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item md={3} xs={12}>
-                        <TextField
-                          fullWidth
-                          id="newCustomerGSTNumber"
-                          label="New Customer GST Number"
-                          margin="dense"
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item md={3} xs={12}>
-                        <TextField
-                          fullWidth
-                          id="newCustomerPhoneNumber"
-                          label="New Customer Phone Number"
-                          margin="dense"
-                          size="small"
-                        />
-                      </Grid>
-                    </>
-                  )}
-                </Grid>
-                {!isViewMode && (
-                  <Grid container spacing={2}>
-                    <Grid item md={12} xs={12}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        id="newCustomerAddress"
-                        label="New Customer Address"
-                        margin="dense"
-                        size="small"
-                      />
-                    </Grid>
-                  </Grid>
-                )}
-              </Paper>
-              <Stack mb={2}>
-                <Stack direction="row" justifyContent="space-between" mb={1}>
-                  <Typography variant="h5" sx={styles.subHeading}>
-                    {INVOICE.products}
-                  </Typography>
-
-                  {!isViewMode && (
-                    <Button
-                      variant="text"
-                      startIcon={<AddIcon />}
-                      size={isMobile() ? "small" : "medium"}
-                      onClick={() => handleOpenAddEditProductModal()}>
-                      Add &nbsp; Product
-                    </Button>
-                  )}
-                </Stack>
-                <DataGrid
-                  hideFooter
-                  disableColumnMenu
-                  sx={styles.dataGrid}
-                  rows={currentProducts}
-                  columns={productTableColumns}
-                  getRowId={(row) => row?.productName?.value}
-                />
-              </Stack>
-              <Stack>
-                <Stack direction="row" justifyContent="space-between" mb={1}>
-                  <Typography variant="h5" sx={styles.subHeading}>
-                    {INVOICE.extras}
-                  </Typography>
-
-                  {!isViewMode && (
-                    <Button
-                      variant="text"
-                      startIcon={<AddIcon />}
-                      size={isMobile() ? "small" : "medium"}
-                      onClick={() => handleOpenAddEditExtraModal()}>
-                      Add &nbsp; Extra
-                    </Button>
-                  )}
-                </Stack>
-                <DataGrid
-                  hideFooter
-                  disableColumnMenu
-                  sx={styles.dataGrid}
-                  rows={currentExtras}
-                  columns={extraTableColumns}
-                  getRowId={(row) => row?.reason?.value}
-                />
-              </Stack>
-            </Box>
-          </Box>
-
-          <Stack
-            gap={5}
-            direction="row"
-            sx={styles.footer}
-            alignItems="center"
-            justifyContent="flex-end">
-            <Stack gap={2} direction="row" alignItems="center">
-              <Typography variant="h6">Total Amount</Typography>
-              <Typography fontSize={24} fontWeight={700}>
-                {indianCurrencyFormatter(totalAmount)}
-              </Typography>
             </Stack>
-            {!isViewMode && (
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                size={isMobile() ? "small" : "medium"}>
-                {isNewMode ? "Submit" : "Save"}
-              </Button>
-            )}
+            <Stack direction="column" spacing={2}>
+              <Stack direction="row" spacing={2}>
+                <FormControl
+                  fullWidth
+                  size="small"
+                  margin="dense"
+                  error={touched?.customerName && Boolean(errors?.customerName?.value)}>
+                  <InputLabel id="customerName">Customer Name</InputLabel>
+                  <Select
+                    id="customerName"
+                    name="customerName"
+                    label="Customer Name"
+                    onBlur={handleBlur}
+                    disabled={isViewMode}
+                    value={values?.customerName?.value ?? ""}
+                    MenuProps={{ sx: styles.selectDropdownMenuStyle }}
+                    onChange={(e) => handleSelectChange(e, customerList)}>
+                    <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
+                      <em>None</em>
+                    </MenuItem>
+                    <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
+                      <em>New</em>
+                    </MenuItem>
+                    {customerList &&
+                      Array.isArray(customerList) &&
+                      customerList.map((item) => (
+                        <MenuItem key={item?.value} value={item?.value}>
+                          {item?.label}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                  {touched?.customerName && Boolean(errors?.customerName?.value) && (
+                    <FormHelperText
+                      htmlFor="form-selector"
+                      error={touched?.customerName && Boolean(errors?.customerName?.value)}>
+                      {errors?.customerName?.value}
+                    </FormHelperText>
+                  )}
+                </FormControl>
+                {values?.customerName?.value === "new" && !isViewMode && (
+                  <TextField
+                    fullWidth
+                    id="newCustomerName"
+                    name="newCustomerName"
+                    label="New Customer Name"
+                    margin="dense"
+                    size="small"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values?.newCustomerName ?? ""}
+                    helperText={touched?.newCustomerName && errors?.newCustomerName}
+                    error={touched?.newCustomerName && Boolean(errors?.newCustomerName)}
+                  />
+                )}
+              </Stack>
+              {values?.customerName?.value === "new" && !isViewMode && (
+                <>
+                  <Stack direction="row" spacing={2}>
+                    <TextField
+                      fullWidth
+                      id="newCustomerGSTNumber"
+                      name="newCustomerGSTNumber"
+                      label="GST Number of New Customer"
+                      margin="dense"
+                      size="small"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      value={values?.newCustomerGSTNumber?.toUpperCase() ?? ""}
+                      helperText={touched?.newCustomerGSTNumber && errors?.newCustomerGSTNumber}
+                      error={touched?.newCustomerGSTNumber && Boolean(errors?.newCustomerGSTNumber)}
+                    />
+                    <TextField
+                      fullWidth
+                      type="tel"
+                      id="newCustomerPhoneNumber"
+                      name="newCustomerPhoneNumber"
+                      label="Phone Number of New Customer"
+                      margin="dense"
+                      size="small"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      value={values?.newCustomerPhoneNumber ?? ""}
+                      helperText={touched?.newCustomerPhoneNumber && errors?.newCustomerPhoneNumber}
+                      error={
+                        touched?.newCustomerPhoneNumber && Boolean(errors?.newCustomerPhoneNumber)
+                      }
+                    />
+                  </Stack>
+                  <TextField
+                    fullWidth
+                    multiline
+                    maxRows={4}
+                    id="newCustomerAddress"
+                    name="newCustomerAddress"
+                    label="Address of New Customer"
+                    margin="dense"
+                    size="small"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values?.newCustomerAddress ?? ""}
+                    helperText={touched?.newCustomerAddress && errors?.newCustomerAddress}
+                    error={touched?.newCustomerAddress && Boolean(errors?.newCustomerAddress)}
+                  />
+                </>
+              )}
+            </Stack>
+          </Stack>
+
+          <Stack mb={3}>
+            <Stack direction="row" justifyContent="space-between" mb={1}>
+              <Stack direction="row" alignItems="center" gap={1} mb={1}>
+                <ShoppingBagIcon sx={styles.subHeading} />
+                <Typography variant="h5" sx={styles.subHeading}>
+                  {INVOICE.products}
+                </Typography>
+              </Stack>
+              {!isViewMode && (
+                <Button
+                  variant="text"
+                  startIcon={<AddIcon />}
+                  size={isMobile() ? "small" : "medium"}
+                  onClick={() => handleOpenAddEditProductModal()}>
+                  Add &nbsp; Product
+                </Button>
+              )}
+            </Stack>
+            <DataGrid
+              hideFooter
+              disableColumnMenu
+              sx={styles.dataGrid}
+              columns={productTableColumns}
+              rows={currentPageData?.products || []}
+              getRowId={(row) => row?.productName?.value}
+            />
+          </Stack>
+
+          <Stack>
+            <Stack direction="row" justifyContent="space-between" mb={1}>
+              <Stack direction="row" alignItems="center" gap={1} mb={1}>
+                <ControlPointIcon sx={styles.subHeading} />
+                <Typography variant="h5" sx={styles.subHeading}>
+                  {INVOICE.extras}
+                </Typography>
+              </Stack>
+
+              {!isViewMode && (
+                <Button
+                  variant="text"
+                  startIcon={<AddIcon />}
+                  size={isMobile() ? "small" : "medium"}
+                  onClick={() => handleOpenAddEditExtraModal()}>
+                  Add &nbsp; Extra
+                </Button>
+              )}
+            </Stack>
+            <DataGrid
+              hideFooter
+              disableColumnMenu
+              sx={styles.dataGrid}
+              columns={extraTableColumns}
+              rows={currentPageData?.extras || []}
+              getRowId={(row) => row?.reason?.value}
+            />
           </Stack>
         </Box>
-      )}
-    </Formik>
+      </Box>
+
+      <Stack
+        gap={5}
+        direction="row"
+        sx={styles.footer}
+        alignItems="center"
+        justifyContent="flex-end">
+        <Stack gap={2} direction="row" alignItems="center">
+          <Typography variant="h6">Total Amount</Typography>
+          <Typography fontSize={24} fontWeight={700}>
+            {indianCurrencyFormatter(currentPageData?.totalAmount || 0)}
+          </Typography>
+        </Stack>
+        {!isViewMode && (
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            size={isMobile() ? "small" : "medium"}
+            disabled={
+              !(dirty && isValid) ||
+              !currentPageData?.products ||
+              currentPageData?.products?.length === 0
+            }>
+            {isNewMode ? "Submit" : "Save"}
+          </Button>
+        )}
+      </Stack>
+    </Box>
   );
 };
 
