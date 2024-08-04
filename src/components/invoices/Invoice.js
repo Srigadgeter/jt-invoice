@@ -268,7 +268,7 @@ const Invoice = () => {
   };
 
   // ----------------------------------------
-  const [openAddEditProductModal, setOpenAddEditProductModal] = React.useState(false);
+  const [openAddEditProductModal, setOpenAddEditProductModal] = useState(false);
 
   const handleOpenAddEditProductModal = () => setOpenAddEditProductModal(true);
 
@@ -285,7 +285,7 @@ const Invoice = () => {
   };
   // ----------------------------------------
   // ----------------------------------------
-  const [openAddEditExtraModal, setOpenAddEditExtraModal] = React.useState(false);
+  const [openAddEditExtraModal, setOpenAddEditExtraModal] = useState(false);
 
   const handleOpenAddEditExtraModal = () => setOpenAddEditExtraModal(true);
 
