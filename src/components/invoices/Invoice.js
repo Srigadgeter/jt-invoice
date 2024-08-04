@@ -181,6 +181,7 @@ const Invoice = () => {
     touched,
     isValid,
     resetForm,
+    setValues,
     handleBlur,
     handleChange,
     handleSubmit,
@@ -247,8 +248,11 @@ const Invoice = () => {
   }, [invoiceNumber]);
 
   const handleSwitchChange = ({ target: { name, checked } }) => {
-    setFieldValue(name, checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID);
-    setFieldValue("paymentDate", checked ? today : "");
+    setValues({
+      ...values,
+      [name]: checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
+      paymentDate: checked ? today : ""
+    });
   };
 
   const handleSelectChange = ({ target: { name, value } }, list) => {
@@ -586,20 +590,18 @@ const Invoice = () => {
                     error={touched?.paymentDate && Boolean(errors?.paymentDate)}
                   />
                 )}
-                {!isEditMode && (
-                  <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                    <Typography>Unpaid</Typography>
-                    <Switch
-                      id="paymentStatus"
-                      name="paymentStatus"
-                      disabled={isViewMode}
-                      onChange={handleSwitchChange}
-                      inputProps={{ "aria-label": "payment status" }}
-                      checked={isPaid}
-                    />
-                    <Typography>Paid</Typography>
-                  </Stack>
-                )}
+                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+                  <Typography>Unpaid</Typography>
+                  <Switch
+                    id="paymentStatus"
+                    name="paymentStatus"
+                    disabled={isViewMode}
+                    onChange={handleSwitchChange}
+                    inputProps={{ "aria-label": "payment status" }}
+                    checked={isPaid}
+                  />
+                  <Typography>Paid</Typography>
+                </Stack>
               </Stack>
               <Stack direction="row" spacing={2}>
                 <TextField
