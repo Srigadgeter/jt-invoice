@@ -38,6 +38,7 @@ import {
   editInvoice,
   removeExtra,
   removeProduct,
+  setInvoice,
   setPageMode
 } from "store/slices/invoicesSlice";
 import AddEditProductModal from "./AddEditProductModal";
@@ -152,7 +153,6 @@ const Invoice = () => {
     pageMode = ""
   } = useSelector((state) => state.invoices);
 
-  const [pageData, setPageData] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
   const [selectedExtra, setSelectedExtra] = useState(null);
@@ -169,6 +169,7 @@ const Invoice = () => {
 
   const isViewMode = pageMode === MODES.VIEW;
   const isNewMode = pageMode === MODES.NEW;
+  const isEditMode = pageMode === MODES.EDIT;
 
   const handleBack = () => navigate(HOME.to());
 
@@ -185,7 +186,7 @@ const Invoice = () => {
     setFieldValue
   } = useFormik({
     enableReinitialize: true,
-    initialValues: { ...INITIAL_VALUES, ...pageData },
+    initialValues: isNewMode ? INITIAL_VALUES : currentPageData,
     validationSchema: invoiceSchema,
     onSubmit: async (val) => {
       try {
@@ -204,15 +205,20 @@ const Invoice = () => {
           formValues.customerName = generateKeyValuePair(val?.newCustomerName);
         else formValues.customerName = val?.customerName;
 
-        formValues.createdAt = today;
         formValues.products = currentPageData?.products;
         if (!!currentPageData?.extras && currentPageData?.extras?.length > 0)
           formValues.extras = currentPageData?.extras;
         formValues.totalAmount = currentPageData?.totalAmount || 0;
 
         // add or update data to the store
-        if (pathname.includes(NEW)) await dispatch(addInvoice(formValues));
-        if (pathname.includes(NEW)) await dispatch(editInvoice(formValues));
+        if (isNewMode) {
+          formValues.createdAt = today;
+          await dispatch(addInvoice(formValues));
+        }
+        if (isEditMode) {
+          formValues.updatedAt = [...(currentPageData?.updatedAt || []), today];
+          await dispatch(editInvoice(formValues));
+        }
 
         // reset the form
         resetForm();
@@ -230,12 +236,14 @@ const Invoice = () => {
     else if (pathname.includes(EDIT)) dispatch(setPageMode(EDIT));
     else dispatch(setPageMode(VIEW));
 
-    setPageData(currentPageData);
-
     return () => {
       dispatch(setPageMode(""));
     };
   }, []);
+
+  useEffect(() => {
+    if (invoiceNumber) dispatch(setInvoice(invoiceNumber));
+  }, [invoiceNumber]);
 
   const handleSwitchChange = ({ target: { name, checked } }) => {
     setFieldValue(name, checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID);
@@ -543,7 +551,7 @@ const Invoice = () => {
                   helperText={touched?.baleCount && errors?.baleCount}
                   error={touched?.baleCount && Boolean(errors?.baleCount)}
                 />
-                {isPaid && !isViewMode && (
+                {isPaid && (
                   <TextField
                     fullWidth
                     id="paymentDate"
@@ -555,6 +563,7 @@ const Invoice = () => {
                     InputProps={{
                       startAdornment: " "
                     }}
+                    disabled={isViewMode}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values?.paymentDate ?? ""}
