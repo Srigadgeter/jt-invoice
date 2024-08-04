@@ -187,6 +187,7 @@ const Invoices = () => {
         rows={invoices}
         columns={columns}
         getRowId={(row) => row?.invoiceNumber}
+        pageSizeOptions={[10]}
         initialState={{
           sorting: {
             sortModel: [{ field: "invoiceDate", sort: "desc" }]
