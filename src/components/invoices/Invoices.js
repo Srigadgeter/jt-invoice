@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -12,6 +12,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { PAGE_INFO, MODES } from "utils/constants";
 import { formatDate, getDaysDiff, indianCurrencyFormatter, isMobile } from "utils/utilites";
 import routes from "routes/routes";
+import { setInvoice } from "store/slices/invoicesSlice";
 
 const styles = {
   titleCard: {
@@ -61,6 +62,7 @@ const Invoices = () => {
   const { VIEW, EDIT } = MODES;
   const { invoices } = useSelector((state) => state.invoices);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleOpen = (type, invoiceNumber) => {
     navigate(type === VIEW ? INVOICE_VIEW.to(invoiceNumber) : INVOICE_EDIT.to(invoiceNumber));
@@ -96,7 +98,7 @@ const Invoices = () => {
       width: 120,
       renderCell: ({ value }) => (
         <Chip
-          label={value.toLowerCase() === "paid" ? "Paid" : "Unpaid"}
+          label={value?.toLowerCase() === "paid" ? "Paid" : "Unpaid"}
           sx={styles.chip(value?.toLowerCase())}
         />
       )
@@ -121,7 +123,7 @@ const Invoices = () => {
       width: 150,
       renderCell: ({ value }) => (
         <Typography fontSize={16} fontWeight={600} color="primary.main">
-          {indianCurrencyFormatter(value)}
+          {indianCurrencyFormatter(value || 0)}
         </Typography>
       )
     },
@@ -136,7 +138,10 @@ const Invoices = () => {
             <IconButton
               aria-label={VIEW}
               size="large"
-              onClick={() => handleOpen(VIEW, params?.row?.invoiceNumber)}>
+              onClick={() => {
+                dispatch(setInvoice(params?.row?.invoiceNumber));
+                handleOpen(VIEW, params?.row?.invoiceNumber);
+              }}>
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
@@ -144,7 +149,10 @@ const Invoices = () => {
             <IconButton
               aria-label={EDIT}
               size="large"
-              onClick={() => handleOpen(EDIT, params?.row?.invoiceNumber)}>
+              onClick={() => {
+                dispatch(setInvoice(params?.row?.invoiceNumber));
+                handleOpen(EDIT, params?.row?.invoiceNumber);
+              }}>
               <EditIcon />
             </IconButton>
           </Tooltip>
