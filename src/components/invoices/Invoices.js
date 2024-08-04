@@ -78,7 +78,12 @@ const Invoices = () => {
       headerName: "Invoice Number",
       width: 180
     },
-    { field: "customerName", headerName: "Customer Name", flex: 1 },
+    {
+      field: "customerName",
+      headerName: "Customer Name",
+      flex: 1,
+      valueFormatter: ({ value }) => value?.label
+    },
     {
       field: "invoiceDate",
       headerName: "Invoice Date",
