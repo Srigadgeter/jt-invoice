@@ -59,6 +59,7 @@ const invoiceSchema = yup.object({
     is: "new",
     then: (schema) =>
       schema
+        .nullable()
         .length(15, "GST number should be 15 characters")
         .trim()
         .matches(
