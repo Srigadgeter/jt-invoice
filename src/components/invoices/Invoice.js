@@ -16,8 +16,6 @@ import {
   Tooltip,
   Typography
 } from "@mui/material";
-import dayjs from "dayjs";
-import utc from "dayjs-plugin-utc";
 import { useFormik } from "formik";
 import { DataGrid } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
@@ -32,7 +30,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import routes from "routes/routes";
 import commonStyles from "utils/commonStyles";
 import invoiceSchema from "validationSchemas/invoiceSchema";
-import { generateKeyValuePair, indianCurrencyFormatter, isMobile } from "utils/utilites";
+import { generateKeyValuePair, indianCurrencyFormatter, isMobile, NowInUTC } from "utils/utilites";
 import { MODES, PAGE_INFO, INVOICE_STATUS, GST_PERCENTAGE } from "utils/constants";
 import {
   addInvoice,
@@ -44,8 +42,6 @@ import {
 } from "store/slices/invoicesSlice";
 import AddEditProductModal from "./AddEditProductModal";
 import AddEditExtraModal from "./AddEditExtraModal";
-
-dayjs.extend(utc);
 
 const styles = {
   invoiceForm: {
@@ -127,15 +123,13 @@ const transportDestinationList = [
   { value: "vellore", label: "Vellore" }
 ];
 
-const today = dayjs().utc().format("YYYY-MM-DD");
-
 const INITIAL_VALUES = {
-  invoiceDate: today,
+  invoiceDate: NowInUTC,
   baleCount: 0,
   paymentStatus: INVOICE_STATUS.UNPAID,
   paymentDate: "",
   lrNum: "",
-  lrDate: today,
+  lrDate: NowInUTC,
   logistics: { value: "", label: "" },
   newLogistics: "",
   transportDestination: { value: "", label: "" },
@@ -217,11 +211,11 @@ const Invoice = () => {
 
         // add or update data to the store
         if (isNewMode) {
-          formValues.createdAt = today;
+          formValues.createdAt = NowInUTC;
           await dispatch(addInvoice(formValues));
         }
         if (isEditMode) {
-          formValues.updatedAt = [...(currentPageData?.updatedAt || []), today];
+          formValues.updatedAt = [...(currentPageData?.updatedAt || []), NowInUTC];
           await dispatch(editInvoice(formValues));
         }
 
@@ -254,7 +248,7 @@ const Invoice = () => {
     setValues({
       ...values,
       [name]: checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
-      paymentDate: checked ? today : ""
+      paymentDate: checked ? NowInUTC : ""
     });
   };
 

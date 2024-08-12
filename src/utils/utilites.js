@@ -33,6 +33,8 @@ export const getSum = (arr, key = null, initialValue = 0) => {
   return 0;
 };
 
+export const NowInUTC = dayjs().utc();
+
 export const formatDate = (date) => dayjs(date).utc().format("DD MMM YYYY");
 
 export const getDaysDiff = (d1, d2 = new Date(), numberOnly = false) => {
