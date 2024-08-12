@@ -61,7 +61,7 @@ const styles = {
 };
 
 const Invoices = () => {
-  const [loader, setLoader] = useState(false);
+  const [isLoading, setLoader] = useState(false);
 
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
@@ -271,14 +271,18 @@ const Invoices = () => {
       </Stack>
 
       <Box sx={styles.box}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleNew()}>
+        <Button
+          variant="contained"
+          disabled={isLoading}
+          startIcon={<AddIcon />}
+          onClick={() => handleNew()}>
           New
         </Button>
       </Box>
 
       <DataGrid
         sx={styles.dataGrid}
-        loading={loader}
+        loading={isLoading}
         rows={invoices}
         columns={columns}
         pageSizeOptions={[10]}
