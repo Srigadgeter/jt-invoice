@@ -892,6 +892,7 @@ const Invoice = () => {
               sx={styles.dataGrid}
               columns={productTableColumns}
               rows={currentPageData?.products || []}
+              getRowId={(row) => row?.productName?.id}
             />
           </Stack>
 
@@ -920,6 +921,7 @@ const Invoice = () => {
               sx={styles.dataGrid}
               columns={extraTableColumns}
               rows={currentPageData?.extras || []}
+              getRowId={(row) => row?.reason?.id}
             />
           </Stack>
         </Box>
