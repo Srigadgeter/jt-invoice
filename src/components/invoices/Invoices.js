@@ -63,7 +63,7 @@ const styles = {
 const Invoices = () => {
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
-  const { invoices } = useSelector((state) => state.invoices);
+  const { invoices = [], products = [] } = useSelector((state) => state.invoices);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -111,13 +111,16 @@ const Invoices = () => {
     const getInvoices = async () => {
       try {
         // Function for get all products
-        const fetchedProducts = [];
-        await getDocs(productCollectionRef)
-          .then((querySnapshot) => querySnapshot.docs)
-          .then((docs) => {
-            docs.forEach((doc) => fetchedProducts.push({ ...doc.data(), id: doc?.id }));
-            dispatch(setProducts(fetchedProducts));
-          });
+        const fetchedProducts = [...products];
+
+        if (!(fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0)) {
+          await getDocs(productCollectionRef)
+            .then((querySnapshot) => querySnapshot.docs)
+            .then((docs) => {
+              docs.forEach((doc) => fetchedProducts.push({ ...doc.data(), id: doc?.id }));
+              dispatch(setProducts(fetchedProducts));
+            });
+        }
 
         // Function for get all invoices
         if (fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
