@@ -19,9 +19,7 @@ const invoicesSlice = createSlice({
       state.invoices = action?.payload;
     },
     setInvoice: (state, action) => {
-      const filteredInvoice = state?.invoices?.filter(
-        (item) => item?.invoiceNumber === action?.payload
-      )[0];
+      const filteredInvoice = state?.invoices?.filter((item) => item?.id === action?.payload)?.[0];
       state.selectedInvoice = filteredInvoice;
       state.selectedInvoiceInitialValue = filteredInvoice;
     },

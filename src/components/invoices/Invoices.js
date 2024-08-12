@@ -205,8 +205,8 @@ const Invoices = () => {
               aria-label={VIEW}
               size="large"
               onClick={() => {
-                dispatch(setInvoice(params?.row?.invoiceNumber));
-                handleOpen(VIEW, params?.row?.invoiceNumber);
+                dispatch(setInvoice(params?.row?.id));
+                handleOpen(VIEW, params?.row?.id);
               }}>
               <VisibilityIcon />
             </IconButton>
@@ -216,8 +216,8 @@ const Invoices = () => {
               aria-label={EDIT}
               size="large"
               onClick={() => {
-                dispatch(setInvoice(params?.row?.invoiceNumber));
-                handleOpen(EDIT, params?.row?.invoiceNumber);
+                dispatch(setInvoice(params?.row?.id));
+                handleOpen(EDIT, params?.row?.id);
               }}>
               <EditIcon />
             </IconButton>
@@ -226,7 +226,7 @@ const Invoices = () => {
             <IconButton
               aria-label="download invoice"
               size="large"
-              onClick={() => handleDownload(params?.row?.invoiceNumber)}>
+              onClick={() => handleDownload(params?.row?.id)}>
               <DownloadIcon />
             </IconButton>
           </Tooltip>
