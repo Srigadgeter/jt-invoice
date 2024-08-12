@@ -15,24 +15,8 @@ const invoicesSlice = createSlice({
   name: "invoices",
   initialState,
   reducers: {
-    serializeData: (state, action) => {
-      const invoiceArray = action?.payload;
-
-      return invoiceArray.map((invoice) => {
-        const modifiedData = {};
-        Object.entries(invoice).forEach(([key, value]) => {
-          // TODO: Serialize firebase reference data
-          // Serializing firebase timestamp data
-          if (value && (value instanceof Date || typeof value.toDate === "function"))
-            modifiedData[key] = value.toDate();
-          else modifiedData[key] = value;
-        });
-        return modifiedData;
-      });
-    },
     setInvoices: (state, action) => {
-      const serializedData = invoicesSlice.caseReducers.serializeData(state, action);
-      state.invoices = [...serializedData];
+      state.invoices = action?.payload;
     },
     setInvoice: (state, action) => {
       const filteredInvoice = state?.invoices?.filter(
