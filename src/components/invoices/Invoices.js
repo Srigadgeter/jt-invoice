@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
@@ -8,11 +8,13 @@ import EditIcon from "@mui/icons-material/Edit";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
+import { collection, getDocs } from "firebase/firestore";
 
-import { PAGE_INFO, MODES } from "utils/constants";
-import { formatDate, getDaysDiff, indianCurrencyFormatter, isMobile } from "utils/utilites";
 import routes from "routes/routes";
-import { setInvoice } from "store/slices/invoicesSlice";
+import { db } from "integrations/firebase";
+import { PAGE_INFO, MODES } from "utils/constants";
+import { setInvoice, setInvoices } from "store/slices/invoicesSlice";
+import { formatDate, getDaysDiff, indianCurrencyFormatter, isMobile } from "utils/utilites";
 
 const styles = {
   titleCard: {
@@ -64,6 +66,8 @@ const Invoices = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const invoicesCollectionRef = collection(db, "invoices");
+
   const handleOpen = (type, invoiceNumber) => {
     navigate(type === VIEW ? INVOICE_VIEW.to(invoiceNumber) : INVOICE_EDIT.to(invoiceNumber));
   };
@@ -73,6 +77,25 @@ const Invoices = () => {
   const handleNew = () => {
     navigate(INVOICE_NEW.to());
   };
+
+  useEffect(() => {
+    // Function for get all invoices
+    const getInvoices = async () => {
+      try {
+        await getDocs(invoicesCollectionRef)
+          .then((querySnapshot) => querySnapshot.docs)
+          .then((docs) => {
+            const fetchedInvoices = docs.map((doc) => ({ ...doc.data(), id: doc?.id }));
+            dispatch(setInvoices(fetchedInvoices));
+          });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    // Fetch all invoices
+    getInvoices();
+  }, []);
 
   const columns = [
     {
