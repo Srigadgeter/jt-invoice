@@ -35,6 +35,7 @@
     "comma-dangle": "off",
     "linebreak-style": "off",
     "react/prop-types": "off",
+    "no-nested-ternary": "off",
     "default-param-last": "off",
     "switch-colon-spacing": "error",
     "import/prefer-default-export": "off",
@@ -75,7 +76,8 @@
         "props": true,
         "ignorePropertyModificationsFor": ["state"]
       }
-    ]
+    ],
+    "import/no-cycle": "off"
   },
   "overrides": []
 }
