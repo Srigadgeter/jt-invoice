@@ -7,7 +7,14 @@ const store = configureStore({
   reducer: {
     app: appReducer,
     invoices: invoicesReducer
-  }
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignore these action types
+        ignoredActions: ["invoices/setInvoices"]
+      }
+    })
 });
 
 export default store;
