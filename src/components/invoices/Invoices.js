@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
@@ -61,9 +61,12 @@ const styles = {
 };
 
 const Invoices = () => {
+  const [loader, setLoader] = useState(false);
+
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
-  const { invoices = [], products = [] } = useSelector((state) => state.invoices);
+  const { invoices = [] } = useSelector((state) => state.invoices);
+  const { products = [] } = useSelector((state) => state.products);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -104,6 +107,7 @@ const Invoices = () => {
     });
 
     dispatch(setInvoices(serializedInvoices));
+    setLoader(false);
   };
 
   // get data
@@ -114,16 +118,26 @@ const Invoices = () => {
         const fetchedProducts = [...products];
 
         if (!(fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0)) {
+          console.warn("<< fetching products >>");
+          setLoader(true);
           await getDocs(productCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
               docs.forEach((doc) => fetchedProducts.push({ ...doc.data(), id: doc?.id }));
               dispatch(setProducts(fetchedProducts));
+              setLoader(false);
             });
         }
 
         // Function for get all invoices
-        if (fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
+        if (
+          !(invoices && Array.isArray(invoices) && invoices.length > 0) &&
+          fetchedProducts &&
+          Array.isArray(fetchedProducts) &&
+          fetchedProducts.length > 0
+        ) {
+          setLoader(true);
+          console.warn("<< fetching invoices >>");
           await getDocs(invoicesCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
@@ -133,6 +147,7 @@ const Invoices = () => {
         }
       } catch (err) {
         console.error(err);
+        setLoader(false);
       }
     };
 
@@ -263,6 +278,7 @@ const Invoices = () => {
 
       <DataGrid
         sx={styles.dataGrid}
+        loading={loader}
         rows={invoices}
         columns={columns}
         pageSizeOptions={[10]}
