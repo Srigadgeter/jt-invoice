@@ -4,85 +4,7 @@ import { MODES } from "utils/constants";
 import { getSum } from "utils/utilites";
 
 const initialState = {
-  invoices: [
-    {
-      invoiceNumber: "JT20232024TX00001",
-      createdAt: "2023-11-10",
-      updatedAt: [],
-      invoiceDate: "2023-11-10",
-      baleCount: 2,
-      paymentStatus: "paid",
-      paymentDate: "2023-12-08",
-      lrNumber: "ABC1234",
-      lrDate: "2023-11-10",
-      logistics: { value: "mss", label: "MSS" },
-      transportDestination: { value: "namakkal", label: "Namakkal" },
-      customerName: { value: "sriniwas-&-co", label: "Sriniwas & Co" },
-      products: [
-        {
-          productName: { value: "platinum-white-shirt-f", label: "Platinum White Shirt (F)" },
-          productQuantityPieces: 50,
-          productQuantityMeters: null,
-          productRate: 185,
-          productAmount: 9250,
-          producGstAmount: 50,
-          productAmountInclGST: 9712.5
-        },
-        {
-          productName: { value: "platinum-white-shirt-h", label: "Platinum White Shirt (H)" },
-          productQuantityPieces: 50,
-          productQuantityMeters: null,
-          productRate: 195,
-          productAmount: 9750,
-          producGstAmount: 487.5,
-          productAmountInclGST: 10237.5
-        },
-        {
-          productName: { value: "aim-spray-shirt-f", label: "Aim Spray Shirt (F)" },
-          productQuantityPieces: 30,
-          productQuantityMeters: null,
-          productRate: 200,
-          productAmount: 6000,
-          producGstAmount: 300,
-          productAmountInclGST: 6300
-        },
-        {
-          productName: { value: "style-one-shirt-h", label: "Style One Shirt (H)" },
-          productQuantityPieces: 10,
-          productQuantityMeters: null,
-          productRate: 135,
-          productAmount: 1350,
-          producGstAmount: 67.5,
-          productAmountInclGST: 1417.5
-        },
-        {
-          productName: { value: "gray-cloth-20x20", label: "Gray Cloth 20x20" },
-          productQuantityPieces: 10,
-          productQuantityMeters: 203,
-          productRate: 3.2,
-          productAmount: 6496,
-          producGstAmount: 324.8,
-          productAmountInclGST: 6820.8
-        },
-        {
-          productName: { value: "gray-cloth-40x50", label: "Gray Cloth 40x50" },
-          productQuantityPieces: 30,
-          productQuantityMeters: 200,
-          productRate: 3.3,
-          productAmount: 19800,
-          producGstAmount: 990,
-          productAmountInclGST: 20790
-        }
-      ],
-      extras: [
-        {
-          reason: { value: "bus-fare", label: "Bus Fare" },
-          amount: 1000
-        }
-      ],
-      totalAmount: 7300
-    }
-  ],
+  invoices: [],
   selectedInvoiceInitialValue: {},
   selectedInvoice: {},
   newInvoice: {},
@@ -93,9 +15,24 @@ const invoicesSlice = createSlice({
   name: "invoices",
   initialState,
   reducers: {
+    serializeData: (state, action) => {
+      const invoiceArray = action?.payload;
+
+      return invoiceArray.map((invoice) => {
+        const modifiedData = {};
+        Object.entries(invoice).forEach(([key, value]) => {
+          // TODO: Serialize firebase reference data
+          // Serializing firebase timestamp data
+          if (value && (value instanceof Date || typeof value.toDate === "function"))
+            modifiedData[key] = value.toDate();
+          else modifiedData[key] = value;
+        });
+        return modifiedData;
+      });
+    },
     setInvoices: (state, action) => {
-      // TODO: rework logic
-      state.invoices = action?.payload;
+      const serializedData = invoicesSlice.caseReducers.serializeData(state, action);
+      state.invoices = [...serializedData];
     },
     setInvoice: (state, action) => {
       const filteredInvoice = state?.invoices?.filter(
