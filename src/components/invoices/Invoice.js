@@ -17,6 +17,8 @@ import {
   Typography
 } from "@mui/material";
 import dayjs from "dayjs";
+import utc from "dayjs-plugin-utc";
+import { useFormik } from "formik";
 import { DataGrid } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -26,7 +28,6 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import { useFormik } from "formik";
 
 import routes from "routes/routes";
 import commonStyles from "utils/commonStyles";
@@ -43,6 +44,8 @@ import {
 } from "store/slices/invoicesSlice";
 import AddEditProductModal from "./AddEditProductModal";
 import AddEditExtraModal from "./AddEditExtraModal";
+
+dayjs.extend(utc);
 
 const styles = {
   invoiceForm: {
@@ -124,7 +127,7 @@ const transportDestinationList = [
   { value: "vellore", label: "Vellore" }
 ];
 
-const today = dayjs().format("YYYY-MM-DD");
+const today = dayjs().utc().format("YYYY-MM-DD");
 
 const INITIAL_VALUES = {
   invoiceDate: today,

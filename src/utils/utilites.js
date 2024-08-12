@@ -1,5 +1,8 @@
 /* eslint-disable no-restricted-globals */
 import dayjs from "dayjs";
+import utc from "dayjs-plugin-utc";
+
+dayjs.extend(utc);
 
 export const isMobile = () => window.innerWidth <= 768;
 
@@ -30,11 +33,11 @@ export const getSum = (arr, key = null, initialValue = 0) => {
   return 0;
 };
 
-export const formatDate = (date) => dayjs(date).format("DD MMM YYYY");
+export const formatDate = (date) => dayjs(date).utc().format("DD MMM YYYY");
 
 export const getDaysDiff = (d1, d2 = new Date(), numberOnly = false) => {
-  const date1 = dayjs(d1);
-  const date2 = dayjs(d2);
+  const date1 = dayjs(d1).utc();
+  const date2 = dayjs(d2).utc();
   const diff = date2.diff(date1, "d");
   return numberOnly ? diff : `${diff} day${diff > 1 ? "s" : ""}`;
 };
