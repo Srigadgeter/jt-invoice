@@ -5,6 +5,9 @@ import { getSum } from "utils/utilites";
 
 const initialState = {
   invoices: [],
+  logisticsList: [],
+  customerNameList: [],
+  transportDestinationList: [],
   selectedInvoiceInitialValue: {},
   selectedInvoice: {},
   newInvoice: {},
@@ -15,8 +18,39 @@ const invoicesSlice = createSlice({
   name: "invoices",
   initialState,
   reducers: {
+    setList: (state, action) => {
+      const { invoices, name } = action.payload;
+      const listMap = new Map();
+      invoices.forEach((invoice) => listMap.set(invoice[name]?.value, invoice[name]?.label));
+      const arr = Array.from(listMap, ([key, value]) => ({
+        value: key,
+        label: value
+      }));
+      state[`${name}List`] = arr;
+    },
+    setAllList: (state, action) => {
+      invoicesSlice.caseReducers.setList(state, {
+        payload: {
+          invoices: action?.payload,
+          name: "customerName"
+        }
+      });
+      invoicesSlice.caseReducers.setList(state, {
+        payload: {
+          invoices: action?.payload,
+          name: "logistics"
+        }
+      });
+      invoicesSlice.caseReducers.setList(state, {
+        payload: {
+          invoices: action?.payload,
+          name: "transportDestination"
+        }
+      });
+    },
     setInvoices: (state, action) => {
       state.invoices = action?.payload;
+      invoicesSlice.caseReducers.setAllList(state, action);
     },
     setInvoice: (state, action) => {
       const filteredInvoice = state?.invoices?.filter((item) => item?.id === action?.payload)?.[0];
