@@ -97,7 +97,7 @@ const Invoices = () => {
         }
         // Serialize firebase timestamp data
         else if (value && (value instanceof Date || typeof value.toDate === "function"))
-          modifiedData[key] = value.toDate();
+          modifiedData[key] = value.toDate().toString();
         else modifiedData[key] = value;
       });
       serializedInvoices.push(modifiedData);
