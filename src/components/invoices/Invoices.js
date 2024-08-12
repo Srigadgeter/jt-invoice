@@ -262,7 +262,6 @@ const Invoices = () => {
         sx={styles.dataGrid}
         rows={invoices}
         columns={columns}
-        getRowId={(row) => row?.invoiceNumber}
         pageSizeOptions={[10]}
         initialState={{
           sorting: {
