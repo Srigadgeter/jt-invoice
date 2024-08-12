@@ -80,6 +80,7 @@ const Invoices = () => {
     navigate(INVOICE_NEW.to());
   };
 
+  // Serialize the Invoice data
   const serializeData = (productArray, invoiceArray) => {
     const serializedInvoices = [];
 
@@ -105,10 +106,11 @@ const Invoices = () => {
     dispatch(setInvoices(serializedInvoices));
   };
 
+  // get data
   useEffect(() => {
-    // Function for get all invoices
     const getInvoices = async () => {
       try {
+        // Function for get all products
         const fetchedProducts = [];
         await getDocs(productCollectionRef)
           .then((querySnapshot) => querySnapshot.docs)
@@ -117,6 +119,7 @@ const Invoices = () => {
             dispatch(setProducts(fetchedProducts));
           });
 
+        // Function for get all invoices
         if (fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
           await getDocs(invoicesCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
