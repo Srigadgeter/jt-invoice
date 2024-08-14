@@ -113,22 +113,6 @@ const styles = {
   ...commonStyles
 };
 
-const customerList = [
-  { value: "abcd-pvt-ltd", label: "ABCD Pvt Ltd" },
-  { value: "abc-&-co", label: "ABC & Co" },
-  { value: "sriniwas-&-co", label: "Sriniwas & Co" }
-];
-
-const logisticsList = [
-  { value: "mss", label: "MSS" },
-  { value: "velan", label: "Velan" }
-];
-
-const transportDestinationList = [
-  { value: "namakkal", label: "Namakkal" },
-  { value: "vellore", label: "Vellore" }
-];
-
 const INITIAL_VALUES = {
   invoiceDate: NowInUTC,
   baleCount: 0,
@@ -153,8 +137,11 @@ const Invoice = () => {
   const {
     pageMode = "",
     newInvoice = {},
+    logisticsList = [],
     selectedInvoice = {},
-    selectedInvoiceInitialValue = {}
+    transportDestinationList = [],
+    selectedInvoiceInitialValue = {},
+    customerNameList: customerList = []
   } = useSelector((state) => state.invoices);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
