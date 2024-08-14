@@ -4,9 +4,9 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   products: [],
-  selectedProudctInitialValue: {},
-  selectedProudct: {},
-  newProudct: {},
+  selectedProductInitialValue: {},
+  selectedProduct: {},
+  newProduct: {},
   pageMode: ""
 };
 
