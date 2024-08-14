@@ -152,7 +152,7 @@ const Invoice = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  const { startYear, endYear, invoiceId } = useParams();
+  const { startYear = "", endYear = "", invoiceId = "" } = useParams();
   const { NEW, VIEW, EDIT } = MODES;
 
   const { pathname } = location;
