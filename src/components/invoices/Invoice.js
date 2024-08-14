@@ -27,10 +27,16 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
+import {
+  formatDateForInputField,
+  generateKeyValuePair,
+  indianCurrencyFormatter,
+  isMobile,
+  NowInUTC
+} from "utils/utilites";
 import routes from "routes/routes";
 import commonStyles from "utils/commonStyles";
 import invoiceSchema from "validationSchemas/invoiceSchema";
-import { generateKeyValuePair, indianCurrencyFormatter, isMobile, NowInUTC } from "utils/utilites";
 import { MODES, PAGE_INFO, INVOICE_STATUS, GST_PERCENTAGE } from "utils/constants";
 import {
   addInvoice,
@@ -548,9 +554,9 @@ const Invoice = () => {
                   disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  value={values?.invoiceDate ?? ""}
                   helperText={touched?.invoiceDate && errors?.invoiceDate}
                   error={touched?.invoiceDate && Boolean(errors?.invoiceDate)}
+                  value={values?.invoiceDate ? formatDateForInputField(values?.invoiceDate) : ""}
                 />
                 <TextField
                   fullWidth
@@ -582,9 +588,9 @@ const Invoice = () => {
                     disabled={isViewMode}
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    value={values?.paymentDate ?? ""}
                     helperText={touched?.paymentDate && errors?.paymentDate}
                     error={touched?.paymentDate && Boolean(errors?.paymentDate)}
+                    value={values?.paymentDate ? formatDateForInputField(values?.paymentDate) : ""}
                   />
                 )}
                 <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
@@ -629,9 +635,9 @@ const Invoice = () => {
                   disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  value={values?.lrDate ?? ""}
                   helperText={touched?.lrDate && errors?.lrDate}
                   error={touched?.lrDate && Boolean(errors?.lrDate)}
+                  value={values?.lrDate ? formatDateForInputField(values?.lrDate) : ""}
                 />
               </Stack>
               <Stack direction="row" spacing={2}>

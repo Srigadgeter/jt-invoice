@@ -37,6 +37,8 @@ export const NowInUTC = dayjs().utc();
 
 export const formatDate = (date) => dayjs(date).utc().format("DD MMM YYYY");
 
+export const formatDateForInputField = (date) => dayjs(date).utc().format("YYYY-MM-DD");
+
 export const getDaysDiff = (d1, d2 = new Date(), numberOnly = false) => {
   const date1 = dayjs(d1).utc();
   const date2 = dayjs(d2).utc();
