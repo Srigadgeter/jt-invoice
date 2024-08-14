@@ -73,8 +73,12 @@ const Invoices = () => {
   const invoicesCollectionRef = collection(db, "invoices");
   const productCollectionRef = collection(db, "products");
 
-  const handleOpen = (type, invoiceNumber) => {
-    navigate(type === VIEW ? INVOICE_VIEW.to(invoiceNumber) : INVOICE_EDIT.to(invoiceNumber));
+  const handleOpen = (type, startYear, endYear, id) => {
+    navigate(
+      type === VIEW
+        ? INVOICE_VIEW.to(startYear, endYear, id)
+        : INVOICE_EDIT.to(startYear, endYear, id)
+    );
   };
 
   const handleDownload = () => {};
@@ -221,7 +225,7 @@ const Invoices = () => {
               size="large"
               onClick={() => {
                 dispatch(setInvoice(params?.row?.id));
-                handleOpen(VIEW, params?.row?.id);
+                handleOpen(VIEW, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
               }}>
               <VisibilityIcon />
             </IconButton>
@@ -232,7 +236,7 @@ const Invoices = () => {
               size="large"
               onClick={() => {
                 dispatch(setInvoice(params?.row?.id));
-                handleOpen(EDIT, params?.row?.id);
+                handleOpen(EDIT, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
               }}>
               <EditIcon />
             </IconButton>

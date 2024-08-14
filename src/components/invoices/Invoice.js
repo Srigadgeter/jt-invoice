@@ -159,7 +159,7 @@ const Invoice = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  const { invoiceNumber = "" } = useParams();
+  const { startYear, endYear, invoiceId } = useParams();
   const { NEW, VIEW, EDIT } = MODES;
 
   const { pathname } = location;
@@ -241,8 +241,8 @@ const Invoice = () => {
   }, []);
 
   useEffect(() => {
-    if (invoiceNumber) dispatch(setInvoice(invoiceNumber));
-  }, [invoiceNumber]);
+    if (invoiceId) dispatch(setInvoice(invoiceId));
+  }, [invoiceId]);
 
   const handleSwitchChange = ({ target: { name, checked } }) => {
     setValues({
@@ -265,7 +265,7 @@ const Invoice = () => {
 
   const handleChangePageMode = (selectedMode) => {
     dispatch(setPageMode(selectedMode));
-    navigate(INVOICE_EDIT.to(invoiceNumber));
+    navigate(INVOICE_EDIT.to(startYear, endYear, invoiceId));
   };
 
   // ----------------------------------------
