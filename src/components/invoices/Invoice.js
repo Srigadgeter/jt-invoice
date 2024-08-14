@@ -30,6 +30,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import {
   formatDateForInputField,
   generateKeyValuePair,
+  getFY,
   indianCurrencyFormatter,
   isMobile,
   NowInUTC
@@ -201,6 +202,10 @@ const Invoice = () => {
         if (!!currentPageData?.extras && currentPageData?.extras?.length > 0)
           formValues.extras = currentPageData?.extras;
         formValues.totalAmount = currentPageData?.totalAmount || 0;
+
+        const { startYear: sYear, endYear: eYear } = getFY();
+        formValues.startYear = sYear;
+        formValues.endYear = eYear;
 
         // add or update data to the store
         if (isNewMode) {

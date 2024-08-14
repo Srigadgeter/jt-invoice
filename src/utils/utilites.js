@@ -45,3 +45,17 @@ export const getDaysDiff = (d1, d2 = new Date(), numberOnly = false) => {
   const diff = date2.diff(date1, "d");
   return numberOnly ? diff : `${diff} day${diff > 1 ? "s" : ""}`;
 };
+
+export const getFY = () => {
+  const month = NowInUTC.format("M");
+  const currentYear = NowInUTC.format("YYYY");
+  const lastYear = NowInUTC.subtract(1, "y").format("YYYY");
+  const nextYear = NowInUTC.add(1, "y").format("YYYY");
+  const startYear = month < 4 ? lastYear : currentYear;
+  const endYear = month < 4 ? currentYear : nextYear;
+
+  return {
+    startYear,
+    endYear
+  };
+};
