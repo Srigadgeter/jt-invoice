@@ -118,7 +118,7 @@ const INITIAL_VALUES = {
   invoiceDate: NowInUTC,
   baleCount: 0,
   paymentStatus: INVOICE_STATUS.UNPAID,
-  paymentDate: "",
+  paymentDate: null,
   lrNum: "",
   lrDate: NowInUTC,
   logistics: { value: "", label: "" },
@@ -246,7 +246,7 @@ const Invoice = () => {
     setValues({
       ...values,
       [name]: checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
-      paymentDate: checked ? NowInUTC : ""
+      paymentDate: checked ? NowInUTC : null
     });
   };
 
