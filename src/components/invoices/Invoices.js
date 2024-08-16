@@ -12,9 +12,10 @@ import { collection, getDocs } from "firebase/firestore";
 
 import routes from "routes/routes";
 import { db } from "integrations/firebase";
-import { PAGE_INFO, MODES } from "utils/constants";
 import { setProducts } from "store/slices/productsSlice";
+import { setCustomers } from "store/slices/customersSlice";
 import { setInvoice, setInvoices } from "store/slices/invoicesSlice";
+import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { formatDate, getDaysDiff, indianCurrencyFormatter, isMobile } from "utils/utilites";
 
 const styles = {
@@ -65,13 +66,16 @@ const Invoices = () => {
 
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
-  const { invoices = [] } = useSelector((state) => state.invoices);
-  const { products = [] } = useSelector((state) => state.products);
+  const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
+  const { invoices = [] } = useSelector((state) => state?.invoices);
+  const { products = [] } = useSelector((state) => state?.products);
+  const { customers = [] } = useSelector((state) => state?.customers);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const invoicesCollectionRef = collection(db, "invoices");
-  const productCollectionRef = collection(db, "products");
+  const invoicesCollectionRef = collection(db, INVOICES);
+  const productsCollectionRef = collection(db, PRODUCTS);
+  const customersCollectionRef = collection(db, CUSTOMERS);
 
   const handleOpen = (type, startYear, endYear, id) => {
     navigate(
@@ -88,19 +92,23 @@ const Invoices = () => {
   };
 
   // Serialize the Invoice data
-  const serializeData = (productArray, invoiceArray) => {
+  const serializeData = (productArray, customerArray, invoiceArray) => {
     const serializedInvoices = [];
 
     invoiceArray.forEach((invoice) => {
       const modifiedData = {};
       Object.entries(invoice).forEach(([key, value]) => {
-        // Serialize firebase reference data
+        // Serialize firebase products reference data
         if (key === "products") {
           const modifiedProducts = value?.map((product) => ({
             ...product,
             productName: productArray.filter((p) => p?.id === product?.productName?.id)?.[0]
           }));
           modifiedData.products = modifiedProducts;
+        }
+        // Serialize firebase customers reference data
+        if (key === "customer") {
+          modifiedData.customer = customerArray.filter((c) => c?.id === value?.id)?.[0];
         }
         // Serialize firebase timestamp data
         else if (value && (value instanceof Date || typeof value.toDate === "function"))
@@ -114,9 +122,9 @@ const Invoices = () => {
     setLoader(false);
   };
 
-  // get data
+  // fetch data
   useEffect(() => {
-    const getInvoices = async () => {
+    const fetchData = async () => {
       try {
         // Function for get all products
         const fetchedProducts = [...products];
@@ -124,11 +132,26 @@ const Invoices = () => {
         if (!(fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0)) {
           console.warn("<< fetching products >>");
           setLoader(true);
-          await getDocs(productCollectionRef)
+          await getDocs(productsCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
               docs.forEach((doc) => fetchedProducts.push({ ...doc.data(), id: doc?.id }));
               dispatch(setProducts(fetchedProducts));
+              setLoader(false);
+            });
+        }
+
+        // Function for get all customers
+        const fetchedCustomers = [...customers];
+
+        if (!(fetchedCustomers && Array.isArray(fetchedCustomers) && fetchedCustomers.length > 0)) {
+          console.warn("<< fetching customers >>");
+          setLoader(true);
+          await getDocs(customersCollectionRef)
+            .then((querySnapshot) => querySnapshot.docs)
+            .then((docs) => {
+              docs.forEach((doc) => fetchedCustomers.push({ ...doc.data(), id: doc?.id }));
+              dispatch(setCustomers(fetchedCustomers));
               setLoader(false);
             });
         }
@@ -138,7 +161,10 @@ const Invoices = () => {
           !(invoices && Array.isArray(invoices) && invoices.length > 0) &&
           fetchedProducts &&
           Array.isArray(fetchedProducts) &&
-          fetchedProducts.length > 0
+          fetchedProducts.length > 0 &&
+          fetchedCustomers &&
+          Array.isArray(fetchedCustomers) &&
+          fetchedCustomers.length > 0
         ) {
           setLoader(true);
           console.warn("<< fetching invoices >>");
@@ -146,7 +172,7 @@ const Invoices = () => {
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
               const fetchedInvoices = docs.map((doc) => ({ ...doc.data(), id: doc?.id }));
-              serializeData(fetchedProducts, fetchedInvoices);
+              serializeData(fetchedProducts, fetchedCustomers, fetchedInvoices);
             });
         }
       } catch (err) {
@@ -155,8 +181,7 @@ const Invoices = () => {
       }
     };
 
-    // Fetch all invoices
-    getInvoices();
+    fetchData();
   }, []);
 
   const columns = [
