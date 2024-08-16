@@ -141,9 +141,9 @@ const Invoice = () => {
     logisticsList = [],
     selectedInvoice = {},
     transportDestinationList = [],
-    selectedInvoiceInitialValue = {},
-    customerNameList: customerList = []
-  } = useSelector((state) => state.invoices);
+    selectedInvoiceInitialValue = {}
+  } = useSelector((state) => state?.invoices);
+  const { customers } = useSelector((state) => state?.customers);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
@@ -162,6 +162,8 @@ const Invoice = () => {
   const isViewMode = pageMode === MODES.VIEW;
   const isNewMode = pageMode === MODES.NEW;
   const isEditMode = pageMode === MODES.EDIT;
+
+  const customerList = customers.map((item) => item?.name);
 
   const handleBack = () => navigate(HOME.to());
 
