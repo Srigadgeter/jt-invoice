@@ -107,8 +107,10 @@ const Invoices = () => {
           modifiedData.products = modifiedProducts;
         }
         // Serialize firebase customers reference data
-        if (key === "customer") {
-          modifiedData.customer = customerArray.filter((c) => c?.id === value?.id)?.[0];
+        else if (key === "customer") {
+          const customer = customerArray.filter((c) => c?.id === value?.id)?.[0];
+          modifiedData.customer = customer;
+          modifiedData.customerName = { id: customer?.id, ...customer?.name };
         }
         // Serialize firebase timestamp data
         else if (value && (value instanceof Date || typeof value.toDate === "function"))

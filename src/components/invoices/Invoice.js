@@ -125,7 +125,7 @@ const INITIAL_VALUES = {
   newLogistics: "",
   transportDestination: { value: "", label: "" },
   newTransportDestination: "",
-  customerName: "",
+  customerName: { value: "", label: "" },
   newCustomerName: "",
   newCustomerGSTNumber: "",
   newCustomerPhoneNumber: "",
