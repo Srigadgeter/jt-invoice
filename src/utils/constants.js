@@ -34,3 +34,10 @@ export const INVOICE_STATUS = {
 
 // GST constants
 export const GST_PERCENTAGE = 5;
+
+// Firebase db collections
+export const FIREBASE_COLLECTIONS = {
+  INVOICES: "invoices",
+  PRODUCTS: "products",
+  CUSTOMERS: "customers"
+};
