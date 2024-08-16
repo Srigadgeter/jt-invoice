@@ -6,7 +6,6 @@ import { getSum } from "utils/utilites";
 const initialState = {
   invoices: [],
   logisticsList: [],
-  customerNameList: [],
   transportDestinationList: [],
   selectedInvoiceInitialValue: {},
   selectedInvoice: {},
@@ -29,12 +28,6 @@ const invoicesSlice = createSlice({
       state[`${name}List`] = arr;
     },
     setAllList: (state, action) => {
-      invoicesSlice.caseReducers.setList(state, {
-        payload: {
-          invoices: action?.payload,
-          name: "customerName"
-        }
-      });
       invoicesSlice.caseReducers.setList(state, {
         payload: {
           invoices: action?.payload,
