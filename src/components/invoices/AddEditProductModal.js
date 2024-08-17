@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import Stack from "@mui/material/Stack";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -39,31 +39,12 @@ const INITIAL_VALUES = {
   productRate: null
 };
 
-const productList = [
-  { value: "platinum-white-shirt-f", label: "Platinum White Shirt (F)" },
-  { value: "platinum-white-shirt-h", label: "Platinum White Shirt (H)" },
-  { value: "aim-spray-shirt-f", label: "Aim Spray Shirt (F)" },
-  { value: "aim-spray-shirt-h", label: "Aim Spray Shirt (H)" },
-  { value: "style-one-shirt-f", label: "Style One Shirt (F)" },
-  { value: "style-one-shirt-h", label: "Style One Shirt (H)" },
-  { value: "gray-cloth-20x20", label: "Gray Cloth 20x20" },
-  { value: "gray-cloth-20x40", label: "Gray Cloth 20x40" },
-  { value: "gray-cloth-40x50", label: "Gray Cloth 40x50" },
-  { value: "platinum-white-shirt-f-2", label: "Platinum White Shirt (F)" },
-  { value: "platinum-white-shirt-h-2", label: "Platinum White Shirt (H)" },
-  { value: "aim-spray-shirt-f-2", label: "Aim Spray Shirt (F)" },
-  { value: "aim-spray-shirt-h-2", label: "Aim Spray Shirt (H)" },
-  { value: "style-one-shirt-f-2", label: "Style One Shirt (F)" },
-  { value: "style-one-shirt-h-2", label: "Style One Shirt (H)" },
-  { value: "gray-cloth-20x20-2", label: "Gray Cloth 20x20" },
-  { value: "gray-cloth-20x40-2", label: "Gray Cloth 20x40" },
-  { value: "gray-cloth-40x50-2", label: "Gray Cloth 40x50" }
-];
-
 const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValues = null }) => {
   const [amount, setAmount] = useState(0);
 
   const dispatch = useDispatch();
+
+  const { products: productList } = useSelector((state) => state?.products);
 
   const {
     dirty,
