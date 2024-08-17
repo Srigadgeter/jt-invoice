@@ -74,7 +74,8 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
           producGstAmount: gstAmount,
           productAmountInclGST: amount + gstAmount
         };
-        if (val?.newProductName) formValues.productName = generateKeyValuePair(val?.newProductName);
+        if (val?.productName?.value === "new" && val?.newProductName)
+          formValues.productName = generateKeyValuePair(val?.newProductName);
         else formValues.productName = val?.productName;
 
         // add or update data to the store
@@ -87,11 +88,16 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
         // close the modal
         handleClose();
       } catch (error) {
-        setErrors({
-          productName: {
-            value: error?.message
-          }
-        });
+        if (val?.productName?.value === "new" && val?.newProductName)
+          setErrors({
+            newProductName: error?.message
+          });
+        else
+          setErrors({
+            productName: {
+              value: error?.message
+            }
+          });
       }
     }
   });

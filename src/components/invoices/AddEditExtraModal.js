@@ -58,7 +58,8 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
         const formValues = {
           amount: val?.amount
         };
-        if (val?.newReason) formValues.reason = generateKeyValuePair(val?.newReason);
+        if (val?.reason?.value === "new" && val?.newReason)
+          formValues.reason = generateKeyValuePair(val?.newReason);
         else formValues.reason = val?.reason;
 
         // add or update data to the store
@@ -71,11 +72,16 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
         // close the modal
         handleClose();
       } catch (error) {
-        setErrors({
-          reason: {
-            value: error?.message
-          }
-        });
+        if (val?.reason?.value === "new" && val?.newReason)
+          setErrors({
+            newReason: error?.message
+          });
+        else
+          setErrors({
+            reason: {
+              value: error?.message
+            }
+          });
       }
     }
   });
