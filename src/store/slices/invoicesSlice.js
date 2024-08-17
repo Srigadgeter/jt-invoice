@@ -153,7 +153,7 @@ const invoicesSlice = createSlice({
           ...(action?.payload ?? {}),
           fieldKey: "products",
           propKey: "productName",
-          errorMessage: "Product already added to the invoice"
+          errorMessage: "This product has already been added to the invoice"
         }
       });
     },
@@ -163,7 +163,7 @@ const invoicesSlice = createSlice({
           ...(action?.payload ?? {}),
           fieldKey: "products",
           propKey: "productName",
-          errorMessage: "Product already added to the invoice"
+          errorMessage: "This product has already been added to the invoice"
         }
       });
     },
@@ -182,7 +182,7 @@ const invoicesSlice = createSlice({
           ...(action?.payload ?? {}),
           fieldKey: "extras",
           propKey: "reason",
-          errorMessage: "This extra already added to the invoice"
+          errorMessage: "This item has already been added as an extra to the invoice"
         }
       });
     },
@@ -192,7 +192,7 @@ const invoicesSlice = createSlice({
           ...(action?.payload ?? {}),
           fieldKey: "extras",
           propKey: "reason",
-          errorMessage: "This extra already added to the invoice"
+          errorMessage: "This item has already been added as an extra to the invoice"
         }
       });
     },
