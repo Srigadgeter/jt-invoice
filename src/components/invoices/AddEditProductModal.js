@@ -74,9 +74,19 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
           producGstAmount: gstAmount,
           productAmountInclGST: amount + gstAmount
         };
+
+        let productValueLabel = {};
         if (val?.productName?.value === "new" && val?.newProductName)
-          formValues.productName = generateKeyValuePair(val?.newProductName);
-        else formValues.productName = val?.productName;
+          productValueLabel = generateKeyValuePair(val?.newProductName);
+        else productValueLabel = val?.productName;
+
+        const filteredproduct = productList.filter((p) => p?.value === productValueLabel?.value);
+        const productId = filteredproduct.length ? filteredproduct[0] : "new";
+
+        formValues.productName = {
+          id: productId,
+          ...productValueLabel
+        };
 
         // add or update data to the store
         if (itemIndex === null) await dispatch(addProduct(formValues));
