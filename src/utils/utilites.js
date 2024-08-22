@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-globals */
 import dayjs from "dayjs";
+import { addDoc } from "firebase/firestore";
 
 export const isMobile = () => window.innerWidth <= 768;
 
@@ -58,4 +59,17 @@ export const getFY = () => {
     startYear,
     endYear
   };
+};
+
+export const addDocToFirebase = async (collectionRef, payload) => {
+  let id = null;
+
+  try {
+    const docRef = await addDoc(collectionRef, payload);
+    id = docRef?.id;
+  } catch (error) {
+    console.error(error);
+  }
+
+  return id;
 };
