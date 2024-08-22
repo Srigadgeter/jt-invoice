@@ -108,7 +108,10 @@ const Invoices = () => {
   const serializeData = (obj) => {
     const modifiedData = {};
     Object.entries(obj).forEach(([key, value]) => {
-      modifiedData[key] = serializeTimeStampData(value);
+      if (key === "updatedAt")
+        modifiedData.updatedAt = value?.map((timeStamp) => serializeTimeStampData(timeStamp));
+      // Serialize firebase timestamp data otherwise return value
+      else modifiedData[key] = serializeTimeStampData(value);
     });
     return modifiedData;
   };
@@ -133,9 +136,10 @@ const Invoices = () => {
           const customer = customerArray.filter((c) => c?.id === value?.id)?.[0];
           modifiedData.customer = customer;
           modifiedData.customerName = { id: customer?.id, ...customer?.name };
-        }
-        // Serialize firebase timestamp data
-        modifiedData[key] = serializeTimeStampData(value);
+        } else if (key === "updatedAt")
+          modifiedData.updatedAt = value?.map((timeStamp) => serializeTimeStampData(timeStamp));
+        // Serialize firebase timestamp data otherwise return value
+        else modifiedData[key] = serializeTimeStampData(value);
       });
       serializedInvoices.push(modifiedData);
     });
