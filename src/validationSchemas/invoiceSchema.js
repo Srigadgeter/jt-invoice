@@ -9,10 +9,13 @@ const invoiceSchema = yup.object({
     .required("Bale count is required")
     .positive("Bale count should be positive number"),
   paymentStatus: yup.string().required("Payment Status is required"),
-  paymentDate: yup.date().when("paymentStatus", {
-    is: "paid",
-    then: (schema) => schema.required("Payment Date is required")
-  }),
+  paymentDate: yup
+    .date()
+    .nullable()
+    .when("paymentStatus", {
+      is: "paid",
+      then: (schema) => schema.required("Payment Date is required")
+    }),
   lrNumber: yup.string().nullable(),
   lrDate: yup.date().required("Lorry Receipt (LR) Date is required"),
   logistics: yup.object({
