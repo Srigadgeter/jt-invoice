@@ -17,6 +17,11 @@ const invoicesSlice = createSlice({
   name: "invoices",
   initialState,
   reducers: {
+    resetInvoiceValues: (state) => {
+      state.selectedInvoiceInitialValue = {};
+      state.selectedInvoice = {};
+      state.newInvoice = {};
+    },
     setList: (state, action) => {
       const { invoices, name } = action.payload;
       const listMap = new Map();
@@ -55,7 +60,7 @@ const invoicesSlice = createSlice({
       const newNumber = state.invoices.length + 1;
       updatedInvoices.push({ ...action?.payload, invoiceNumber: `JT20232024TX0000${newNumber}` });
       state.invoices = updatedInvoices;
-      state.newInvoice = {};
+      invoicesSlice.caseReducers.resetInvoiceValues();
     },
     editInvoice: (state, action) => {
       const modifiedInvoices = state?.invoices?.map((item) => {
@@ -63,7 +68,7 @@ const invoicesSlice = createSlice({
         return item;
       });
       state.invoices = modifiedInvoices;
-      state.selectedInvoice = {};
+      invoicesSlice.caseReducers.resetInvoiceValues();
     },
     setPageMode: (state, action) => {
       state.pageMode = action?.payload;
@@ -209,6 +214,7 @@ const invoicesSlice = createSlice({
 });
 
 export const {
+  resetInvoiceValues,
   setInvoices,
   setInvoice,
   addInvoice,
