@@ -1,8 +1,5 @@
 /* eslint-disable no-restricted-globals */
 import dayjs from "dayjs";
-import utc from "dayjs-plugin-utc";
-
-dayjs.extend(utc);
 
 export const isMobile = () => window.innerWidth <= 768;
 
@@ -33,24 +30,27 @@ export const getSum = (arr, key = null, initialValue = 0) => {
   return 0;
 };
 
-export const NowInUTC = dayjs().utc();
+export const Now = dayjs().toISOString();
 
-export const formatDate = (date) => dayjs(date).utc().format("DD MMM YYYY");
+export const formatDate = (date) => dayjs(date).format("DD MMM YYYY");
 
-export const formatDateForInputField = (date) => dayjs(date).utc().format("YYYY-MM-DD");
+export const formatDateToISOString = (date) => dayjs(date).toISOString();
+
+export const formatDateForInputField = (date) => dayjs(date).format("YYYY-MM-DD");
 
 export const getDaysDiff = (d1, d2 = new Date(), numberOnly = false) => {
-  const date1 = dayjs(d1).utc();
-  const date2 = dayjs(d2).utc();
+  const date1 = dayjs(d1);
+  const date2 = dayjs(d2);
   const diff = date2.diff(date1, "d");
   return numberOnly ? diff : `${diff} day${diff > 1 ? "s" : ""}`;
 };
 
 export const getFY = () => {
-  const month = NowInUTC.format("M");
-  const currentYear = NowInUTC.format("YYYY");
-  const lastYear = NowInUTC.subtract(1, "y").format("YYYY");
-  const nextYear = NowInUTC.add(1, "y").format("YYYY");
+  const now = dayjs();
+  const month = now.format("M");
+  const currentYear = now.format("YYYY");
+  const lastYear = now.subtract(1, "y").format("YYYY");
+  const nextYear = now.add(1, "y").format("YYYY");
   const startYear = month < 4 ? lastYear : currentYear;
   const endYear = month < 4 ? currentYear : nextYear;
 
