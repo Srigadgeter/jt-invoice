@@ -98,12 +98,17 @@ const Invoices = () => {
   };
 
   // Serialize the TimeStamp data
-  const serializeTimeStampData = (obj) => {
+  const serializeTimeStampData = (value) => {
+    if (value && (value instanceof Date || typeof value.toDate === "function"))
+      return firebaseDateToISOString(value);
+    return value;
+  };
+
+  // Serialize the data
+  const serializeData = (obj) => {
     const modifiedData = {};
     Object.entries(obj).forEach(([key, value]) => {
-      if (value && (value instanceof Date || typeof value.toDate === "function"))
-        modifiedData[key] = firebaseDateToISOString(value);
-      else modifiedData[key] = value;
+      modifiedData[key] = serializeTimeStampData(value);
     });
     return modifiedData;
   };
@@ -130,9 +135,7 @@ const Invoices = () => {
           modifiedData.customerName = { id: customer?.id, ...customer?.name };
         }
         // Serialize firebase timestamp data
-        else if (value && (value instanceof Date || typeof value.toDate === "function"))
-          modifiedData[key] = firebaseDateToISOString(value);
-        else modifiedData[key] = value;
+        modifiedData[key] = serializeTimeStampData(value);
       });
       serializedInvoices.push(modifiedData);
     });
@@ -155,7 +158,7 @@ const Invoices = () => {
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
               docs.forEach((doc) =>
-                fetchedProducts.push({ ...serializeTimeStampData(doc.data()), id: doc?.id })
+                fetchedProducts.push({ ...serializeData(doc.data()), id: doc?.id })
               );
               dispatch(setProducts(fetchedProducts));
               setLoader(false);
@@ -172,7 +175,7 @@ const Invoices = () => {
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
               docs.forEach((doc) =>
-                fetchedCustomers.push({ ...serializeTimeStampData(doc.data()), id: doc?.id })
+                fetchedCustomers.push({ ...serializeData(doc.data()), id: doc?.id })
               );
               dispatch(setCustomers(fetchedCustomers));
               setLoader(false);
