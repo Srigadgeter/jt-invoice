@@ -10,13 +10,19 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
 import { collection, getDocs } from "firebase/firestore";
 
+import {
+  firebaseDateToISOString,
+  formatDate,
+  getDaysDiff,
+  indianCurrencyFormatter,
+  isMobile
+} from "utils/utilites";
 import routes from "routes/routes";
 import { db } from "integrations/firebase";
 import { setProducts } from "store/slices/productsSlice";
 import { setCustomers } from "store/slices/customersSlice";
 import { setInvoice, setInvoices } from "store/slices/invoicesSlice";
 import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
-import { formatDate, getDaysDiff, indianCurrencyFormatter, isMobile } from "utils/utilites";
 
 const styles = {
   titleCard: {
@@ -91,8 +97,19 @@ const Invoices = () => {
     navigate(INVOICE_NEW.to());
   };
 
+  // Serialize the TimeStamp data
+  const serializeTimeStampData = (obj) => {
+    const modifiedData = {};
+    Object.entries(obj).forEach(([key, value]) => {
+      if (value && (value instanceof Date || typeof value.toDate === "function"))
+        modifiedData[key] = firebaseDateToISOString(value);
+      else modifiedData[key] = value;
+    });
+    return modifiedData;
+  };
+
   // Serialize the Invoice data
-  const serializeData = (productArray, customerArray, invoiceArray) => {
+  const serializeInvoiceData = (productArray, customerArray, invoiceArray) => {
     const serializedInvoices = [];
 
     invoiceArray.forEach((invoice) => {
@@ -114,7 +131,7 @@ const Invoices = () => {
         }
         // Serialize firebase timestamp data
         else if (value && (value instanceof Date || typeof value.toDate === "function"))
-          modifiedData[key] = value.toDate().toString();
+          modifiedData[key] = firebaseDateToISOString(value);
         else modifiedData[key] = value;
       });
       serializedInvoices.push(modifiedData);
@@ -137,7 +154,9 @@ const Invoices = () => {
           await getDocs(productsCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
-              docs.forEach((doc) => fetchedProducts.push({ ...doc.data(), id: doc?.id }));
+              docs.forEach((doc) =>
+                fetchedProducts.push({ ...serializeTimeStampData(doc.data()), id: doc?.id })
+              );
               dispatch(setProducts(fetchedProducts));
               setLoader(false);
             });
@@ -152,7 +171,9 @@ const Invoices = () => {
           await getDocs(customersCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
-              docs.forEach((doc) => fetchedCustomers.push({ ...doc.data(), id: doc?.id }));
+              docs.forEach((doc) =>
+                fetchedCustomers.push({ ...serializeTimeStampData(doc.data()), id: doc?.id })
+              );
               dispatch(setCustomers(fetchedCustomers));
               setLoader(false);
             });
@@ -174,7 +195,7 @@ const Invoices = () => {
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
               const fetchedInvoices = docs.map((doc) => ({ ...doc.data(), id: doc?.id }));
-              serializeData(fetchedProducts, fetchedCustomers, fetchedInvoices);
+              serializeInvoiceData(fetchedProducts, fetchedCustomers, fetchedInvoices);
             });
         }
       } catch (err) {
