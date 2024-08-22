@@ -15,9 +15,9 @@ import FormHelperText from "@mui/material/FormHelperText";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import commonStyles from "utils/commonStyles";
-import AppModal from "components/common/AppModal";
 import { GST_PERCENTAGE } from "utils/constants";
-import { generateKeyValuePair, isMobile } from "utils/utilites";
+import AppModal from "components/common/AppModal";
+import { generateKeyValuePair, isMobile, Now } from "utils/utilites";
 import { addProduct, editProduct } from "store/slices/invoicesSlice";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
 
@@ -76,15 +76,25 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
         };
 
         let productValueLabel = {};
-        if (val?.productName?.value === "new" && val?.newProductName)
-          productValueLabel = generateKeyValuePair(val?.newProductName);
-        else productValueLabel = val?.productName;
+
+        if (val?.productName?.value === "new" && val?.newProductName) {
+          const productNameData = generateKeyValuePair(val?.newProductName);
+          const isProductNameAlreadyPresent = productList.some(
+            (item) => item?.value === productNameData?.value
+          );
+          if (isProductNameAlreadyPresent) throw new Error("This product name already exists");
+          else productValueLabel = productNameData;
+        } else productValueLabel = val?.productName;
 
         const filteredproduct = productList.filter((p) => p?.value === productValueLabel?.value);
-        const productId = filteredproduct.length ? filteredproduct[0] : "new";
+        const productId = filteredproduct.length ? filteredproduct[0]?.id : "new";
+        const productCreatedAt = filteredproduct.length ? filteredproduct[0]?.createdAt : Now;
+        const productUpdatedAt = filteredproduct.length ? filteredproduct[0]?.updatedAt : [];
 
         formValues.productName = {
           id: productId,
+          createdAt: productCreatedAt,
+          updatedAt: productUpdatedAt,
           ...productValueLabel
         };
 
