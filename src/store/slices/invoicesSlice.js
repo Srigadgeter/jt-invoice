@@ -60,7 +60,7 @@ const invoicesSlice = createSlice({
       const newNumber = state.invoices.length + 1;
       updatedInvoices.push({ ...action?.payload, invoiceNumber: `JT20232024TX0000${newNumber}` });
       state.invoices = updatedInvoices;
-      invoicesSlice.caseReducers.resetInvoiceValues();
+      invoicesSlice.caseReducers.resetInvoiceValues(state);
     },
     editInvoice: (state, action) => {
       const modifiedInvoices = state?.invoices?.map((item) => {
