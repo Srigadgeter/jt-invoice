@@ -836,7 +836,7 @@ const Invoice = () => {
                       type="tel"
                       id="newCustomerPhoneNumber"
                       name="newCustomerPhoneNumber"
-                      label="Phone Number of New Customer"
+                      label="Phone/Landline Number of New Customer"
                       margin="dense"
                       size="small"
                       onBlur={handleBlur}

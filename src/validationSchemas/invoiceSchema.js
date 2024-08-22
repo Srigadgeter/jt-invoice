@@ -69,7 +69,14 @@ const invoiceSchema = yup.object({
   }),
   newCustomerPhoneNumber: yup.string().when("customerName.value", {
     is: "new",
-    then: (schema) => schema.trim()
+    then: (schema) =>
+      schema
+        .nullable()
+        .trim()
+        .matches(
+          /^(\+91[-\s]?)?[6-9]\d{9}$|^(0\d{2,4}[-\s]?)?\d{6,8}$/,
+          "Provide a valid India phone or landline number"
+        )
   }),
   newCustomerAddress: yup.string().when("customerName.value", {
     is: "new",
