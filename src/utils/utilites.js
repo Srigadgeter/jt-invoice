@@ -37,6 +37,8 @@ export const formatDate = (date) => dayjs(date).format("DD MMM YYYY");
 
 export const formatDateToISOString = (date) => dayjs(date).toISOString();
 
+export const firebaseDateToISOString = (date) => date.toDate().toISOString();
+
 export const formatDateForInputField = (date) => dayjs(date).format("YYYY-MM-DD");
 
 export const getDaysDiff = (d1, d2 = new Date(), numberOnly = false) => {
