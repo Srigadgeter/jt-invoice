@@ -89,7 +89,7 @@ const invoicesSlice = createSlice({
       invoicesSlice.caseReducers.setAllList(state, {
         payload: [...modifiedInvoices]
       });
-      invoicesSlice.caseReducers.resetInvoiceValues();
+      invoicesSlice.caseReducers.resetInvoiceValues(state);
     },
     setPageMode: (state, action) => {
       state.pageMode = action?.payload;
