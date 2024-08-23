@@ -5,6 +5,7 @@ import { getSum } from "utils/utilites";
 
 const initialState = {
   invoices: [],
+  extrasList: [],
   logisticsList: [],
   transportDestinationList: [],
   selectedInvoiceInitialValue: {},
@@ -25,7 +26,16 @@ const invoicesSlice = createSlice({
     setList: (state, action) => {
       const { invoices, name } = action.payload;
       const listMap = new Map();
-      invoices.forEach((invoice) => listMap.set(invoice[name]?.value, invoice[name]?.label));
+
+      if (name === "extras") {
+        invoices.forEach((invoice) => {
+          invoice?.extras?.forEach((extra) =>
+            listMap.set(extra?.reason?.value, extra?.reason?.label)
+          );
+        });
+      } else {
+        invoices.forEach((invoice) => listMap.set(invoice[name]?.value, invoice[name]?.label));
+      }
       const arr = Array.from(listMap, ([key, value]) => ({
         value: key,
         label: value
@@ -45,6 +55,12 @@ const invoicesSlice = createSlice({
           name: "transportDestination"
         }
       });
+      invoicesSlice.caseReducers.setList(state, {
+        payload: {
+          invoices: action?.payload,
+          name: "extras"
+        }
+      });
     },
     setInvoices: (state, action) => {
       state.invoices = action?.payload;
@@ -59,6 +75,9 @@ const invoicesSlice = createSlice({
       const updatedInvoices = [...state.invoices];
       updatedInvoices.push({ ...action?.payload });
       state.invoices = updatedInvoices;
+      invoicesSlice.caseReducers.setAllList(state, {
+        payload: [...updatedInvoices]
+      });
       invoicesSlice.caseReducers.resetInvoiceValues(state);
     },
     editInvoice: (state, action) => {
@@ -67,6 +86,9 @@ const invoicesSlice = createSlice({
         return item;
       });
       state.invoices = modifiedInvoices;
+      invoicesSlice.caseReducers.setAllList(state, {
+        payload: [...modifiedInvoices]
+      });
       invoicesSlice.caseReducers.resetInvoiceValues();
     },
     setPageMode: (state, action) => {

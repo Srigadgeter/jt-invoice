@@ -1084,7 +1084,7 @@ const Invoice = () => {
               sx={styles.dataGrid}
               columns={extraTableColumns}
               rows={currentPageData?.extras || []}
-              getRowId={(row) => row?.reason?.id}
+              getRowId={(row) => row?.reason?.value}
             />
           </Stack>
         </Box>
