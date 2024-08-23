@@ -64,14 +64,15 @@ export const getFY = () => {
 };
 
 export const addDocToFirebase = async (collectionRef, payload) => {
+  let docRef = null;
   let id = null;
 
   try {
-    const docRef = await addDoc(collectionRef, payload);
+    docRef = await addDoc(collectionRef, payload);
     id = docRef?.id;
   } catch (error) {
     console.error(error);
   }
 
-  return id;
+  return { docRef, id };
 };

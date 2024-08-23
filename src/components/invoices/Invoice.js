@@ -20,6 +20,7 @@ import { useFormik } from "formik";
 import { DataGrid } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import { collection, doc, writeBatch } from "firebase/firestore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -28,25 +29,35 @@ import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
 import {
+  addDocToFirebase,
   formatDateForInputField,
+  formatDateToISOString,
   generateKeyValuePair,
   getFY,
   indianCurrencyFormatter,
   isMobile,
-  NowInUTC
+  Now
 } from "utils/utilites";
+import {
+  MODES,
+  PAGE_INFO,
+  INVOICE_STATUS,
+  GST_PERCENTAGE,
+  FIREBASE_COLLECTIONS
+} from "utils/constants";
 import routes from "routes/routes";
-import commonStyles from "utils/commonStyles";
-import invoiceSchema from "validationSchemas/invoiceSchema";
-import { MODES, PAGE_INFO, INVOICE_STATUS, GST_PERCENTAGE } from "utils/constants";
 import {
   addInvoice,
   editInvoice,
   removeExtra,
   removeProduct,
+  resetInvoiceValues,
   setInvoice,
   setPageMode
 } from "store/slices/invoicesSlice";
+import { db } from "integrations/firebase";
+import commonStyles from "utils/commonStyles";
+import invoiceSchema from "validationSchemas/invoiceSchema";
 import AddEditProductModal from "./AddEditProductModal";
 import AddEditExtraModal from "./AddEditExtraModal";
 
@@ -115,12 +126,12 @@ const styles = {
 };
 
 const INITIAL_VALUES = {
-  invoiceDate: NowInUTC,
+  invoiceDate: Now,
   baleCount: 0,
   paymentStatus: INVOICE_STATUS.UNPAID,
   paymentDate: null,
   lrNum: "",
-  lrDate: NowInUTC,
+  lrDate: Now,
   logistics: { value: "", label: "" },
   newLogistics: "",
   transportDestination: { value: "", label: "" },
@@ -137,6 +148,7 @@ const Invoice = () => {
   const { INVOICE } = PAGE_INFO;
   const {
     pageMode = "",
+    invoices = [],
     newInvoice = {},
     logisticsList = [],
     selectedInvoice = {},
@@ -149,6 +161,11 @@ const Invoice = () => {
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
   const [selectedExtra, setSelectedExtra] = useState(null);
   const [selectedExtraIndex, setSelectedExtraIndex] = useState(null);
+
+  const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
+  const invoicesCollectionRef = collection(db, INVOICES);
+  const productsCollectionRef = collection(db, PRODUCTS);
+  const customersCollectionRef = collection(db, CUSTOMERS);
 
   const dispatch = useDispatch();
   const location = useLocation();
@@ -183,49 +200,193 @@ const Invoice = () => {
     enableReinitialize: true,
     initialValues: isNewMode ? INITIAL_VALUES : currentPageData,
     validationSchema: invoiceSchema,
-    onSubmit: async (val) => {
+    onSubmit: async (val, { setErrors }) => {
       try {
         // trim & frame the form values
         const formValues = {};
+        const customerFormValues = {};
         Object.entries(val).forEach(([key, value]) => {
-          if (value) formValues[key] = value;
+          if (
+            value &&
+            !key.toLowerCase().includes("new") &&
+            !key.toLowerCase().includes("customer")
+          ) {
+            if (key.toLowerCase().includes("date")) formValues[key] = formatDateToISOString(value);
+            else formValues[key] = value;
+          }
         });
 
-        if (val?.newLogistics) formValues.logistics = generateKeyValuePair(val?.newLogistics);
-        else formValues.logistics = val?.logistics;
-        if (val?.newTransportDestination)
-          formValues.transportDestination = generateKeyValuePair(val?.newTransportDestination);
-        else formValues.transportDestination = val?.transportDestination;
-        if (val?.newCustomerName)
-          formValues.customerName = generateKeyValuePair(val?.newCustomerName);
-        else formValues.customerName = val?.customerName;
+        if (val?.logistics?.value === "new" && val?.newLogistics) {
+          const logisticsData = generateKeyValuePair(val?.newLogistics);
+          const isLogisticsAlreadyPresent = logisticsList.some(
+            (item) => item?.value === logisticsData?.value
+          );
+          if (isLogisticsAlreadyPresent)
+            throw new Error("newLogistics:This logistics name already exists");
+          else formValues.logistics = logisticsData;
+        } else formValues.logistics = val?.logistics;
 
-        formValues.products = currentPageData?.products;
+        if (val?.transportDestination?.value === "new" && val?.newTransportDestination) {
+          const transportDestinationData = generateKeyValuePair(val?.newTransportDestination);
+          const isTransportDestinationAlreadyPresent = transportDestinationList.some(
+            (item) => item?.value === transportDestinationData?.value
+          );
+          if (isTransportDestinationAlreadyPresent)
+            throw new Error(
+              "newTransportDestination:This transport destination name already exists"
+            );
+          else formValues.transportDestination = transportDestinationData;
+        } else formValues.transportDestination = val?.transportDestination;
+
+        let customerDocRef = null;
+        if (val?.customerName?.value === "new" && val?.newCustomerName) {
+          const customerNameData = generateKeyValuePair(val?.newCustomerName);
+          const isCustomerNameAlreadyPresent = customerList.some(
+            (item) => item?.value === customerNameData?.value
+          );
+          if (isCustomerNameAlreadyPresent)
+            throw new Error("newCustomerName:This customer name already exists");
+          else {
+            customerFormValues.name = customerNameData;
+            customerFormValues.address = val?.newCustomerAddress || null;
+            customerFormValues.gstNumber = val?.newCustomerGSTNumber || null;
+            customerFormValues.phoneNumber = val?.newCustomerPhoneNumber || null;
+            customerFormValues.createdAt = Now;
+          }
+        } else {
+          const existingCustomerData = customers.filter(
+            (item) => item?.name?.value === val?.customerName?.value
+          )?.[0];
+          // fetching doc ref by id
+          customerDocRef = doc(db, CUSTOMERS, existingCustomerData?.id);
+          formValues.customer = existingCustomerData;
+        }
+
+        if (customerFormValues?.name) {
+          const { docRef, id: customerId } = await addDocToFirebase(
+            customersCollectionRef,
+            customerFormValues
+          );
+
+          if (customerId) {
+            customerDocRef = docRef;
+            formValues.customer = {
+              ...customerFormValues,
+              id: customerId
+            };
+          } else throw new Error("customer:There is an issue with adding the new customer details");
+        }
+
+        const currentProducts = [];
+        const currentProductsRef = [];
+        const batch = writeBatch(db);
+
+        currentPageData?.products.forEach((product) => {
+          if (product?.productName?.id === "new") {
+            // creating the doc ref
+            const docRef = doc(productsCollectionRef);
+
+            const { id, ...payload } = product.productName;
+
+            // mapping the ref with the data
+            batch.set(docRef, payload);
+
+            const productId = docRef?.id;
+            if (productId) {
+              currentProductsRef.push({
+                ...product,
+                productName: docRef
+              });
+              currentProducts.push({
+                ...product,
+                productName: {
+                  ...payload,
+                  id: productId
+                }
+              });
+            } else throw new Error("product:There is an issue fetching id for the new products");
+          } else {
+            // fetching doc ref by id
+            const docRef = doc(db, PRODUCTS, product?.productName?.id);
+            currentProductsRef.push({
+              ...product,
+              productName: docRef
+            });
+            currentProducts.push(product);
+          }
+        });
+
+        try {
+          // committing the batch of write operation
+          await batch.commit();
+        } catch (error) {
+          console.error(error);
+          throw new Error("product:There is an issue with adding the new product");
+        }
+
+        formValues.products = [...currentProducts];
+
+        formValues.extras = [];
         if (!!currentPageData?.extras && currentPageData?.extras?.length > 0)
           formValues.extras = currentPageData?.extras;
         formValues.totalAmount = currentPageData?.totalAmount || 0;
+
+        formValues.invoiceNumber = invoices.length + 1;
 
         const { startYear: sYear, endYear: eYear } = getFY();
         formValues.startYear = sYear;
         formValues.endYear = eYear;
 
-        // add or update data to the store
-        if (isNewMode) {
-          formValues.createdAt = NowInUTC;
-          await dispatch(addInvoice(formValues));
-        }
-        if (isEditMode) {
-          formValues.updatedAt = [...(currentPageData?.updatedAt || []), NowInUTC];
-          await dispatch(editInvoice(formValues));
-        }
+        if (formValues?.products?.length > 0 && formValues?.customer?.id && customerDocRef) {
+          if (isNewMode) {
+            // add or update data to the store
+            formValues.createdAt = Now;
+            formValues.updatedAt = [];
 
-        // reset the form
-        resetForm();
+            const invoiceFirebasePayload = {
+              ...formValues,
+              products: [...currentProductsRef],
+              customer: customerDocRef
+            };
 
-        // navigate back to invoices page
-        handleBack();
+            const { docRef, id: invoiceDocId } = await addDocToFirebase(
+              invoicesCollectionRef,
+              invoiceFirebasePayload
+            );
+
+            if (invoiceDocId) {
+              customerDocRef = docRef;
+              formValues.id = invoiceDocId;
+            } else throw new Error("invoice:There is an issue with adding the new invoice");
+
+            formValues.customerName = {
+              ...formValues?.customer?.name,
+              id: formValues?.customer?.id
+            };
+
+            await dispatch(addInvoice(formValues));
+          }
+          if (isEditMode) {
+            formValues.updatedAt = [...(currentPageData?.updatedAt || []), Now];
+
+            // TODO: Work on edit doc of firebase
+            await dispatch(editInvoice(formValues));
+          }
+
+          // reset the form
+          resetForm();
+
+          // navigate back to invoices page
+          handleBack();
+        }
       } catch (error) {
-        console.error("error >>", error);
+        console.error(error);
+        if (error?.message?.includes(":")) {
+          const [key, value] = error.message.split(":");
+          setErrors({
+            [key]: value
+          });
+        }
       }
     }
   });
@@ -236,7 +397,9 @@ const Invoice = () => {
     else dispatch(setPageMode(VIEW));
 
     return () => {
+      resetForm();
       dispatch(setPageMode(""));
+      dispatch(resetInvoiceValues());
     };
   }, []);
 
@@ -248,7 +411,7 @@ const Invoice = () => {
     setValues({
       ...values,
       [name]: checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
-      paymentDate: checked ? NowInUTC : null
+      paymentDate: checked ? Now : null
     });
   };
 
@@ -892,7 +1055,7 @@ const Invoice = () => {
               sx={styles.dataGrid}
               columns={productTableColumns}
               rows={currentPageData?.products || []}
-              getRowId={(row) => row?.productName?.id}
+              getRowId={(row) => row?.productName?.value}
             />
           </Stack>
 
