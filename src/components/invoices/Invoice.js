@@ -56,6 +56,7 @@ import {
   setPageMode
 } from "store/slices/invoicesSlice";
 import { db } from "integrations/firebase";
+import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import invoiceSchema from "validationSchemas/invoiceSchema";
 import AddEditProductModal from "./AddEditProductModal";
@@ -157,6 +158,7 @@ const Invoice = () => {
   } = useSelector((state) => state?.invoices);
   const { customers } = useSelector((state) => state?.customers);
 
+  const [isLoading, setLoader] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
   const [selectedExtra, setSelectedExtra] = useState(null);
@@ -201,6 +203,9 @@ const Invoice = () => {
     initialValues: isNewMode ? INITIAL_VALUES : currentPageData,
     validationSchema: invoiceSchema,
     onSubmit: async (val, { setErrors }) => {
+      // setting loader true
+      setLoader(true);
+
       try {
         // trim & frame the form values
         const formValues = {};
@@ -373,6 +378,9 @@ const Invoice = () => {
             await dispatch(editInvoice(formValues));
           }
 
+          // setting loader false
+          setLoader(false);
+
           // reset the form
           resetForm();
 
@@ -387,6 +395,9 @@ const Invoice = () => {
             [key]: value
           });
         }
+      } finally {
+        // setting loader false
+        setLoader(false);
       }
     }
   });
@@ -575,8 +586,9 @@ const Invoice = () => {
           &nbsp; &nbsp; &nbsp;
           <Tooltip title="Edit">
             <IconButton
-              aria-label={EDIT}
               size="large"
+              aria-label={EDIT}
+              disabled={isLoading}
               onClick={() =>
                 handleEditProduct(
                   params.row,
@@ -588,8 +600,9 @@ const Invoice = () => {
           </Tooltip>
           <Tooltip title="Remove">
             <IconButton
-              aria-label="remove"
               size="large"
+              aria-label="remove"
+              disabled={isLoading}
               onClick={() => dispatch(removeProduct(params.row))}>
               <DeleteIcon />
             </IconButton>
@@ -608,8 +621,9 @@ const Invoice = () => {
           &nbsp; &nbsp; &nbsp;
           <Tooltip title="Edit">
             <IconButton
-              aria-label={EDIT}
               size="large"
+              aria-label={EDIT}
+              disabled={isLoading}
               onClick={() =>
                 handleEditExtra(
                   params.row,
@@ -621,8 +635,9 @@ const Invoice = () => {
           </Tooltip>
           <Tooltip title="Remove">
             <IconButton
-              aria-label="remove"
               size="large"
+              aria-label="remove"
+              disabled={isLoading}
               onClick={() => dispatch(removeExtra(params.row))}>
               <DeleteIcon />
             </IconButton>
@@ -646,10 +661,12 @@ const Invoice = () => {
       (isEditMode && !dirty && isValid && (areProductsUpdated || areExtrasUpdated)) ||
       (isEditMode && dirty && isValid && (areProductsUpdated || areExtrasUpdated))) &&
     !!currentPageData?.products &&
-    currentPageData?.products?.length > 0;
+    currentPageData?.products?.length > 0 &&
+    !isLoading;
 
   return (
     <Box>
+      {isLoading && <Loader height="calc(100vh - 50px)" />}
       <AddEditProductModal
         open={openAddEditProductModal}
         initialValues={selectedProduct}
@@ -670,14 +687,16 @@ const Invoice = () => {
           {isViewMode && (
             <Button
               variant="contained"
+              disabled={isLoading}
               startIcon={<EditIcon />}
-              onClick={() => handleChangePageMode(EDIT)}
-              size={isMobile() ? "small" : "medium"}>
+              size={isMobile() ? "small" : "medium"}
+              onClick={() => handleChangePageMode(EDIT)}>
               Edit
             </Button>
           )}
           <Button
             variant="outlined"
+            disabled={isLoading}
             onClick={() => handleBack()}
             startIcon={<ArrowBackIosNewIcon />}
             size={isMobile() ? "small" : "medium"}>
@@ -708,9 +727,9 @@ const Invoice = () => {
                   InputProps={{
                     startAdornment: " "
                   }}
-                  disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
+                  disabled={isViewMode || isLoading}
                   helperText={touched?.invoiceDate && errors?.invoiceDate}
                   error={touched?.invoiceDate && Boolean(errors?.invoiceDate)}
                   value={values?.invoiceDate ? formatDateForInputField(values?.invoiceDate) : ""}
@@ -723,10 +742,10 @@ const Invoice = () => {
                   margin="dense"
                   size="small"
                   type="number"
-                  disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
                   value={values?.baleCount ?? 0}
+                  disabled={isViewMode || isLoading}
                   helperText={touched?.baleCount && errors?.baleCount}
                   error={touched?.baleCount && Boolean(errors?.baleCount)}
                 />
@@ -742,9 +761,9 @@ const Invoice = () => {
                     InputProps={{
                       startAdornment: " "
                     }}
-                    disabled={isViewMode}
                     onBlur={handleBlur}
                     onChange={handleChange}
+                    disabled={isViewMode || isLoading}
                     helperText={touched?.paymentDate && errors?.paymentDate}
                     error={touched?.paymentDate && Boolean(errors?.paymentDate)}
                     value={values?.paymentDate ? formatDateForInputField(values?.paymentDate) : ""}
@@ -753,12 +772,12 @@ const Invoice = () => {
                 <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
                   <Typography>Unpaid</Typography>
                   <Switch
+                    checked={isPaid}
                     id="paymentStatus"
                     name="paymentStatus"
-                    disabled={isViewMode}
                     onChange={handleSwitchChange}
+                    disabled={isViewMode || isLoading}
                     inputProps={{ "aria-label": "payment status" }}
-                    checked={isPaid}
                   />
                   <Typography>Paid</Typography>
                 </Stack>
@@ -771,9 +790,9 @@ const Invoice = () => {
                   label="LR Number"
                   margin="dense"
                   size="small"
-                  disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
+                  disabled={isViewMode || isLoading}
                   value={values?.lrNumber?.toUpperCase() ?? ""}
                   helperText={touched?.lrNumber && errors?.lrNumber}
                   error={touched?.lrNumber && Boolean(errors?.lrNumber)}
@@ -789,9 +808,9 @@ const Invoice = () => {
                   InputProps={{
                     startAdornment: " "
                   }}
-                  disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
+                  disabled={isViewMode || isLoading}
                   helperText={touched?.lrDate && errors?.lrDate}
                   error={touched?.lrDate && Boolean(errors?.lrDate)}
                   value={values?.lrDate ? formatDateForInputField(values?.lrDate) : ""}
@@ -809,7 +828,7 @@ const Invoice = () => {
                     name="logistics"
                     label="Logistics"
                     onBlur={handleBlur}
-                    disabled={isViewMode}
+                    disabled={isViewMode || isLoading}
                     value={values?.logistics?.value ?? ""}
                     MenuProps={{ sx: styles.selectDropdownMenuStyle }}
                     onChange={(e) => handleSelectChange(e, logisticsList)}>
@@ -844,6 +863,7 @@ const Invoice = () => {
                     margin="dense"
                     size="small"
                     onBlur={handleBlur}
+                    disabled={isLoading}
                     onChange={handleChange}
                     value={values?.newLogistics ?? ""}
                     helperText={touched?.newLogistics && errors?.newLogistics}
@@ -865,7 +885,7 @@ const Invoice = () => {
                     name="transportDestination"
                     label="Transport Destination"
                     onBlur={handleBlur}
-                    disabled={isViewMode}
+                    disabled={isViewMode || isLoading}
                     value={values?.transportDestination?.value ?? ""}
                     MenuProps={{ sx: styles.selectDropdownMenuStyle }}
                     onChange={(e) => handleSelectChange(e, transportDestinationList)}>
@@ -904,6 +924,7 @@ const Invoice = () => {
                     margin="dense"
                     size="small"
                     onBlur={handleBlur}
+                    disabled={isLoading}
                     onChange={handleChange}
                     value={values?.newTransportDestination ?? ""}
                     helperText={touched?.newTransportDestination && errors?.newTransportDestination}
@@ -936,7 +957,7 @@ const Invoice = () => {
                     name="customerName"
                     label="Customer Name"
                     onBlur={handleBlur}
-                    disabled={isViewMode}
+                    disabled={isViewMode || isLoading}
                     value={values?.customerName?.value ?? ""}
                     MenuProps={{ sx: styles.selectDropdownMenuStyle }}
                     onChange={(e) => handleSelectChange(e, customerList)}>
@@ -971,6 +992,7 @@ const Invoice = () => {
                     margin="dense"
                     size="small"
                     onBlur={handleBlur}
+                    disabled={isLoading}
                     onChange={handleChange}
                     value={values?.newCustomerName ?? ""}
                     helperText={touched?.newCustomerName && errors?.newCustomerName}
@@ -989,6 +1011,7 @@ const Invoice = () => {
                       margin="dense"
                       size="small"
                       onBlur={handleBlur}
+                      disabled={isLoading}
                       onChange={handleChange}
                       value={values?.newCustomerGSTNumber?.toUpperCase() ?? ""}
                       helperText={touched?.newCustomerGSTNumber && errors?.newCustomerGSTNumber}
@@ -1003,6 +1026,7 @@ const Invoice = () => {
                       margin="dense"
                       size="small"
                       onBlur={handleBlur}
+                      disabled={isLoading}
                       onChange={handleChange}
                       value={values?.newCustomerPhoneNumber ?? ""}
                       helperText={touched?.newCustomerPhoneNumber && errors?.newCustomerPhoneNumber}
@@ -1021,6 +1045,7 @@ const Invoice = () => {
                     margin="dense"
                     size="small"
                     onBlur={handleBlur}
+                    disabled={isLoading}
                     onChange={handleChange}
                     value={values?.newCustomerAddress ?? ""}
                     helperText={touched?.newCustomerAddress && errors?.newCustomerAddress}
@@ -1042,6 +1067,7 @@ const Invoice = () => {
               {!isViewMode && (
                 <Button
                   variant="text"
+                  disabled={isLoading}
                   startIcon={<AddIcon />}
                   size={isMobile() ? "small" : "medium"}
                   onClick={() => handleOpenAddEditProductModal()}>
@@ -1071,6 +1097,7 @@ const Invoice = () => {
               {!isViewMode && (
                 <Button
                   variant="text"
+                  disabled={isLoading}
                   startIcon={<AddIcon />}
                   size={isMobile() ? "small" : "medium"}
                   onClick={() => handleOpenAddEditExtraModal()}>
@@ -1106,8 +1133,8 @@ const Invoice = () => {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            size={isMobile() ? "small" : "medium"}
-            disabled={!isSubmitEnabled}>
+            disabled={!isSubmitEnabled}
+            size={isMobile() ? "small" : "medium"}>
             {isNewMode ? "Submit" : "Save"}
           </Button>
         )}
