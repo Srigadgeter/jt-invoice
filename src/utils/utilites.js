@@ -41,11 +41,24 @@ export const firebaseDateToISOString = (date) => date.toDate().toISOString();
 
 export const formatDateForInputField = (date) => dayjs(date).format("YYYY-MM-DD");
 
-export const getDaysDiff = (d1, d2 = new Date(), numberOnly = false) => {
+export const getDaysDiff = (d1, d2 = new Date(), showAgo = false) => {
   const date1 = dayjs(d1);
-  const date2 = dayjs(d2);
-  const diff = date2.diff(date1, "d");
-  return numberOnly ? diff : `${diff} day${diff > 1 ? "s" : ""}`;
+  const date2 = dayjs(d2 ?? new Date());
+  let diff = "";
+  const dayDiff = date2.diff(date1, "d");
+  if (dayDiff) diff = `${dayDiff} day${dayDiff === 1 ? "" : "s"}`;
+  else {
+    const hourDiff = date2.diff(date1, "h");
+
+    if (hourDiff) diff = `${hourDiff} hour${hourDiff === 1 ? "" : "s"}`;
+    else {
+      const minuteDiff = date2.diff(date1, "m");
+
+      if (minuteDiff) diff = `${minuteDiff} minute${minuteDiff === 1 ? "" : "s"}`;
+      else diff = "a few seconds";
+    }
+  }
+  return `${diff}${showAgo ? " ago" : ""}`;
 };
 
 export const getFY = () => {
