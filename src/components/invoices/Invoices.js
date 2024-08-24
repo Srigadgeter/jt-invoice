@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import EditIcon from "@mui/icons-material/Edit";
-import DownloadIcon from "@mui/icons-material/Download";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
-import { collection, getDocs } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useDispatch, useSelector } from "react-redux";
+import DownloadIcon from "@mui/icons-material/Download";
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 
 import {
   firebaseDateToISOString,
@@ -19,10 +20,11 @@ import {
 } from "utils/utilites";
 import routes from "routes/routes";
 import { db } from "integrations/firebase";
+import Loader from "components/common/Loader";
 import { setProducts } from "store/slices/productsSlice";
 import { setCustomers } from "store/slices/customersSlice";
-import { setInvoice, setInvoices } from "store/slices/invoicesSlice";
 import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
+import { deleteInvoice, setInvoice, setInvoices } from "store/slices/invoicesSlice";
 
 const styles = {
   titleCard: {
@@ -69,6 +71,7 @@ const styles = {
 
 const Invoices = () => {
   const [isLoading, setLoader] = useState(false);
+  const [isPageLoading, setPageLoader] = useState(false);
 
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
@@ -95,6 +98,27 @@ const Invoices = () => {
 
   const handleNew = () => {
     navigate(INVOICE_NEW.to());
+  };
+
+  const handleDelete = async (invoiceRowData) => {
+    if (invoiceRowData?.id) {
+      setPageLoader(true);
+
+      try {
+        // Create a reference to the document to delete
+        const docRef = doc(db, INVOICES, invoiceRowData?.id);
+
+        // Delete the document on firebase
+        await deleteDoc(docRef);
+
+        // Delete invoice from the store
+        dispatch(deleteInvoice(invoiceRowData));
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setPageLoader(false);
+      }
+    }
   };
 
   // Serialize the TimeStamp data
@@ -161,9 +185,7 @@ const Invoices = () => {
           await getDocs(productsCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
-              docs.forEach((doc) =>
-                fetchedProducts.push({ ...serializeData(doc.data()), id: doc?.id })
-              );
+              docs.forEach((d) => fetchedProducts.push({ ...serializeData(d.data()), id: d?.id }));
               dispatch(setProducts(fetchedProducts));
               setLoader(false);
             });
@@ -178,9 +200,7 @@ const Invoices = () => {
           await getDocs(customersCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
-              docs.forEach((doc) =>
-                fetchedCustomers.push({ ...serializeData(doc.data()), id: doc?.id })
-              );
+              docs.forEach((d) => fetchedCustomers.push({ ...serializeData(d.data()), id: d?.id }));
               dispatch(setCustomers(fetchedCustomers));
               setLoader(false);
             });
@@ -201,7 +221,7 @@ const Invoices = () => {
           await getDocs(invoicesCollectionRef)
             .then((querySnapshot) => querySnapshot.docs)
             .then((docs) => {
-              const fetchedInvoices = docs.map((doc) => ({ ...doc.data(), id: doc?.id }));
+              const fetchedInvoices = docs.map((d) => ({ ...d.data(), id: d?.id }));
               serializeInvoiceData(fetchedProducts, fetchedCustomers, fetchedInvoices);
             });
         }
@@ -272,14 +292,15 @@ const Invoices = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 150,
+      width: 200,
       sortable: false,
       renderCell: (params) => (
         <Box>
           <Tooltip title="View">
             <IconButton
-              aria-label={VIEW}
               size="large"
+              aria-label={VIEW}
+              disabled={isPageLoading}
               onClick={() => {
                 dispatch(setInvoice(params?.row?.id));
                 handleOpen(VIEW, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
@@ -289,8 +310,9 @@ const Invoices = () => {
           </Tooltip>
           <Tooltip title="Edit">
             <IconButton
-              aria-label={EDIT}
               size="large"
+              aria-label={EDIT}
+              disabled={isPageLoading}
               onClick={() => {
                 dispatch(setInvoice(params?.row?.id));
                 handleOpen(EDIT, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
@@ -298,10 +320,20 @@ const Invoices = () => {
               <EditIcon />
             </IconButton>
           </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton
+              size="large"
+              aria-label="delete"
+              disabled={isPageLoading}
+              onClick={() => handleDelete(params?.row)}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Download">
             <IconButton
-              aria-label="download invoice"
               size="large"
+              disabled={isPageLoading}
+              aria-label="download invoice"
               onClick={() => handleDownload(params?.row?.id)}>
               <DownloadIcon />
             </IconButton>
@@ -317,6 +349,8 @@ const Invoices = () => {
 
   return (
     <Box px={3} mt={1}>
+      {isPageLoading && <Loader height="calc(100vh - 50px)" />}
+
       <Stack
         direction="row"
         alignItems="center"
