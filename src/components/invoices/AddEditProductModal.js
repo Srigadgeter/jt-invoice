@@ -130,8 +130,8 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
           !(errors?.productQuantityPieces || errors?.productQuantityMeters || errors.productRate)
         ) {
           amt =
-            (values?.productQuantityPieces ?? 1) *
-            (values?.productQuantityMeters ?? 1) *
+            (values?.productQuantityPieces || 1) *
+            (values?.productQuantityMeters || 1) *
             values.productRate;
         }
       }
