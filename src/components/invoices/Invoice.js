@@ -488,7 +488,7 @@ const Invoice = () => {
       sortable: false,
       width: 50,
       renderCell: (params) =>
-        params.api.state.rows.dataRowIds.findIndex((id) => id === params.id) + 1
+        params.api.state.rows.dataRowIds.findIndex((id) => id === params?.id) + 1
     },
     {
       field: "productName",
@@ -556,7 +556,7 @@ const Invoice = () => {
       sortable: false,
       width: 50,
       renderCell: (params) =>
-        params.api.state.rows.dataRowIds.findIndex((id) => id === params.id) + 1
+        params.api.state.rows.dataRowIds.findIndex((id) => id === params?.id) + 1
     },
     {
       field: "reason",
@@ -595,8 +595,8 @@ const Invoice = () => {
               disabled={isLoading}
               onClick={() =>
                 handleEditProduct(
-                  params.row,
-                  params.api.state.rows.dataRowIds.findIndex((id) => id === params.id)
+                  params?.row,
+                  params?.api?.state?.rows?.dataRowIds.findIndex((id) => id === params?.id)
                 )
               }>
               <EditIcon />
@@ -607,7 +607,7 @@ const Invoice = () => {
               size="large"
               aria-label="remove"
               disabled={isLoading}
-              onClick={() => dispatch(removeProduct(params.row))}>
+              onClick={() => dispatch(removeProduct(params?.row))}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -630,8 +630,8 @@ const Invoice = () => {
               disabled={isLoading}
               onClick={() =>
                 handleEditExtra(
-                  params.row,
-                  params.api.state.rows.dataRowIds.findIndex((id) => id === params.id)
+                  params?.row,
+                  params?.api?.state?.rows?.dataRowIds.findIndex((id) => id === params?.id)
                 )
               }>
               <EditIcon />
@@ -642,7 +642,7 @@ const Invoice = () => {
               size="large"
               aria-label="remove"
               disabled={isLoading}
-              onClick={() => dispatch(removeExtra(params.row))}>
+              onClick={() => dispatch(removeExtra(params?.row))}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
