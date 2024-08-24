@@ -31,7 +31,7 @@ export const getSum = (arr, key = null, initialValue = 0) => {
   return 0;
 };
 
-export const Now = dayjs().toISOString();
+export const getNow = () => dayjs().toISOString();
 
 export const formatDate = (date) => dayjs(date).format("DD MMM YYYY");
 
