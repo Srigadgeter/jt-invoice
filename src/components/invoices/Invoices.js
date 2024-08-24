@@ -251,10 +251,12 @@ const Invoices = () => {
     },
     {
       field: "daysTaken",
-      headerName: "Invoiced before",
+      headerName: "Invoiced",
       width: 120,
       renderCell: ({ row }) =>
-        row?.paymentStatus === "paid" && row?.paymentDate ? null : getDaysDiff(row?.invoiceDate)
+        row?.paymentStatus === "paid" && row?.paymentDate
+          ? null
+          : getDaysDiff(row?.invoiceDate, null, true)
     },
     {
       field: "totalAmount",
