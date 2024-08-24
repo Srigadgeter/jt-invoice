@@ -17,8 +17,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import commonStyles from "utils/commonStyles";
 import { GST_PERCENTAGE } from "utils/constants";
 import AppModal from "components/common/AppModal";
-import { generateKeyValuePair, isMobile, Now } from "utils/utilites";
 import { addProduct, editProduct } from "store/slices/invoicesSlice";
+import { generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
 
 const styles = {
@@ -88,7 +88,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
 
         const filteredproduct = productList.filter((p) => p?.value === productValueLabel?.value);
         const productId = filteredproduct.length ? filteredproduct[0]?.id : "new";
-        const productCreatedAt = filteredproduct.length ? filteredproduct[0]?.createdAt : Now;
+        const productCreatedAt = filteredproduct.length ? filteredproduct[0]?.createdAt : getNow();
         const productUpdatedAt = filteredproduct.length ? filteredproduct[0]?.updatedAt : [];
 
         formValues.productName = {

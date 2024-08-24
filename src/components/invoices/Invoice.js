@@ -34,9 +34,9 @@ import {
   formatDateToISOString,
   generateKeyValuePair,
   getFY,
+  getNow,
   indianCurrencyFormatter,
-  isMobile,
-  Now
+  isMobile
 } from "utils/utilites";
 import {
   MODES,
@@ -126,24 +126,6 @@ const styles = {
   ...commonStyles
 };
 
-const INITIAL_VALUES = {
-  invoiceDate: Now,
-  baleCount: 0,
-  paymentStatus: INVOICE_STATUS.UNPAID,
-  paymentDate: null,
-  lrNum: "",
-  lrDate: Now,
-  logistics: { value: "", label: "" },
-  newLogistics: "",
-  transportDestination: { value: "", label: "" },
-  newTransportDestination: "",
-  customerName: { value: "", label: "" },
-  newCustomerName: "",
-  newCustomerGSTNumber: "",
-  newCustomerPhoneNumber: "",
-  newCustomerAddress: ""
-};
-
 const Invoice = () => {
   const { HOME, INVOICE_EDIT } = routes;
   const { INVOICE } = PAGE_INFO;
@@ -158,6 +140,28 @@ const Invoice = () => {
   } = useSelector((state) => state?.invoices);
   const { customers } = useSelector((state) => state?.customers);
 
+  // INITIAL_VALUES constant placed here in order to get new datatime value for invoiceDate & lrDate fields
+  // when user frequently creates multiple invoice
+  const INITIAL_VALUES = {
+    invoiceDate: getNow(),
+    baleCount: 0,
+    paymentStatus: INVOICE_STATUS.UNPAID,
+    paymentDate: null,
+    lrNum: "",
+    lrDate: getNow(),
+    logistics: { value: "", label: "" },
+    newLogistics: "",
+    transportDestination: { value: "", label: "" },
+    newTransportDestination: "",
+    customerName: { value: "", label: "" },
+    newCustomerName: "",
+    newCustomerGSTNumber: "",
+    newCustomerPhoneNumber: "",
+    newCustomerAddress: ""
+  };
+
+  // Storing the formik initial value & using as state value in order to avoid the form becomes unresponsive or inaccessible
+  const [newFormInitialValues] = useState(INITIAL_VALUES);
   const [isLoading, setLoader] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
@@ -200,7 +204,7 @@ const Invoice = () => {
     setFieldValue
   } = useFormik({
     enableReinitialize: true,
-    initialValues: isNewMode ? INITIAL_VALUES : currentPageData,
+    initialValues: isNewMode ? newFormInitialValues : currentPageData,
     validationSchema: invoiceSchema,
     onSubmit: async (val, { setErrors }) => {
       // setting loader true
@@ -256,7 +260,7 @@ const Invoice = () => {
             customerFormValues.address = val?.newCustomerAddress || null;
             customerFormValues.gstNumber = val?.newCustomerGSTNumber || null;
             customerFormValues.phoneNumber = val?.newCustomerPhoneNumber || null;
-            customerFormValues.createdAt = Now;
+            customerFormValues.createdAt = getNow();
           }
         } else {
           const existingCustomerData = customers.filter(
@@ -345,7 +349,7 @@ const Invoice = () => {
         if (formValues?.products?.length > 0 && formValues?.customer?.id && customerDocRef) {
           if (isNewMode) {
             // add or update data to the store
-            formValues.createdAt = Now;
+            formValues.createdAt = getNow();
             formValues.updatedAt = [];
 
             const invoiceFirebasePayload = {
@@ -372,7 +376,7 @@ const Invoice = () => {
             await dispatch(addInvoice(formValues));
           }
           if (isEditMode) {
-            formValues.updatedAt = [...(currentPageData?.updatedAt || []), Now];
+            formValues.updatedAt = [...(currentPageData?.updatedAt || []), getNow()];
 
             // TODO: Work on edit doc of firebase
             await dispatch(editInvoice(formValues));
@@ -422,7 +426,7 @@ const Invoice = () => {
     setValues({
       ...values,
       [name]: checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
-      paymentDate: checked ? Now : null
+      paymentDate: checked ? getNow() : null
     });
   };
 
