@@ -4,6 +4,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 const styles = {
   box: (height) => ({
+    zIndex: 1,
     width: "100%",
     display: "flex",
     position: "absolute",
