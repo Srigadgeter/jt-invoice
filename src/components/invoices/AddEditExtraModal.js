@@ -1,7 +1,6 @@
 import React from "react";
 import { useFormik } from "formik";
 import Stack from "@mui/material/Stack";
-import { useDispatch } from "react-redux";
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -10,6 +9,7 @@ import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
+import { useDispatch, useSelector } from "react-redux";
 import FormHelperText from "@mui/material/FormHelperText";
 import InputAdornment from "@mui/material/InputAdornment";
 
@@ -32,9 +32,9 @@ const INITIAL_VALUES = {
   amount: null
 };
 
-const extraList = [{ value: "bus-fare", label: "Bus Fare" }];
-
 const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues = null }) => {
+  const { extrasList = [] } = useSelector((state) => state?.invoices);
+
   const dispatch = useDispatch();
 
   const {
@@ -58,7 +58,8 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
         const formValues = {
           amount: val?.amount
         };
-        if (val?.newReason) formValues.reason = generateKeyValuePair(val?.newReason);
+        if (val?.reason?.value === "new" && val?.newReason)
+          formValues.reason = generateKeyValuePair(val?.newReason);
         else formValues.reason = val?.reason;
 
         // add or update data to the store
@@ -71,11 +72,16 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
         // close the modal
         handleClose();
       } catch (error) {
-        setErrors({
-          reason: {
-            value: error?.message
-          }
-        });
+        if (val?.reason?.value === "new" && val?.newReason)
+          setErrors({
+            newReason: error?.message
+          });
+        else
+          setErrors({
+            reason: {
+              value: error?.message
+            }
+          });
       }
     }
   });
@@ -142,16 +148,16 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
               onBlur={handleBlur}
               value={values?.reason?.value ?? ""}
               MenuProps={{ sx: styles.selectDropdownMenuStyle }}
-              onChange={(e) => handleSelectChange(e, extraList)}>
+              onChange={(e) => handleSelectChange(e, extrasList)}>
               <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
                 <em>None</em>
               </MenuItem>
               <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
                 <em>New</em>
               </MenuItem>
-              {extraList &&
-                Array.isArray(extraList) &&
-                extraList.map((item) => (
+              {extrasList &&
+                Array.isArray(extrasList) &&
+                extrasList.map((item) => (
                   <MenuItem key={item?.value} value={item?.value}>
                     {item?.label}
                   </MenuItem>

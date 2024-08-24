@@ -16,31 +16,49 @@ import {
   Tooltip,
   Typography
 } from "@mui/material";
-import dayjs from "dayjs";
+import { useFormik } from "formik";
 import { DataGrid } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import { collection, doc, writeBatch } from "firebase/firestore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import { useFormik } from "formik";
 
+import {
+  addDocToFirebase,
+  formatDateForInputField,
+  formatDateToISOString,
+  generateKeyValuePair,
+  getFY,
+  indianCurrencyFormatter,
+  isMobile,
+  Now
+} from "utils/utilites";
+import {
+  MODES,
+  PAGE_INFO,
+  INVOICE_STATUS,
+  GST_PERCENTAGE,
+  FIREBASE_COLLECTIONS
+} from "utils/constants";
 import routes from "routes/routes";
-import commonStyles from "utils/commonStyles";
-import invoiceSchema from "validationSchemas/invoiceSchema";
-import { generateKeyValuePair, indianCurrencyFormatter, isMobile } from "utils/utilites";
-import { MODES, PAGE_INFO, INVOICE_STATUS, GST_PERCENTAGE } from "utils/constants";
 import {
   addInvoice,
   editInvoice,
   removeExtra,
   removeProduct,
+  resetInvoiceValues,
   setInvoice,
   setPageMode
 } from "store/slices/invoicesSlice";
+import { db } from "integrations/firebase";
+import Loader from "components/common/Loader";
+import commonStyles from "utils/commonStyles";
+import invoiceSchema from "validationSchemas/invoiceSchema";
 import AddEditProductModal from "./AddEditProductModal";
 import AddEditExtraModal from "./AddEditExtraModal";
 
@@ -108,36 +126,18 @@ const styles = {
   ...commonStyles
 };
 
-const customerList = [
-  { value: "abcd-pvt-ltd", label: "ABCD Pvt Ltd" },
-  { value: "abc-&-co", label: "ABC & Co" },
-  { value: "sriniwas-&-co", label: "Sriniwas & Co" }
-];
-
-const logisticsList = [
-  { value: "mss", label: "MSS" },
-  { value: "velan", label: "Velan" }
-];
-
-const transportDestinationList = [
-  { value: "namakkal", label: "Namakkal" },
-  { value: "vellore", label: "Vellore" }
-];
-
-const today = dayjs().format("YYYY-MM-DD");
-
 const INITIAL_VALUES = {
-  invoiceDate: today,
+  invoiceDate: Now,
   baleCount: 0,
   paymentStatus: INVOICE_STATUS.UNPAID,
-  paymentDate: "",
+  paymentDate: null,
   lrNum: "",
-  lrDate: today,
+  lrDate: Now,
   logistics: { value: "", label: "" },
   newLogistics: "",
   transportDestination: { value: "", label: "" },
   newTransportDestination: "",
-  customerName: "",
+  customerName: { value: "", label: "" },
   newCustomerName: "",
   newCustomerGSTNumber: "",
   newCustomerPhoneNumber: "",
@@ -149,20 +149,30 @@ const Invoice = () => {
   const { INVOICE } = PAGE_INFO;
   const {
     pageMode = "",
+    invoices = [],
     newInvoice = {},
+    logisticsList = [],
     selectedInvoice = {},
+    transportDestinationList = [],
     selectedInvoiceInitialValue = {}
-  } = useSelector((state) => state.invoices);
+  } = useSelector((state) => state?.invoices);
+  const { customers } = useSelector((state) => state?.customers);
 
+  const [isLoading, setLoader] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
   const [selectedExtra, setSelectedExtra] = useState(null);
   const [selectedExtraIndex, setSelectedExtraIndex] = useState(null);
 
+  const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
+  const invoicesCollectionRef = collection(db, INVOICES);
+  const productsCollectionRef = collection(db, PRODUCTS);
+  const customersCollectionRef = collection(db, CUSTOMERS);
+
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  const { invoiceNumber = "" } = useParams();
+  const { startYear = "", endYear = "", invoiceId = "" } = useParams();
   const { NEW, VIEW, EDIT } = MODES;
 
   const { pathname } = location;
@@ -171,6 +181,8 @@ const Invoice = () => {
   const isViewMode = pageMode === MODES.VIEW;
   const isNewMode = pageMode === MODES.NEW;
   const isEditMode = pageMode === MODES.EDIT;
+
+  const customerList = customers.map((item) => item?.name);
 
   const handleBack = () => navigate(HOME.to());
 
@@ -190,45 +202,202 @@ const Invoice = () => {
     enableReinitialize: true,
     initialValues: isNewMode ? INITIAL_VALUES : currentPageData,
     validationSchema: invoiceSchema,
-    onSubmit: async (val) => {
+    onSubmit: async (val, { setErrors }) => {
+      // setting loader true
+      setLoader(true);
+
       try {
         // trim & frame the form values
         const formValues = {};
+        const customerFormValues = {};
         Object.entries(val).forEach(([key, value]) => {
-          if (value) formValues[key] = value;
+          if (
+            value &&
+            !key.toLowerCase().includes("new") &&
+            !key.toLowerCase().includes("customer")
+          ) {
+            if (key.toLowerCase().includes("date")) formValues[key] = formatDateToISOString(value);
+            else formValues[key] = value;
+          }
         });
 
-        if (val?.newLogistics) formValues.logistics = generateKeyValuePair(val?.newLogistics);
-        else formValues.logistics = val?.logistics;
-        if (val?.newTransportDestination)
-          formValues.transportDestination = generateKeyValuePair(val?.newTransportDestination);
-        else formValues.transportDestination = val?.transportDestination;
-        if (val?.newCustomerName)
-          formValues.customerName = generateKeyValuePair(val?.newCustomerName);
-        else formValues.customerName = val?.customerName;
+        if (val?.logistics?.value === "new" && val?.newLogistics) {
+          const logisticsData = generateKeyValuePair(val?.newLogistics);
+          const isLogisticsAlreadyPresent = logisticsList.some(
+            (item) => item?.value === logisticsData?.value
+          );
+          if (isLogisticsAlreadyPresent)
+            throw new Error("newLogistics:This logistics name already exists");
+          else formValues.logistics = logisticsData;
+        } else formValues.logistics = val?.logistics;
 
-        formValues.products = currentPageData?.products;
+        if (val?.transportDestination?.value === "new" && val?.newTransportDestination) {
+          const transportDestinationData = generateKeyValuePair(val?.newTransportDestination);
+          const isTransportDestinationAlreadyPresent = transportDestinationList.some(
+            (item) => item?.value === transportDestinationData?.value
+          );
+          if (isTransportDestinationAlreadyPresent)
+            throw new Error(
+              "newTransportDestination:This transport destination name already exists"
+            );
+          else formValues.transportDestination = transportDestinationData;
+        } else formValues.transportDestination = val?.transportDestination;
+
+        let customerDocRef = null;
+        if (val?.customerName?.value === "new" && val?.newCustomerName) {
+          const customerNameData = generateKeyValuePair(val?.newCustomerName);
+          const isCustomerNameAlreadyPresent = customerList.some(
+            (item) => item?.value === customerNameData?.value
+          );
+          if (isCustomerNameAlreadyPresent)
+            throw new Error("newCustomerName:This customer name already exists");
+          else {
+            customerFormValues.name = customerNameData;
+            customerFormValues.address = val?.newCustomerAddress || null;
+            customerFormValues.gstNumber = val?.newCustomerGSTNumber || null;
+            customerFormValues.phoneNumber = val?.newCustomerPhoneNumber || null;
+            customerFormValues.createdAt = Now;
+          }
+        } else {
+          const existingCustomerData = customers.filter(
+            (item) => item?.name?.value === val?.customerName?.value
+          )?.[0];
+          // fetching doc ref by id
+          customerDocRef = doc(db, CUSTOMERS, existingCustomerData?.id);
+          formValues.customer = existingCustomerData;
+        }
+
+        if (customerFormValues?.name) {
+          const { docRef, id: customerId } = await addDocToFirebase(
+            customersCollectionRef,
+            customerFormValues
+          );
+
+          if (customerId) {
+            customerDocRef = docRef;
+            formValues.customer = {
+              ...customerFormValues,
+              id: customerId
+            };
+          } else throw new Error("customer:There is an issue with adding the new customer details");
+        }
+
+        const currentProducts = [];
+        const currentProductsRef = [];
+        const batch = writeBatch(db);
+
+        currentPageData?.products.forEach((product) => {
+          if (product?.productName?.id === "new") {
+            // creating the doc ref
+            const docRef = doc(productsCollectionRef);
+
+            const { id, ...payload } = product.productName;
+
+            // mapping the ref with the data
+            batch.set(docRef, payload);
+
+            const productId = docRef?.id;
+            if (productId) {
+              currentProductsRef.push({
+                ...product,
+                productName: docRef
+              });
+              currentProducts.push({
+                ...product,
+                productName: {
+                  ...payload,
+                  id: productId
+                }
+              });
+            } else throw new Error("product:There is an issue fetching id for the new products");
+          } else {
+            // fetching doc ref by id
+            const docRef = doc(db, PRODUCTS, product?.productName?.id);
+            currentProductsRef.push({
+              ...product,
+              productName: docRef
+            });
+            currentProducts.push(product);
+          }
+        });
+
+        try {
+          // committing the batch of write operation
+          await batch.commit();
+        } catch (error) {
+          console.error(error);
+          throw new Error("product:There is an issue with adding the new product");
+        }
+
+        formValues.products = [...currentProducts];
+
+        formValues.extras = [];
         if (!!currentPageData?.extras && currentPageData?.extras?.length > 0)
           formValues.extras = currentPageData?.extras;
         formValues.totalAmount = currentPageData?.totalAmount || 0;
 
-        // add or update data to the store
-        if (isNewMode) {
-          formValues.createdAt = today;
-          await dispatch(addInvoice(formValues));
-        }
-        if (isEditMode) {
-          formValues.updatedAt = [...(currentPageData?.updatedAt || []), today];
-          await dispatch(editInvoice(formValues));
-        }
+        formValues.invoiceNumber = invoices.length + 1;
 
-        // reset the form
-        resetForm();
+        const { startYear: sYear, endYear: eYear } = getFY();
+        formValues.startYear = sYear;
+        formValues.endYear = eYear;
 
-        // navigate back to invoices page
-        handleBack();
+        if (formValues?.products?.length > 0 && formValues?.customer?.id && customerDocRef) {
+          if (isNewMode) {
+            // add or update data to the store
+            formValues.createdAt = Now;
+            formValues.updatedAt = [];
+
+            const invoiceFirebasePayload = {
+              ...formValues,
+              products: [...currentProductsRef],
+              customer: customerDocRef
+            };
+
+            const { docRef, id: invoiceDocId } = await addDocToFirebase(
+              invoicesCollectionRef,
+              invoiceFirebasePayload
+            );
+
+            if (invoiceDocId) {
+              customerDocRef = docRef;
+              formValues.id = invoiceDocId;
+            } else throw new Error("invoice:There is an issue with adding the new invoice");
+
+            formValues.customerName = {
+              ...formValues?.customer?.name,
+              id: formValues?.customer?.id
+            };
+
+            await dispatch(addInvoice(formValues));
+          }
+          if (isEditMode) {
+            formValues.updatedAt = [...(currentPageData?.updatedAt || []), Now];
+
+            // TODO: Work on edit doc of firebase
+            await dispatch(editInvoice(formValues));
+          }
+
+          // setting loader false
+          setLoader(false);
+
+          // reset the form
+          resetForm();
+
+          // navigate back to invoices page
+          handleBack();
+        }
       } catch (error) {
-        console.error("error >>", error);
+        console.error(error);
+        if (error?.message?.includes(":")) {
+          const [key, value] = error.message.split(":");
+          setErrors({
+            [key]: value
+          });
+        }
+      } finally {
+        // setting loader false
+        setLoader(false);
       }
     }
   });
@@ -239,19 +408,21 @@ const Invoice = () => {
     else dispatch(setPageMode(VIEW));
 
     return () => {
+      resetForm();
       dispatch(setPageMode(""));
+      dispatch(resetInvoiceValues());
     };
   }, []);
 
   useEffect(() => {
-    if (invoiceNumber) dispatch(setInvoice(invoiceNumber));
-  }, [invoiceNumber]);
+    if (invoiceId) dispatch(setInvoice(invoiceId));
+  }, [invoiceId]);
 
   const handleSwitchChange = ({ target: { name, checked } }) => {
     setValues({
       ...values,
       [name]: checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
-      paymentDate: checked ? today : ""
+      paymentDate: checked ? Now : null
     });
   };
 
@@ -268,7 +439,7 @@ const Invoice = () => {
 
   const handleChangePageMode = (selectedMode) => {
     dispatch(setPageMode(selectedMode));
-    navigate(INVOICE_EDIT.to(invoiceNumber));
+    navigate(INVOICE_EDIT.to(startYear, endYear, invoiceId));
   };
 
   // ----------------------------------------
@@ -415,8 +586,9 @@ const Invoice = () => {
           &nbsp; &nbsp; &nbsp;
           <Tooltip title="Edit">
             <IconButton
-              aria-label={EDIT}
               size="large"
+              aria-label={EDIT}
+              disabled={isLoading}
               onClick={() =>
                 handleEditProduct(
                   params.row,
@@ -428,8 +600,9 @@ const Invoice = () => {
           </Tooltip>
           <Tooltip title="Remove">
             <IconButton
-              aria-label="remove"
               size="large"
+              aria-label="remove"
+              disabled={isLoading}
               onClick={() => dispatch(removeProduct(params.row))}>
               <DeleteIcon />
             </IconButton>
@@ -448,8 +621,9 @@ const Invoice = () => {
           &nbsp; &nbsp; &nbsp;
           <Tooltip title="Edit">
             <IconButton
-              aria-label={EDIT}
               size="large"
+              aria-label={EDIT}
+              disabled={isLoading}
               onClick={() =>
                 handleEditExtra(
                   params.row,
@@ -461,8 +635,9 @@ const Invoice = () => {
           </Tooltip>
           <Tooltip title="Remove">
             <IconButton
-              aria-label="remove"
               size="large"
+              aria-label="remove"
+              disabled={isLoading}
               onClick={() => dispatch(removeExtra(params.row))}>
               <DeleteIcon />
             </IconButton>
@@ -486,10 +661,12 @@ const Invoice = () => {
       (isEditMode && !dirty && isValid && (areProductsUpdated || areExtrasUpdated)) ||
       (isEditMode && dirty && isValid && (areProductsUpdated || areExtrasUpdated))) &&
     !!currentPageData?.products &&
-    currentPageData?.products?.length > 0;
+    currentPageData?.products?.length > 0 &&
+    !isLoading;
 
   return (
     <Box>
+      {isLoading && <Loader height="calc(100vh - 50px)" />}
       <AddEditProductModal
         open={openAddEditProductModal}
         initialValues={selectedProduct}
@@ -510,14 +687,16 @@ const Invoice = () => {
           {isViewMode && (
             <Button
               variant="contained"
+              disabled={isLoading}
               startIcon={<EditIcon />}
-              onClick={() => handleChangePageMode(EDIT)}
-              size={isMobile() ? "small" : "medium"}>
+              size={isMobile() ? "small" : "medium"}
+              onClick={() => handleChangePageMode(EDIT)}>
               Edit
             </Button>
           )}
           <Button
             variant="outlined"
+            disabled={isLoading}
             onClick={() => handleBack()}
             startIcon={<ArrowBackIosNewIcon />}
             size={isMobile() ? "small" : "medium"}>
@@ -548,12 +727,12 @@ const Invoice = () => {
                   InputProps={{
                     startAdornment: " "
                   }}
-                  disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  value={values?.invoiceDate ?? ""}
+                  disabled={isViewMode || isLoading}
                   helperText={touched?.invoiceDate && errors?.invoiceDate}
                   error={touched?.invoiceDate && Boolean(errors?.invoiceDate)}
+                  value={values?.invoiceDate ? formatDateForInputField(values?.invoiceDate) : ""}
                 />
                 <TextField
                   fullWidth
@@ -563,10 +742,10 @@ const Invoice = () => {
                   margin="dense"
                   size="small"
                   type="number"
-                  disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
                   value={values?.baleCount ?? 0}
+                  disabled={isViewMode || isLoading}
                   helperText={touched?.baleCount && errors?.baleCount}
                   error={touched?.baleCount && Boolean(errors?.baleCount)}
                 />
@@ -582,23 +761,23 @@ const Invoice = () => {
                     InputProps={{
                       startAdornment: " "
                     }}
-                    disabled={isViewMode}
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    value={values?.paymentDate ?? ""}
+                    disabled={isViewMode || isLoading}
                     helperText={touched?.paymentDate && errors?.paymentDate}
                     error={touched?.paymentDate && Boolean(errors?.paymentDate)}
+                    value={values?.paymentDate ? formatDateForInputField(values?.paymentDate) : ""}
                   />
                 )}
                 <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
                   <Typography>Unpaid</Typography>
                   <Switch
+                    checked={isPaid}
                     id="paymentStatus"
                     name="paymentStatus"
-                    disabled={isViewMode}
                     onChange={handleSwitchChange}
+                    disabled={isViewMode || isLoading}
                     inputProps={{ "aria-label": "payment status" }}
-                    checked={isPaid}
                   />
                   <Typography>Paid</Typography>
                 </Stack>
@@ -611,9 +790,9 @@ const Invoice = () => {
                   label="LR Number"
                   margin="dense"
                   size="small"
-                  disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
+                  disabled={isViewMode || isLoading}
                   value={values?.lrNumber?.toUpperCase() ?? ""}
                   helperText={touched?.lrNumber && errors?.lrNumber}
                   error={touched?.lrNumber && Boolean(errors?.lrNumber)}
@@ -629,12 +808,12 @@ const Invoice = () => {
                   InputProps={{
                     startAdornment: " "
                   }}
-                  disabled={isViewMode}
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  value={values?.lrDate ?? ""}
+                  disabled={isViewMode || isLoading}
                   helperText={touched?.lrDate && errors?.lrDate}
                   error={touched?.lrDate && Boolean(errors?.lrDate)}
+                  value={values?.lrDate ? formatDateForInputField(values?.lrDate) : ""}
                 />
               </Stack>
               <Stack direction="row" spacing={2}>
@@ -649,7 +828,7 @@ const Invoice = () => {
                     name="logistics"
                     label="Logistics"
                     onBlur={handleBlur}
-                    disabled={isViewMode}
+                    disabled={isViewMode || isLoading}
                     value={values?.logistics?.value ?? ""}
                     MenuProps={{ sx: styles.selectDropdownMenuStyle }}
                     onChange={(e) => handleSelectChange(e, logisticsList)}>
@@ -684,6 +863,7 @@ const Invoice = () => {
                     margin="dense"
                     size="small"
                     onBlur={handleBlur}
+                    disabled={isLoading}
                     onChange={handleChange}
                     value={values?.newLogistics ?? ""}
                     helperText={touched?.newLogistics && errors?.newLogistics}
@@ -705,7 +885,7 @@ const Invoice = () => {
                     name="transportDestination"
                     label="Transport Destination"
                     onBlur={handleBlur}
-                    disabled={isViewMode}
+                    disabled={isViewMode || isLoading}
                     value={values?.transportDestination?.value ?? ""}
                     MenuProps={{ sx: styles.selectDropdownMenuStyle }}
                     onChange={(e) => handleSelectChange(e, transportDestinationList)}>
@@ -744,6 +924,7 @@ const Invoice = () => {
                     margin="dense"
                     size="small"
                     onBlur={handleBlur}
+                    disabled={isLoading}
                     onChange={handleChange}
                     value={values?.newTransportDestination ?? ""}
                     helperText={touched?.newTransportDestination && errors?.newTransportDestination}
@@ -776,7 +957,7 @@ const Invoice = () => {
                     name="customerName"
                     label="Customer Name"
                     onBlur={handleBlur}
-                    disabled={isViewMode}
+                    disabled={isViewMode || isLoading}
                     value={values?.customerName?.value ?? ""}
                     MenuProps={{ sx: styles.selectDropdownMenuStyle }}
                     onChange={(e) => handleSelectChange(e, customerList)}>
@@ -811,6 +992,7 @@ const Invoice = () => {
                     margin="dense"
                     size="small"
                     onBlur={handleBlur}
+                    disabled={isLoading}
                     onChange={handleChange}
                     value={values?.newCustomerName ?? ""}
                     helperText={touched?.newCustomerName && errors?.newCustomerName}
@@ -829,6 +1011,7 @@ const Invoice = () => {
                       margin="dense"
                       size="small"
                       onBlur={handleBlur}
+                      disabled={isLoading}
                       onChange={handleChange}
                       value={values?.newCustomerGSTNumber?.toUpperCase() ?? ""}
                       helperText={touched?.newCustomerGSTNumber && errors?.newCustomerGSTNumber}
@@ -839,10 +1022,11 @@ const Invoice = () => {
                       type="tel"
                       id="newCustomerPhoneNumber"
                       name="newCustomerPhoneNumber"
-                      label="Phone Number of New Customer"
+                      label="Phone/Landline Number of New Customer"
                       margin="dense"
                       size="small"
                       onBlur={handleBlur}
+                      disabled={isLoading}
                       onChange={handleChange}
                       value={values?.newCustomerPhoneNumber ?? ""}
                       helperText={touched?.newCustomerPhoneNumber && errors?.newCustomerPhoneNumber}
@@ -861,6 +1045,7 @@ const Invoice = () => {
                     margin="dense"
                     size="small"
                     onBlur={handleBlur}
+                    disabled={isLoading}
                     onChange={handleChange}
                     value={values?.newCustomerAddress ?? ""}
                     helperText={touched?.newCustomerAddress && errors?.newCustomerAddress}
@@ -882,6 +1067,7 @@ const Invoice = () => {
               {!isViewMode && (
                 <Button
                   variant="text"
+                  disabled={isLoading}
                   startIcon={<AddIcon />}
                   size={isMobile() ? "small" : "medium"}
                   onClick={() => handleOpenAddEditProductModal()}>
@@ -911,6 +1097,7 @@ const Invoice = () => {
               {!isViewMode && (
                 <Button
                   variant="text"
+                  disabled={isLoading}
                   startIcon={<AddIcon />}
                   size={isMobile() ? "small" : "medium"}
                   onClick={() => handleOpenAddEditExtraModal()}>
@@ -946,8 +1133,8 @@ const Invoice = () => {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            size={isMobile() ? "small" : "medium"}
-            disabled={!isSubmitEnabled}>
+            disabled={!isSubmitEnabled}
+            size={isMobile() ? "small" : "medium"}>
             {isNewMode ? "Submit" : "Save"}
           </Button>
         )}

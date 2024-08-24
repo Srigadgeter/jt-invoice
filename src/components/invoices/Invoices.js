@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
@@ -8,11 +8,21 @@ import EditIcon from "@mui/icons-material/Edit";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
+import { collection, getDocs } from "firebase/firestore";
 
-import { PAGE_INFO, MODES } from "utils/constants";
-import { formatDate, getDaysDiff, indianCurrencyFormatter, isMobile } from "utils/utilites";
+import {
+  firebaseDateToISOString,
+  formatDate,
+  getDaysDiff,
+  indianCurrencyFormatter,
+  isMobile
+} from "utils/utilites";
 import routes from "routes/routes";
-import { setInvoice } from "store/slices/invoicesSlice";
+import { db } from "integrations/firebase";
+import { setProducts } from "store/slices/productsSlice";
+import { setCustomers } from "store/slices/customersSlice";
+import { setInvoice, setInvoices } from "store/slices/invoicesSlice";
+import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 
 const styles = {
   titleCard: {
@@ -58,14 +68,27 @@ const styles = {
 };
 
 const Invoices = () => {
+  const [isLoading, setLoader] = useState(false);
+
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
-  const { invoices } = useSelector((state) => state.invoices);
+  const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
+  const { invoices = [] } = useSelector((state) => state?.invoices);
+  const { products = [] } = useSelector((state) => state?.products);
+  const { customers = [] } = useSelector((state) => state?.customers);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleOpen = (type, invoiceNumber) => {
-    navigate(type === VIEW ? INVOICE_VIEW.to(invoiceNumber) : INVOICE_EDIT.to(invoiceNumber));
+  const invoicesCollectionRef = collection(db, INVOICES);
+  const productsCollectionRef = collection(db, PRODUCTS);
+  const customersCollectionRef = collection(db, CUSTOMERS);
+
+  const handleOpen = (type, startYear, endYear, id) => {
+    navigate(
+      type === VIEW
+        ? INVOICE_VIEW.to(startYear, endYear, id)
+        : INVOICE_EDIT.to(startYear, endYear, id)
+    );
   };
 
   const handleDownload = () => {};
@@ -73,6 +96,123 @@ const Invoices = () => {
   const handleNew = () => {
     navigate(INVOICE_NEW.to());
   };
+
+  // Serialize the TimeStamp data
+  const serializeTimeStampData = (value) => {
+    if (value && (value instanceof Date || typeof value.toDate === "function"))
+      return firebaseDateToISOString(value);
+    return value;
+  };
+
+  // Serialize the data
+  const serializeData = (obj) => {
+    const modifiedData = {};
+    Object.entries(obj).forEach(([key, value]) => {
+      if (key === "updatedAt")
+        modifiedData.updatedAt = value?.map((timeStamp) => serializeTimeStampData(timeStamp));
+      // Serialize firebase timestamp data otherwise return value
+      else modifiedData[key] = serializeTimeStampData(value);
+    });
+    return modifiedData;
+  };
+
+  // Serialize the Invoice data
+  const serializeInvoiceData = (productArray, customerArray, invoiceArray) => {
+    const serializedInvoices = [];
+
+    invoiceArray.forEach((invoice) => {
+      const modifiedData = {};
+      Object.entries(invoice).forEach(([key, value]) => {
+        // Serialize firebase products reference data
+        if (key === "products") {
+          const modifiedProducts = value?.map((product) => ({
+            ...product,
+            productName: productArray.filter((p) => p?.id === product?.productName?.id)?.[0]
+          }));
+          modifiedData.products = modifiedProducts;
+        }
+        // Serialize firebase customers reference data
+        else if (key === "customer") {
+          const customer = customerArray.filter((c) => c?.id === value?.id)?.[0];
+          modifiedData.customer = customer;
+          modifiedData.customerName = { id: customer?.id, ...customer?.name };
+        } else if (key === "updatedAt")
+          modifiedData.updatedAt = value?.map((timeStamp) => serializeTimeStampData(timeStamp));
+        // Serialize firebase timestamp data otherwise return value
+        else modifiedData[key] = serializeTimeStampData(value);
+      });
+      serializedInvoices.push(modifiedData);
+    });
+
+    dispatch(setInvoices(serializedInvoices));
+    setLoader(false);
+  };
+
+  // fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Function for get all products
+        const fetchedProducts = [...products];
+
+        if (!(fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0)) {
+          console.warn("<< fetching products >>");
+          setLoader(true);
+          await getDocs(productsCollectionRef)
+            .then((querySnapshot) => querySnapshot.docs)
+            .then((docs) => {
+              docs.forEach((doc) =>
+                fetchedProducts.push({ ...serializeData(doc.data()), id: doc?.id })
+              );
+              dispatch(setProducts(fetchedProducts));
+              setLoader(false);
+            });
+        }
+
+        // Function for get all customers
+        const fetchedCustomers = [...customers];
+
+        if (!(fetchedCustomers && Array.isArray(fetchedCustomers) && fetchedCustomers.length > 0)) {
+          console.warn("<< fetching customers >>");
+          setLoader(true);
+          await getDocs(customersCollectionRef)
+            .then((querySnapshot) => querySnapshot.docs)
+            .then((docs) => {
+              docs.forEach((doc) =>
+                fetchedCustomers.push({ ...serializeData(doc.data()), id: doc?.id })
+              );
+              dispatch(setCustomers(fetchedCustomers));
+              setLoader(false);
+            });
+        }
+
+        // Function for get all invoices
+        if (
+          !(invoices && Array.isArray(invoices) && invoices.length > 0) &&
+          fetchedProducts &&
+          Array.isArray(fetchedProducts) &&
+          fetchedProducts.length > 0 &&
+          fetchedCustomers &&
+          Array.isArray(fetchedCustomers) &&
+          fetchedCustomers.length > 0
+        ) {
+          setLoader(true);
+          console.warn("<< fetching invoices >>");
+          await getDocs(invoicesCollectionRef)
+            .then((querySnapshot) => querySnapshot.docs)
+            .then((docs) => {
+              const fetchedInvoices = docs.map((doc) => ({ ...doc.data(), id: doc?.id }));
+              serializeInvoiceData(fetchedProducts, fetchedCustomers, fetchedInvoices);
+            });
+        }
+      } catch (err) {
+        console.error(err);
+        setLoader(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const columns = [
     {
@@ -111,10 +251,12 @@ const Invoices = () => {
     },
     {
       field: "daysTaken",
-      headerName: "Invoiced before",
+      headerName: "Invoiced",
       width: 120,
       renderCell: ({ row }) =>
-        row?.paymentStatus === "paid" ? null : getDaysDiff(row?.invoiceDate)
+        row?.paymentStatus === "paid" && row?.paymentDate
+          ? null
+          : getDaysDiff(row?.invoiceDate, null, true)
     },
     {
       field: "totalAmount",
@@ -139,8 +281,8 @@ const Invoices = () => {
               aria-label={VIEW}
               size="large"
               onClick={() => {
-                dispatch(setInvoice(params?.row?.invoiceNumber));
-                handleOpen(VIEW, params?.row?.invoiceNumber);
+                dispatch(setInvoice(params?.row?.id));
+                handleOpen(VIEW, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
               }}>
               <VisibilityIcon />
             </IconButton>
@@ -150,8 +292,8 @@ const Invoices = () => {
               aria-label={EDIT}
               size="large"
               onClick={() => {
-                dispatch(setInvoice(params?.row?.invoiceNumber));
-                handleOpen(EDIT, params?.row?.invoiceNumber);
+                dispatch(setInvoice(params?.row?.id));
+                handleOpen(EDIT, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
               }}>
               <EditIcon />
             </IconButton>
@@ -160,7 +302,7 @@ const Invoices = () => {
             <IconButton
               aria-label="download invoice"
               size="large"
-              onClick={() => handleDownload(params?.row?.invoiceNumber)}>
+              onClick={() => handleDownload(params?.row?.id)}>
               <DownloadIcon />
             </IconButton>
           </Tooltip>
@@ -190,16 +332,20 @@ const Invoices = () => {
       </Stack>
 
       <Box sx={styles.box}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleNew()}>
+        <Button
+          variant="contained"
+          disabled={isLoading}
+          startIcon={<AddIcon />}
+          onClick={() => handleNew()}>
           New
         </Button>
       </Box>
 
       <DataGrid
         sx={styles.dataGrid}
+        loading={isLoading}
         rows={invoices}
         columns={columns}
-        getRowId={(row) => row?.invoiceNumber}
         pageSizeOptions={[10]}
         initialState={{
           sorting: {

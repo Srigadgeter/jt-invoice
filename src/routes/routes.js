@@ -27,13 +27,13 @@ const routes = {
     component: Invoice
   },
   INVOICE_VIEW: {
-    path: "/invoice/:invoiceNumber",
-    to: (invoiceNumber) => `/invoice/${invoiceNumber}`,
+    path: "/invoice/:startYear/:endYear/:invoiceId",
+    to: (startYear, endYear, invoiceId) => `/invoice/${startYear}/${endYear}/${invoiceId}`,
     component: Invoice
   },
   INVOICE_EDIT: {
-    path: "/invoice/:invoiceNumber/edit",
-    to: (invoiceNumber) => `/invoice/${invoiceNumber}/edit`,
+    path: "/invoice/:startYear/:endYear/:invoiceId/edit",
+    to: (startYear, endYear, invoiceId) => `/invoice/${startYear}/${endYear}/${invoiceId}/edit`,
     component: Invoice
   }
 };

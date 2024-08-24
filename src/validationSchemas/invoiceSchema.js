@@ -9,10 +9,13 @@ const invoiceSchema = yup.object({
     .required("Bale count is required")
     .positive("Bale count should be positive number"),
   paymentStatus: yup.string().required("Payment Status is required"),
-  paymentDate: yup.date().when("paymentStatus", {
-    is: "paid",
-    then: (schema) => schema.required("Payment Date is required")
-  }),
+  paymentDate: yup
+    .date()
+    .nullable()
+    .when("paymentStatus", {
+      is: "paid",
+      then: (schema) => schema.required("Payment Date is required")
+    }),
   lrNumber: yup.string().nullable(),
   lrDate: yup.date().required("Lorry Receipt (LR) Date is required"),
   logistics: yup.object({
@@ -69,7 +72,14 @@ const invoiceSchema = yup.object({
   }),
   newCustomerPhoneNumber: yup.string().when("customerName.value", {
     is: "new",
-    then: (schema) => schema.trim()
+    then: (schema) =>
+      schema
+        .nullable()
+        .trim()
+        .matches(
+          /^(\+91[-\s]?)?[6-9]\d{9}$|^(0\d{2,4}[-\s]?)?\d{6,8}$/,
+          "Provide a valid India phone or landline number"
+        )
   }),
   newCustomerAddress: yup.string().when("customerName.value", {
     is: "new",
