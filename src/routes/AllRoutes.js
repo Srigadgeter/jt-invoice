@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-pascal-case */
 import React, { lazy } from "react";
 import { Route, Routes } from "react-router-dom";
+
 import routes from "./routes";
 
 const PrivateRoutes = lazy(() => import("./PrivateRoutes"));

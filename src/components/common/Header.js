@@ -1,10 +1,14 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Avatar from "@mui/material/Avatar";
+import Switch from "@mui/material/Switch";
 import { styled } from "@mui/material/styles";
-import { Avatar, Box, Stack, Switch } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
 
 import { DEFAULT_DARK } from "utils/constants";
 import { toggleTheme } from "store/slices/appSlice";
+
 import Logo from "assets/svg/logo.svg";
 
 const styles = {

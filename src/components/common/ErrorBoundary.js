@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import React, { Component } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 
 const styles = {
   box: {

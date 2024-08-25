@@ -1,8 +1,8 @@
 // external imports
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import { deepmerge } from "@mui/utils";
-import { CssBaseline } from "@mui/material";
+import { useSelector } from "react-redux";
+import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 // internal imports
