@@ -4,6 +4,8 @@ import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
 import Switch from "@mui/material/Switch";
 import { styled } from "@mui/material/styles";
+import MenuIcon from "@mui/icons-material/Menu";
+import IconButton from "@mui/material/IconButton";
 import { useDispatch, useSelector } from "react-redux";
 
 import { DEFAULT_DARK } from "utils/constants";
@@ -84,13 +86,18 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   }
 }));
 
-const Header = () => {
+const Header = ({ setOpenDrawer }) => {
   const { appTheme } = useSelector((state) => state.app);
   const dispatch = useDispatch();
 
   return (
     <Box sx={styles.header}>
-      <Avatar alt="JT" src={Logo} variant="square" sx={styles.logo} />
+      <Stack direction="row" alignItems="center">
+        <IconButton size="large" aria-label="Sidedrawer" onClick={() => setOpenDrawer(true)}>
+          <MenuIcon />
+        </IconButton>
+        <Avatar alt="JT" src={Logo} variant="square" />
+      </Stack>
       <Stack direction="row" alignItems="center">
         <MaterialUISwitch
           sx={styles.themeSwitch}
