@@ -125,7 +125,7 @@ const styles = {
 };
 
 const Invoice = () => {
-  const { HOME, INVOICE_EDIT } = routes;
+  const { INVOICES: INVOICE_ROUTE, INVOICE_EDIT } = routes;
   const { INVOICE } = PAGE_INFO;
   const {
     pageMode = "",
@@ -186,7 +186,7 @@ const Invoice = () => {
 
   const customerList = customers.map((item) => item?.name);
 
-  const handleBack = () => navigate(HOME.to());
+  const handleBack = () => navigate(INVOICE_ROUTE.to());
 
   const {
     dirty,
