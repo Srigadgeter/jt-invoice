@@ -8,7 +8,8 @@ const PrivateRoutes = lazy(() => import("./PrivateRoutes"));
 const NotFound = lazy(() => import("components/common/NotFound"));
 
 const AllRoutes = () => {
-  const { SIGN_IN, HOME, INVOICES, INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
+  const { SIGN_IN, HOME, INVOICES, INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT, PRODUCTS, CUSTOMERS } =
+    routes;
 
   return (
     <Routes>
@@ -20,6 +21,8 @@ const AllRoutes = () => {
         <Route exact path={INVOICE_NEW.path} element={<INVOICE_NEW.component />} />
         <Route exact path={INVOICE_VIEW.path} element={<INVOICE_VIEW.component />} />
         <Route exact path={INVOICE_EDIT.path} element={<INVOICE_EDIT.component />} />
+        <Route exact path={PRODUCTS.path} element={<PRODUCTS.component />} />
+        <Route exact path={CUSTOMERS.path} element={<CUSTOMERS.component />} />
       </Route>
     </Routes>
   );
