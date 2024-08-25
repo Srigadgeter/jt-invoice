@@ -1,11 +1,11 @@
 import { lazy } from "react";
 
 // Pages import
-const Products = lazy(() => import("components/products"));
-const Customers = lazy(() => import("components/customers"));
 const SignIn = lazy(() => import("components/signIn/SignIn"));
 const Invoice = lazy(() => import("components/invoices/Invoice"));
 const Invoices = lazy(() => import("components/invoices/Invoices"));
+const Products = lazy(() => import("components/products/Products"));
+const Customers = lazy(() => import("components/customers/Customers"));
 
 const routes = {
   SIGN_IN: {
