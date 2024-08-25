@@ -61,6 +61,9 @@ export const getDaysDiff = (d1, d2 = new Date(), showAgo = false) => {
   return `${diff}${showAgo ? " ago" : ""}`;
 };
 
+// Check if the current time is after or on 6 PM
+export const isEveningNow = () => new Date().getHours() >= 18;
+
 export const getFY = () => {
   const now = dayjs();
   const month = now.format("M");

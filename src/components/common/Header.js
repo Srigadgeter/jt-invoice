@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
@@ -8,8 +8,9 @@ import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
 import { useDispatch, useSelector } from "react-redux";
 
-import { DEFAULT_DARK } from "utils/constants";
-import { toggleTheme } from "store/slices/appSlice";
+import { isEveningNow } from "utils/utilites";
+import { DEFAULT_DARK, DEFAULT_LIGHT } from "utils/constants";
+import { setTheme, toggleTheme } from "store/slices/appSlice";
 
 import Logo from "assets/svg/logo.svg";
 
@@ -89,6 +90,10 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
 const Header = ({ setOpenDrawer }) => {
   const { appTheme } = useSelector((state) => state.app);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(setTheme(isEveningNow() ? DEFAULT_DARK : DEFAULT_LIGHT));
+  }, []);
 
   return (
     <Box sx={styles.header}>

@@ -11,12 +11,15 @@ const appSlice = createSlice({
   name: "app",
   initialState,
   reducers: {
+    setTheme: (state, action) => {
+      state.appTheme = action.payload;
+    },
     toggleTheme: (state) => {
       state.appTheme = state.appTheme === DEFAULT_LIGHT ? DEFAULT_DARK : DEFAULT_LIGHT;
     }
   }
 });
 
-export const { toggleTheme } = appSlice.actions;
+export const { setTheme, toggleTheme } = appSlice.actions;
 
 export default appSlice.reducer;
