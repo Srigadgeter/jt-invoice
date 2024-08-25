@@ -27,6 +27,7 @@ import {
 import routes from "routes/routes";
 import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
+import ClickNew from "components/common/ClickNew";
 import { setProducts } from "store/slices/productsSlice";
 import { setCustomers } from "store/slices/customersSlice";
 import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
@@ -381,22 +382,26 @@ const Invoices = () => {
         </Button>
       </Box>
 
-      <DataGrid
-        sx={styles.dataGrid}
-        loading={isLoading}
-        rows={invoices}
-        columns={columns}
-        pageSizeOptions={[10]}
-        initialState={{
-          sorting: {
-            sortModel: [{ field: "invoiceDate", sort: "desc" }]
-          },
-          pagination: {
-            paginationModel: { page: 0, pageSize: 10 }
-          }
-        }}
-        disableColumnMenu
-      />
+      {invoices && Array.isArray(invoices) && invoices.length > 0 ? (
+        <DataGrid
+          sx={styles.dataGrid}
+          loading={isLoading}
+          rows={invoices}
+          columns={columns}
+          pageSizeOptions={[10]}
+          initialState={{
+            sorting: {
+              sortModel: [{ field: "invoiceDate", sort: "desc" }]
+            },
+            pagination: {
+              paginationModel: { page: 0, pageSize: 10 }
+            }
+          }}
+          disableColumnMenu
+        />
+      ) : (
+        <ClickNew name="invoice" />
+      )}
     </Box>
   );
 };
