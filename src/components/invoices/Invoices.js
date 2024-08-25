@@ -183,7 +183,7 @@ const Invoices = () => {
     // eslint-disable-next-line no-unused-vars
     const fetchData = async () => {
       try {
-        // Function for get all products
+        // Function to get all products
         const fetchedProducts = [...products];
 
         if (!(fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0)) {
@@ -198,7 +198,7 @@ const Invoices = () => {
             });
         }
 
-        // Function for get all customers
+        // Function to get all customers
         const fetchedCustomers = [...customers];
 
         if (!(fetchedCustomers && Array.isArray(fetchedCustomers) && fetchedCustomers.length > 0)) {
@@ -213,7 +213,7 @@ const Invoices = () => {
             });
         }
 
-        // Function for get all invoices
+        // Function to get all invoices
         if (
           !(invoices && Array.isArray(invoices) && invoices.length > 0) &&
           fetchedProducts &&
@@ -399,7 +399,7 @@ const Invoices = () => {
           disableColumnMenu
         />
       ) : (
-        <ClickNew prefixMessage="Click here to create your " hightlightedText="invoices" />
+        <ClickNew prefixMessage="Click here to create your" hightlightedText="invoices" />
       )}
     </Box>
   );
