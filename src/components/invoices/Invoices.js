@@ -13,11 +13,12 @@ import Typography from "@mui/material/Typography";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import DownloadIcon from "@mui/icons-material/Download";
+import { collection, getDocs } from "firebase/firestore";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 
 import {
+  deleteDocFromFirebase,
   firebaseDateToISOString,
   formatDate,
   getDaysDiff,
@@ -104,27 +105,6 @@ const Invoices = () => {
 
   const handleNew = () => {
     navigate(INVOICE_NEW.to());
-  };
-
-  const handleDelete = async (invoiceRowData) => {
-    if (invoiceRowData?.id) {
-      setLoader(true);
-
-      try {
-        // Create a reference to the document to delete
-        const docRef = doc(db, INVOICES, invoiceRowData?.id);
-
-        // Delete the document on firebase
-        await deleteDoc(docRef);
-
-        // Delete invoice from the store
-        dispatch(deleteInvoice(invoiceRowData));
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoader(false);
-      }
-    }
   };
 
   // Serialize the TimeStamp data
@@ -332,7 +312,9 @@ const Invoices = () => {
               size="large"
               aria-label="delete"
               disabled={isLoading}
-              onClick={() => handleDelete(params?.row)}>
+              onClick={() =>
+                deleteDocFromFirebase(params?.row, INVOICES, setLoader, dispatch, deleteInvoice)
+              }>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
