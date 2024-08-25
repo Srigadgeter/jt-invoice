@@ -28,13 +28,14 @@ const styles = {
   }
 };
 
-const ClickNew = ({ name }) => (
+const ClickNew = ({ prefixMessage, hightlightedText, suffixMessage = "" }) => (
   <Box sx={styles.container}>
     <Typography sx={styles.text}>
-      Click here to create new{" "}
+      {`${prefixMessage} `}
       <Box component="span" sx={styles.name}>
-        {name}
+        {hightlightedText}
       </Box>
+      {suffixMessage ? ` ${suffixMessage}` : ""}
     </Typography>
     <ArrowSvg style={styles.arrow} />
   </Box>

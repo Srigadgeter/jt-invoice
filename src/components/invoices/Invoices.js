@@ -180,6 +180,7 @@ const Invoices = () => {
 
   // fetch data
   useEffect(() => {
+    // eslint-disable-next-line no-unused-vars
     const fetchData = async () => {
       try {
         // Function for get all products
@@ -237,7 +238,7 @@ const Invoices = () => {
       }
     };
 
-    fetchData();
+    // fetchData();
   }, []);
 
   const columns = [
@@ -398,7 +399,7 @@ const Invoices = () => {
           disableColumnMenu
         />
       ) : (
-        <ClickNew name="invoice" />
+        <ClickNew prefixMessage="Click here to create your " hightlightedText="invoices" />
       )}
     </Box>
   );
