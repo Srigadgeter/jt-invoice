@@ -78,7 +78,6 @@ const styles = {
 
 const Invoices = () => {
   const [isLoading, setLoader] = useState(false);
-  const [isPageLoading, setPageLoader] = useState(false);
 
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
@@ -109,7 +108,7 @@ const Invoices = () => {
 
   const handleDelete = async (invoiceRowData) => {
     if (invoiceRowData?.id) {
-      setPageLoader(true);
+      setLoader(true);
 
       try {
         // Create a reference to the document to delete
@@ -123,7 +122,7 @@ const Invoices = () => {
       } catch (error) {
         console.error(error);
       } finally {
-        setPageLoader(false);
+        setLoader(false);
       }
     }
   };
@@ -307,7 +306,7 @@ const Invoices = () => {
             <IconButton
               size="large"
               aria-label={VIEW}
-              disabled={isPageLoading}
+              disabled={isLoading}
               onClick={() => {
                 dispatch(setInvoice(params?.row?.id));
                 handleOpen(VIEW, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
@@ -319,7 +318,7 @@ const Invoices = () => {
             <IconButton
               size="large"
               aria-label={EDIT}
-              disabled={isPageLoading}
+              disabled={isLoading}
               onClick={() => {
                 dispatch(setInvoice(params?.row?.id));
                 handleOpen(EDIT, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
@@ -331,7 +330,7 @@ const Invoices = () => {
             <IconButton
               size="large"
               aria-label="delete"
-              disabled={isPageLoading}
+              disabled={isLoading}
               onClick={() => handleDelete(params?.row)}>
               <DeleteIcon />
             </IconButton>
@@ -339,7 +338,7 @@ const Invoices = () => {
           <Tooltip title="Download">
             <IconButton
               size="large"
-              disabled={isPageLoading}
+              disabled={isLoading}
               aria-label="download invoice"
               onClick={() => handleDownload(params?.row?.id)}>
               <DownloadIcon />
@@ -356,7 +355,7 @@ const Invoices = () => {
 
   return (
     <Box px={3} mt={1}>
-      {isPageLoading && <Loader height="calc(100vh - 50px)" />}
+      {isLoading && <Loader height="calc(100vh - 50px)" />}
 
       <Stack
         direction="row"
@@ -385,7 +384,6 @@ const Invoices = () => {
       {invoices && Array.isArray(invoices) && invoices.length > 0 ? (
         <DataGrid
           sx={styles.dataGrid}
-          loading={isLoading}
           rows={invoices}
           columns={columns}
           pageSizeOptions={[10]}
