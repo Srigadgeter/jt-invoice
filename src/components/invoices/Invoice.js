@@ -356,13 +356,12 @@ const Invoice = () => {
               customer: customerDocRef
             };
 
-            const { docRef, id: invoiceDocId } = await addDocToFirebase(
+            const { id: invoiceDocId } = await addDocToFirebase(
               invoicesCollectionRef,
               invoiceFirebasePayload
             );
 
             if (invoiceDocId) {
-              customerDocRef = docRef;
               formValues.id = invoiceDocId;
             } else throw new Error("invoice:There is an issue with adding the new invoice");
 
