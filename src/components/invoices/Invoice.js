@@ -27,8 +27,6 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import {
-  addDocToFirebase,
-  editDocInFirebase,
   formatDateForInputField,
   formatDateToISOString,
   generateKeyValuePair,
@@ -59,6 +57,8 @@ import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import invoiceSchema from "validationSchemas/invoiceSchema";
+import { addDocToFirestore, editDocInFirestore } from "integrations/firestoreHelpers";
+
 import AddEditProductModal from "./AddEditProductModal";
 import AddEditExtraModal from "./AddEditExtraModal";
 
@@ -275,7 +275,7 @@ const Invoice = () => {
         }
 
         if (customerFormValues?.name) {
-          const { docRef, id: customerId } = await addDocToFirebase(
+          const { docRef, id: customerId } = await addDocToFirestore(
             customersCollectionRef,
             customerFormValues
           );
@@ -373,7 +373,7 @@ const Invoice = () => {
 
           if (isNewMode) {
             // add or update data to the store
-            const { id: invoiceDocId } = await addDocToFirebase(
+            const { id: invoiceDocId } = await addDocToFirestore(
               invoicesCollectionRef,
               invoiceFirebasePayload
             );
@@ -385,7 +385,7 @@ const Invoice = () => {
             await dispatch(addInvoice(formValues));
           }
           if (isEditMode) {
-            await editDocInFirebase(
+            await editDocInFirestore(
               INVOICES,
               invoiceFirebasePayload,
               "There is an issue with updating the invoice"

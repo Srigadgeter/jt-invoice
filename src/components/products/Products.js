@@ -18,15 +18,17 @@ import { collection, getDocs } from "firebase/firestore";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
 import {
-  addDocToFirebase,
-  deleteDocFromFirebase,
-  editDocInFirebase,
   firebaseDateToISOString,
   formatDate,
   generateKeyValuePair,
   getNow,
   isMobile
 } from "utils/utilites";
+import {
+  addDocToFirestore,
+  deleteDocFromFirestore,
+  editDocInFirestore
+} from "integrations/firestoreHelpers";
 import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import ClickNew from "components/common/ClickNew";
@@ -158,7 +160,7 @@ const Products = () => {
           if (selectedProductId) {
             formValues.id = selectedProductId;
 
-            await editDocInFirebase(
+            await editDocInFirestore(
               PRODUCTS,
               formValues,
               "There is an issue with updating the product"
@@ -166,7 +168,7 @@ const Products = () => {
 
             await dispatch(editProduct(formValues));
           } else {
-            const { id: productDocId } = await addDocToFirebase(productsCollectionRef, formValues);
+            const { id: productDocId } = await addDocToFirestore(productsCollectionRef, formValues);
 
             if (productDocId) {
               formValues.id = productDocId;
@@ -278,7 +280,7 @@ const Products = () => {
               aria-label="delete"
               disabled={isLoading}
               onClick={() =>
-                deleteDocFromFirebase(params?.row, PRODUCTS, setLoader, dispatch, deleteProduct)
+                deleteDocFromFirestore(params?.row, PRODUCTS, setLoader, dispatch, deleteProduct)
               }>
               <DeleteIcon />
             </IconButton>

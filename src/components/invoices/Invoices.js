@@ -18,7 +18,6 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 
 import {
-  deleteDocFromFirebase,
   firebaseDateToISOString,
   formatDate,
   getDaysDiff,
@@ -31,6 +30,7 @@ import Loader from "components/common/Loader";
 import ClickNew from "components/common/ClickNew";
 import { setProducts } from "store/slices/productsSlice";
 import { setCustomers } from "store/slices/customersSlice";
+import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
 import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { deleteInvoice, setInvoice, setInvoices } from "store/slices/invoicesSlice";
 
@@ -313,7 +313,7 @@ const Invoices = () => {
               aria-label="delete"
               disabled={isLoading}
               onClick={() =>
-                deleteDocFromFirebase(params?.row, INVOICES, setLoader, dispatch, deleteInvoice)
+                deleteDocFromFirestore(params?.row, INVOICES, setLoader, dispatch, deleteInvoice)
               }>
               <DeleteIcon />
             </IconButton>
