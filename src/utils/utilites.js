@@ -1,8 +1,5 @@
 /* eslint-disable no-restricted-globals */
 import dayjs from "dayjs";
-import { addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
-
-import { db } from "integrations/firebase";
 
 export const isMobile = () => window.innerWidth <= 768;
 
@@ -84,60 +81,4 @@ export const getFY = () => {
 export const getNewInvoiceNumber = (invoices) => {
   const lastInvoiceNumber = invoices.reduce((max, val) => (val > max ? val : max), 0);
   return lastInvoiceNumber + 1;
-};
-
-export const addDocToFirebase = async (collectionRef, payload) => {
-  let docRef = null;
-  let id = null;
-
-  try {
-    docRef = await addDoc(collectionRef, payload);
-    id = docRef?.id;
-  } catch (error) {
-    console.error(error);
-  }
-
-  return { docRef, id };
-};
-
-export const editDocInFirebase = async (collectionName, payload, errorMessage) => {
-  const { id, ...rest } = payload;
-
-  try {
-    // Create a reference to the document to edit
-    const docRef = doc(db, collectionName, id);
-
-    // Update the document
-    await updateDoc(docRef, { ...rest });
-  } catch (error) {
-    console.error(error);
-    throw new Error(errorMessage);
-  }
-};
-
-export const deleteDocFromFirebase = async (
-  rowData,
-  collectionName,
-  setLoader,
-  dispatch,
-  storeFn
-) => {
-  if (rowData?.id) {
-    setLoader(true);
-
-    try {
-      // Create a reference to the document to delete
-      const docRef = doc(db, collectionName, rowData?.id);
-
-      // Delete the document on firebase
-      await deleteDoc(docRef);
-
-      // Delete product from the store
-      dispatch(storeFn(rowData));
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoader(false);
-    }
-  }
 };
