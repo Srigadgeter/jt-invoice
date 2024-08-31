@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
-import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import { DataGrid } from "@mui/x-data-grid";
@@ -28,42 +27,20 @@ import routes from "routes/routes";
 import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import ClickNew from "components/common/ClickNew";
+import TitleBanner from "components/common/TitleBanner";
 import { setProducts } from "store/slices/productsSlice";
 import { setCustomers } from "store/slices/customersSlice";
+import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
-import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { deleteInvoice, setInvoice, setInvoices } from "store/slices/invoicesSlice";
+import commonStyles from "utils/commonStyles";
 
 const styles = {
-  titleCard: {
-    p: 4,
-    mb: 1,
-    color: (theme) => (theme.palette.mode === "dark" ? "common.black" : "common.white"),
-    borderRadius: "15px",
-    boxShadow: (theme) => (theme.palette.mode === "dark" ? "#c0bfbf59" : "#00000059"),
-    backgroundImage: (theme) =>
-      `linear-gradient( 64.5deg, ${theme.palette.common.pink} 14.7%, ${theme.palette.primary.main} 88.7% )`
-  },
-  titleIcon: {
-    fontSize: 70
-  },
   box: {
     display: "flex",
     justifyContent: "flex-end"
   },
-  dataGrid: {
-    mt: 1,
-    ".MuiDataGrid-virtualScroller": {
-      overflowX: "hidden",
-      height: "calc(100vh - 370px)",
-      scrollbarWidth: "7px",
-      ":hover": {
-        "::-webkit-scrollbar": {
-          display: "block"
-        }
-      }
-    }
-  },
+  dataGrid: commonStyles?.dataGrid ?? {},
   chip: (value) => ({
     width: "70px",
     height: "auto",
@@ -340,19 +317,7 @@ const Invoices = () => {
     <Box px={3} mt={1}>
       {isLoading && <Loader height="calc(100vh - 50px)" />}
 
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={styles.titleCard}>
-        <Stack>
-          <Typography variant="h3">{PAGE_INFO?.INVOICES?.title}</Typography>
-          <Typography variant="body1" pl={0.25}>
-            {PAGE_INFO?.INVOICES?.description}
-          </Typography>
-        </Stack>
-        <ReceiptLongIcon sx={styles.titleIcon} />
-      </Stack>
+      <TitleBanner page="INVOICES" Icon={ReceiptLongIcon} />
 
       <Box sx={styles.box}>
         <Button

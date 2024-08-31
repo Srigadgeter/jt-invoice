@@ -11,7 +11,6 @@ import DoneIcon from "@mui/icons-material/Done";
 import TextField from "@mui/material/TextField";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import { collection, getDocs } from "firebase/firestore";
@@ -31,22 +30,15 @@ import {
 } from "integrations/firestoreHelpers";
 import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
+import commonStyles from "utils/commonStyles";
 import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import TitleBanner from "components/common/TitleBanner";
 import productSchema from "validationSchemas/productSchema";
-import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
+import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addProduct, deleteProduct, editProduct, setProducts } from "store/slices/productsSlice";
 
 const styles = {
-  titleCard: {
-    p: 4,
-    mb: 1,
-    color: (theme) => (theme.palette.mode === "dark" ? "common.black" : "common.white"),
-    borderRadius: "15px",
-    boxShadow: (theme) => (theme.palette.mode === "dark" ? "#c0bfbf59" : "#00000059"),
-    backgroundImage: (theme) =>
-      `linear-gradient( 64.5deg, ${theme.palette.common.pink} 14.7%, ${theme.palette.primary.main} 88.7% )`
-  },
   titleIcon: {
     fontSize: 70
   },
@@ -54,22 +46,10 @@ const styles = {
     display: "flex",
     justifyContent: "flex-end"
   },
-  dataGrid: {
-    mt: 1,
-    ".MuiDataGrid-virtualScroller": {
-      overflowX: "hidden",
-      height: "calc(100vh - 370px)",
-      scrollbarWidth: "7px",
-      ":hover": {
-        "::-webkit-scrollbar": {
-          display: "block"
-        }
-      }
-    }
-  },
   modalStyle: {
     minHeight: "fit-content"
-  }
+  },
+  dataGrid: commonStyles?.dataGrid ?? {}
 };
 
 const INITIAL_VALUES = {
@@ -316,19 +296,7 @@ const Products = () => {
     <Box px={3} mt={1}>
       {isLoading && <Loader height="calc(100vh - 50px)" />}
 
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={styles.titleCard}>
-        <Stack>
-          <Typography variant="h3">{PAGE_INFO?.PRODUCTS?.title}</Typography>
-          <Typography variant="body1" pl={0.25}>
-            {PAGE_INFO?.PRODUCTS?.description}
-          </Typography>
-        </Stack>
-        <ShoppingBagIcon sx={styles.titleIcon} />
-      </Stack>
+      <TitleBanner page="PRODUCTS" Icon={ShoppingBagIcon} />
 
       <Box sx={styles.box}>
         <Button

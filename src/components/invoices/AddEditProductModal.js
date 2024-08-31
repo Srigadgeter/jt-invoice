@@ -28,7 +28,9 @@ const styles = {
   amount: {
     fontWeight: 400
   },
-  ...commonStyles
+  selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
+  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
+  selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
 const INITIAL_VALUES = {

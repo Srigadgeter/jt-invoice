@@ -23,7 +23,9 @@ const styles = {
   fullWidth: {
     width: "100%"
   },
-  ...commonStyles
+  selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
+  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
+  selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
 const INITIAL_VALUES = {

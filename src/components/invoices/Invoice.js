@@ -123,7 +123,9 @@ const styles = {
     bgcolor: (theme) =>
       theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.common.white
   },
-  ...commonStyles
+  selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
+  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
+  selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
 const Invoice = () => {
