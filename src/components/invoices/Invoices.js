@@ -218,7 +218,7 @@ const Invoices = () => {
       }
     };
 
-    // fetchData();
+    fetchData();
   }, []);
 
   const columns = [
