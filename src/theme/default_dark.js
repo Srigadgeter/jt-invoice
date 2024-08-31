@@ -4,7 +4,8 @@ const Options = {
     common: {
       pink: "#f574b9",
       success: "#D6F2E3",
-      error: "#FEE2E2"
+      error: "#FEE2E2",
+      shadowColor: "#c0bfbf59"
     },
     background: {
       custom: "#121212",
