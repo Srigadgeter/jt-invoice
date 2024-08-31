@@ -28,6 +28,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import {
   addDocToFirebase,
+  editDocInFirebase,
   formatDateForInputField,
   formatDateToISOString,
   generateKeyValuePair,
@@ -220,7 +221,8 @@ const Invoice = () => {
             !key.toLowerCase().includes("new") &&
             !key.toLowerCase().includes("customer")
           ) {
-            if (key.toLowerCase().includes("date")) formValues[key] = formatDateToISOString(value);
+            if (!isEditMode && key.toLowerCase().includes("date"))
+              formValues[key] = formatDateToISOString(value);
             else formValues[key] = value;
           }
         });
@@ -340,13 +342,20 @@ const Invoice = () => {
           formValues.extras = currentPageData?.extras;
         formValues.totalAmount = currentPageData?.totalAmount || 0;
 
-        formValues.invoiceNumber = invoices.length + 1;
+        formValues.invoiceNumber = isEditMode
+          ? currentPageData?.invoiceNumber
+          : invoices.length + 1;
 
         const { startYear: sYear, endYear: eYear } = getFY();
-        formValues.startYear = sYear;
-        formValues.endYear = eYear;
+        formValues.startYear = isEditMode ? currentPageData?.startYear : sYear;
+        formValues.endYear = isEditMode ? currentPageData?.endYear : eYear;
 
-        if (formValues?.products?.length > 0 && formValues?.customer?.id && customerDocRef) {
+        if (
+          formValues?.products?.length > 0 &&
+          formValues?.customer?.id &&
+          currentProductsRef.length &&
+          customerDocRef
+        ) {
           if (isNewMode) {
             // add or update data to the store
             formValues.createdAt = getNow();
@@ -375,9 +384,21 @@ const Invoice = () => {
             await dispatch(addInvoice(formValues));
           }
           if (isEditMode) {
+            formValues.createdAt = currentPageData?.createdAt;
             formValues.updatedAt = [...(currentPageData?.updatedAt || []), getNow()];
 
-            // TODO: Work on edit doc of firebase
+            const invoiceFirebasePayload = {
+              ...formValues,
+              products: [...currentProductsRef],
+              customer: customerDocRef
+            };
+
+            await editDocInFirebase(
+              INVOICES,
+              invoiceFirebasePayload,
+              "There is an issue with updating the invoice"
+            );
+
             await dispatch(editInvoice(formValues));
           }
 
