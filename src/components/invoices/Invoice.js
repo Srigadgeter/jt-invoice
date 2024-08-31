@@ -209,7 +209,7 @@ const Invoice = () => {
       setLoader(true);
 
       try {
-        // trim & frame the form values
+        // frame the form values
         const formValues = {};
         const customerFormValues = {};
         Object.entries(val).forEach(([key, value]) => {

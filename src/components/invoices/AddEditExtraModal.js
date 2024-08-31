@@ -54,7 +54,7 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
     validationSchema: addEditExtraSchema,
     onSubmit: async (val, { setErrors }) => {
       try {
-        // trim & frame the form values
+        // frame the form values
         const formValues = {
           amount: val?.amount
         };

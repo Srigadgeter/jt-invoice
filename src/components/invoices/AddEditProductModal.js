@@ -65,7 +65,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
       try {
         const gstAmount = parseFloat(((amount * GST_PERCENTAGE) / 100).toFixed(2));
 
-        // trim & frame the form values
+        // frame the form values
         const formValues = {
           productQuantityPieces: val?.productQuantityPieces,
           productQuantityMeters: val?.productQuantityMeters,
