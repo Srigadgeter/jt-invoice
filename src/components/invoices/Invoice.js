@@ -351,23 +351,28 @@ const Invoice = () => {
         formValues.startYear = isEditMode ? currentPageData?.startYear : sYear;
         formValues.endYear = isEditMode ? currentPageData?.endYear : eYear;
 
+        formValues.createdAt = isEditMode ? currentPageData?.createdAt : getNow();
+        formValues.updatedAt = isEditMode ? [...(currentPageData?.updatedAt || []), getNow()] : [];
+
         if (
           formValues?.products?.length > 0 &&
           formValues?.customer?.id &&
           currentProductsRef.length &&
           customerDocRef
         ) {
+          const invoiceFirebasePayload = {
+            ...formValues,
+            products: [...currentProductsRef],
+            customer: customerDocRef
+          };
+
+          formValues.customerName = {
+            ...formValues?.customer?.name,
+            id: formValues?.customer?.id
+          };
+
           if (isNewMode) {
             // add or update data to the store
-            formValues.createdAt = getNow();
-            formValues.updatedAt = [];
-
-            const invoiceFirebasePayload = {
-              ...formValues,
-              products: [...currentProductsRef],
-              customer: customerDocRef
-            };
-
             const { id: invoiceDocId } = await addDocToFirebase(
               invoicesCollectionRef,
               invoiceFirebasePayload
@@ -377,23 +382,9 @@ const Invoice = () => {
               formValues.id = invoiceDocId;
             } else throw new Error("invoice:There is an issue with adding the new invoice");
 
-            formValues.customerName = {
-              ...formValues?.customer?.name,
-              id: formValues?.customer?.id
-            };
-
             await dispatch(addInvoice(formValues));
           }
           if (isEditMode) {
-            formValues.createdAt = currentPageData?.createdAt;
-            formValues.updatedAt = [...(currentPageData?.updatedAt || []), getNow()];
-
-            const invoiceFirebasePayload = {
-              ...formValues,
-              products: [...currentProductsRef],
-              customer: customerDocRef
-            };
-
             await editDocInFirebase(
               INVOICES,
               invoiceFirebasePayload,
