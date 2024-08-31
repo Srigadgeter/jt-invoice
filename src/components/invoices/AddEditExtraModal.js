@@ -130,8 +130,8 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
   return (
     <AppModal
       open={open}
+      footer={footerContent()}
       handleClose={handleCancel}
-      footer={footerContent(values, isValid, dirty, handleSubmit)}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Extra`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
         <Stack direction="row" spacing={2} sx={styles.fullWidth}>
