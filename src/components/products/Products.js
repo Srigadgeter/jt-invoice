@@ -226,6 +226,14 @@ const Products = () => {
 
   const columns = [
     {
+      field: "id",
+      headerName: "S No",
+      sortable: false,
+      width: 80,
+      renderCell: (params) =>
+        params.api.state.sorting.sortedRows.findIndex((id) => id === params?.id) + 1
+    },
+    {
       field: "label",
       headerName: "Product Name",
       flex: 1
