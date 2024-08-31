@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 import dayjs from "dayjs";
-import { addDoc, deleteDoc, doc } from "firebase/firestore";
+import { addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 
 import { db } from "integrations/firebase";
 
@@ -93,6 +93,21 @@ export const addDocToFirebase = async (collectionRef, payload) => {
   }
 
   return { docRef, id };
+};
+
+export const editDocInFirebase = async (collectionName, payload, errorMessage) => {
+  const { id, ...rest } = payload;
+
+  try {
+    // Create a reference to the document to edit
+    const docRef = doc(db, collectionName, id);
+
+    // Update the document
+    await updateDoc(docRef, { ...rest });
+  } catch (error) {
+    console.error(error);
+    throw new Error(errorMessage);
+  }
 };
 
 export const deleteDocFromFirebase = async (
