@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -159,12 +159,14 @@ const Invoice = () => {
   };
 
   // Storing the formik initial value & using as state value in order to avoid the form becomes unresponsive or inaccessible
-  const [newFormInitialValues] = useState(INITIAL_VALUES);
+  const [initialValues, setInitialValues] = useState(INITIAL_VALUES);
   const [isLoading, setLoader] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
   const [selectedExtra, setSelectedExtra] = useState(null);
   const [selectedExtraIndex, setSelectedExtraIndex] = useState(null);
+
+  const initialValuesRef = useRef(false);
 
   const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
   const invoicesCollectionRef = collection(db, INVOICES);
@@ -201,8 +203,8 @@ const Invoice = () => {
     handleSubmit,
     setFieldValue
   } = useFormik({
+    initialValues,
     enableReinitialize: true,
-    initialValues: isNewMode ? newFormInitialValues : currentPageData,
     validationSchema: invoiceSchema,
     onSubmit: async (val, { setErrors }) => {
       // setting loader true
@@ -418,6 +420,18 @@ const Invoice = () => {
   useEffect(() => {
     if (invoiceId) dispatch(setInvoice(invoiceId));
   }, [invoiceId]);
+
+  useEffect(() => {
+    if (!initialValuesRef.current) {
+      if ((isViewMode || isEditMode) && selectedInvoice) {
+        setInitialValues(selectedInvoice);
+        initialValuesRef.current = true;
+      } else if (isNewMode) {
+        setInitialValues(INITIAL_VALUES);
+        initialValuesRef.current = true;
+      }
+    }
+  }, [isEditMode, isViewMode, isNewMode, selectedInvoice]);
 
   const handleSwitchChange = ({ target: { name, checked } }) => {
     setValues({
