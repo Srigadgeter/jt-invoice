@@ -81,6 +81,11 @@ export const getFY = () => {
   };
 };
 
+export const getNewInvoiceNumber = (invoices) => {
+  const lastInvoiceNumber = invoices.reduce((max, val) => (val > max ? val : max), 0);
+  return lastInvoiceNumber + 1;
+};
+
 export const addDocToFirebase = async (collectionRef, payload) => {
   let docRef = null;
   let id = null;

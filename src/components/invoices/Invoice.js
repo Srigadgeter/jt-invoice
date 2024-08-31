@@ -33,6 +33,7 @@ import {
   formatDateToISOString,
   generateKeyValuePair,
   getFY,
+  getNewInvoiceNumber,
   getNow,
   indianCurrencyFormatter,
   isMobile
@@ -344,7 +345,7 @@ const Invoice = () => {
 
         formValues.invoiceNumber = isEditMode
           ? currentPageData?.invoiceNumber
-          : invoices.length + 1;
+          : getNewInvoiceNumber(invoices);
 
         const { startYear: sYear, endYear: eYear } = getFY();
         formValues.startYear = isEditMode ? currentPageData?.startYear : sYear;
