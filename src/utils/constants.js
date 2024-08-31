@@ -12,6 +12,10 @@ export const PAGE_INFO = {
     customerDetails: "Customer Details",
     products: "Products",
     extras: "Extras"
+  },
+  PRODUCTS: {
+    title: "Products",
+    description: "What we're selling to our customers"
   }
 };
 
