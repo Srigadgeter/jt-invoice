@@ -1,6 +1,6 @@
 import * as yup from "yup";
 
-// Schema for the AddEditProductModal component
+// Schema for the AddEditProductModal component in the Invoice page
 const addEditProductSchema = yup
   .object({
     productName: yup.object({
