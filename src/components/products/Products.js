@@ -235,7 +235,7 @@ const Products = () => {
     },
     {
       field: "label",
-      headerName: "Product Name",
+      headerName: "Name",
       flex: 1
     },
     {
@@ -350,7 +350,7 @@ const Products = () => {
           fullWidth
           id="productName"
           name="productName"
-          label="Product Name"
+          label="Name"
           margin="dense"
           size="small"
           onBlur={handleBlur}
