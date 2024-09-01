@@ -16,6 +16,10 @@ export const PAGE_INFO = {
   PRODUCTS: {
     title: "Products",
     description: "What we're selling to our customers"
+  },
+  CUSTOMERS: {
+    title: "Customers",
+    description: "Heart of our business"
   }
 };
 
