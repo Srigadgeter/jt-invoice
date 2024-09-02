@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
 import routes from "routes/routes";
@@ -73,7 +74,7 @@ const Invoices = () => {
     {
       field: "invoiceNumber",
       headerName: "Invoice Number",
-      width: 180
+      width: 130
     },
     {
       field: "customerName",
@@ -84,7 +85,7 @@ const Invoices = () => {
     {
       field: "invoiceDate",
       headerName: "Invoice Date",
-      width: 130,
+      width: 120,
       valueFormatter: ({ value }) => formatDate(value)
     },
     {
@@ -127,7 +128,7 @@ const Invoices = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 200,
+      width: 260,
       sortable: false,
       renderCell: (params) => (
         <Box>
@@ -166,11 +167,21 @@ const Invoices = () => {
               <DeleteIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Download">
+          <Tooltip title="View PDF">
+            <IconButton
+              size="large"
+              aria-label="view invoice as pdf"
+              disabled={loading || isLoading}
+              // onClick={() => }
+            >
+              <DescriptionIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Download PDF">
             <IconButton
               size="large"
               disabled={loading || isLoading}
-              aria-label="download invoice"
+              aria-label="download invoice as pdf"
               onClick={() => handleDownload(params?.row?.id)}>
               <DownloadIcon />
             </IconButton>
