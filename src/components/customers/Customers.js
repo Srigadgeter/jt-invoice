@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -9,31 +9,19 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DoneIcon from "@mui/icons-material/Done";
 import TextField from "@mui/material/TextField";
+import { collection } from "firebase/firestore";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useOutletContext } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { collection, getDocs } from "firebase/firestore";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
-import {
-  firebaseDateToISOString,
-  formatDate,
-  generateKeyValuePair,
-  getNow,
-  isMobile
-} from "utils/utilites";
 import {
   addDocToFirestore,
   deleteDocFromFirestore,
   editDocInFirestore
 } from "integrations/firestoreHelpers";
-import {
-  addCustomer,
-  deleteCustomer,
-  editCustomer,
-  setCustomers
-} from "store/slices/customersSlice";
 import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
@@ -42,6 +30,8 @@ import AppModal from "components/common/AppModal";
 import TitleBanner from "components/common/TitleBanner";
 import customerSchema from "validationSchemas/customerSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
+import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
+import { addCustomer, deleteCustomer, editCustomer } from "store/slices/customersSlice";
 
 const styles = {
   titleIcon: {
@@ -77,6 +67,7 @@ const Customers = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [initialValues, setInitialValues] = useState(INITIAL_VALUES);
 
+  const { loading = false } = useOutletContext();
   const { EDIT } = MODES;
   const { CUSTOMERS } = FIREBASE_COLLECTIONS;
   const { invoices = [] } = useSelector((state) => state?.invoices);
@@ -220,52 +211,6 @@ const Customers = () => {
     handleCloseModal();
   };
 
-  // Serialize the TimeStamp data
-  const serializeTimeStampData = (value) => {
-    if (value && (value instanceof Date || typeof value.toDate === "function"))
-      return firebaseDateToISOString(value);
-    return value;
-  };
-
-  // Serialize the data
-  const serializeData = (obj) => {
-    const modifiedData = {};
-    Object.entries(obj).forEach(([key, value]) => {
-      if (key === "updatedAt")
-        modifiedData.updatedAt = value?.map((timeStamp) => serializeTimeStampData(timeStamp));
-      // Serialize firebase timestamp data otherwise return value
-      else modifiedData[key] = serializeTimeStampData(value);
-    });
-    return modifiedData;
-  };
-
-  // fetch data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Function to get all customers
-        const fetchedCustomers = [...customers];
-
-        if (!(fetchedCustomers && Array.isArray(fetchedCustomers) && fetchedCustomers.length > 0)) {
-          console.warn("<< fetching customers >>");
-          setLoader(true);
-          await getDocs(customersCollectionRef)
-            .then((querySnapshot) => querySnapshot.docs)
-            .then((docs) => {
-              docs.forEach((d) => fetchedCustomers.push({ ...serializeData(d.data()), id: d?.id }));
-              dispatch(setCustomers(fetchedCustomers));
-              setLoader(false);
-            });
-        }
-      } catch (err) {
-        console.error(err);
-        setLoader(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   const columns = [
     {
       field: "id",
@@ -315,7 +260,7 @@ const Customers = () => {
             <IconButton
               size="large"
               aria-label={EDIT}
-              disabled={isLoading}
+              disabled={loading || isLoading}
               onClick={() => {
                 handleEditCustomer(params?.row);
               }}>
@@ -326,7 +271,7 @@ const Customers = () => {
             <IconButton
               size="large"
               aria-label="delete"
-              disabled={isLoading}
+              disabled={loading || isLoading}
               onClick={() => handleDelete(params)}>
               <DeleteIcon />
             </IconButton>
@@ -360,21 +305,21 @@ const Customers = () => {
 
   return (
     <Box px={3} mt={1}>
-      {isLoading && <Loader height="calc(100vh - 50px)" />}
+      {(loading || isLoading) && <Loader height="calc(100vh - 50px)" />}
 
       <TitleBanner page="CUSTOMERS" Icon={ShoppingBagIcon} />
 
       <Box sx={styles.box}>
         <Button
           variant="contained"
-          disabled={isLoading}
+          disabled={loading || isLoading}
           startIcon={<AddIcon />}
           onClick={handleOpenModal}>
           New
         </Button>
       </Box>
 
-      {customers && Array.isArray(customers) && customers.length > 0 ? (
+      {!loading && customers && Array.isArray(customers) && customers.length > 0 ? (
         <DataGrid
           sx={styles.dataGrid}
           rows={customers}
@@ -425,7 +370,7 @@ const Customers = () => {
           margin="dense"
           size="small"
           onBlur={handleBlur}
-          disabled={isLoading}
+          disabled={loading || isLoading}
           onChange={handleChange}
           value={values?.gstNumber?.toUpperCase() ?? ""}
           helperText={touched?.gstNumber && errors?.gstNumber}
@@ -440,7 +385,7 @@ const Customers = () => {
           margin="dense"
           size="small"
           onBlur={handleBlur}
-          disabled={isLoading}
+          disabled={loading || isLoading}
           onChange={handleChange}
           value={values?.phoneNumber ?? ""}
           helperText={touched?.phoneNumber && errors?.phoneNumber}
@@ -456,7 +401,7 @@ const Customers = () => {
           margin="dense"
           size="small"
           onBlur={handleBlur}
-          disabled={isLoading}
+          disabled={loading || isLoading}
           onChange={handleChange}
           value={values?.address ?? ""}
           helperText={touched?.address && errors?.address}

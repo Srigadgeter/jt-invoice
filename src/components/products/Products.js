@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -9,20 +9,14 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DoneIcon from "@mui/icons-material/Done";
 import TextField from "@mui/material/TextField";
+import { collection } from "firebase/firestore";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useOutletContext } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { collection, getDocs } from "firebase/firestore";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
-import {
-  firebaseDateToISOString,
-  formatDate,
-  generateKeyValuePair,
-  getNow,
-  isMobile
-} from "utils/utilites";
 import {
   addDocToFirestore,
   deleteDocFromFirestore,
@@ -36,7 +30,8 @@ import AppModal from "components/common/AppModal";
 import TitleBanner from "components/common/TitleBanner";
 import productSchema from "validationSchemas/productSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
-import { addProduct, deleteProduct, editProduct, setProducts } from "store/slices/productsSlice";
+import { addProduct, deleteProduct, editProduct } from "store/slices/productsSlice";
+import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 
 const styles = {
   titleIcon: {
@@ -63,6 +58,7 @@ const Products = () => {
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [initialValues, setInitialValues] = useState(INITIAL_VALUES);
 
+  const { loading = false } = useOutletContext();
   const { EDIT } = MODES;
   const { PRODUCTS } = FIREBASE_COLLECTIONS;
   const { products = [] } = useSelector((state) => state?.products);
@@ -199,52 +195,6 @@ const Products = () => {
     handleCloseModal();
   };
 
-  // Serialize the TimeStamp data
-  const serializeTimeStampData = (value) => {
-    if (value && (value instanceof Date || typeof value.toDate === "function"))
-      return firebaseDateToISOString(value);
-    return value;
-  };
-
-  // Serialize the data
-  const serializeData = (obj) => {
-    const modifiedData = {};
-    Object.entries(obj).forEach(([key, value]) => {
-      if (key === "updatedAt")
-        modifiedData.updatedAt = value?.map((timeStamp) => serializeTimeStampData(timeStamp));
-      // Serialize firebase timestamp data otherwise return value
-      else modifiedData[key] = serializeTimeStampData(value);
-    });
-    return modifiedData;
-  };
-
-  // fetch data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Function to get all products
-        const fetchedProducts = [...products];
-
-        if (!(fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0)) {
-          console.warn("<< fetching products >>");
-          setLoader(true);
-          await getDocs(productsCollectionRef)
-            .then((querySnapshot) => querySnapshot.docs)
-            .then((docs) => {
-              docs.forEach((d) => fetchedProducts.push({ ...serializeData(d.data()), id: d?.id }));
-              dispatch(setProducts(fetchedProducts));
-              setLoader(false);
-            });
-        }
-      } catch (err) {
-        console.error(err);
-        setLoader(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   const columns = [
     {
       field: "id",
@@ -276,7 +226,7 @@ const Products = () => {
             <IconButton
               size="large"
               aria-label={EDIT}
-              disabled={isLoading}
+              disabled={loading || isLoading}
               onClick={() => {
                 handleEditProduct(params?.row);
               }}>
@@ -287,7 +237,7 @@ const Products = () => {
             <IconButton
               size="large"
               aria-label="delete"
-              disabled={isLoading}
+              disabled={loading || isLoading}
               onClick={() => handleDelete(params)}>
               <DeleteIcon />
             </IconButton>
@@ -321,21 +271,21 @@ const Products = () => {
 
   return (
     <Box px={3} mt={1}>
-      {isLoading && <Loader height="calc(100vh - 50px)" />}
+      {(loading || isLoading) && <Loader height="calc(100vh - 50px)" />}
 
       <TitleBanner page="PRODUCTS" Icon={ShoppingBagIcon} />
 
       <Box sx={styles.box}>
         <Button
           variant="contained"
-          disabled={isLoading}
+          disabled={loading || isLoading}
           startIcon={<AddIcon />}
           onClick={handleOpenModal}>
           New
         </Button>
       </Box>
 
-      {products && Array.isArray(products) && products.length > 0 ? (
+      {!loading && products && Array.isArray(products) && products.length > 0 ? (
         <DataGrid
           sx={styles.dataGrid}
           rows={products}
