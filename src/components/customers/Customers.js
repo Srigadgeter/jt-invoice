@@ -79,6 +79,7 @@ const Customers = () => {
 
   const { EDIT } = MODES;
   const { CUSTOMERS } = FIREBASE_COLLECTIONS;
+  const { invoices = [] } = useSelector((state) => state?.invoices);
   const { customers = [] } = useSelector((state) => state?.customers);
   const dispatch = useDispatch();
 
@@ -103,6 +104,18 @@ const Customers = () => {
     setSelectedCustomer(customer);
     setSelectedCustomerId(customer?.id ?? null);
     handleOpenModal();
+  };
+
+  const handleDelete = (params) => {
+    const isReferenced = invoices.filter((item) => item?.customer?.id === params?.row?.id);
+
+    if (!isReferenced.length)
+      deleteDocFromFirestore(params?.row, CUSTOMERS, setLoader, dispatch, deleteCustomer);
+    else {
+      const errorMessage =
+        "Cannot delete the customer since this customer is referenced in one or more invoices";
+      console.error(errorMessage);
+    }
   };
 
   const validateForm = (field1, field2) => {
@@ -136,6 +149,7 @@ const Customers = () => {
     enableReinitialize: true,
     validationSchema: customerSchema,
     onSubmit: async (val, { setErrors }) => {
+      setLoader(true);
       try {
         const customerNameObj = generateKeyValuePair(val?.name);
 
@@ -192,6 +206,8 @@ const Customers = () => {
         setErrors({
           name: error?.message
         });
+      } finally {
+        setLoader(false);
       }
     }
   });
@@ -311,9 +327,7 @@ const Customers = () => {
               size="large"
               aria-label="delete"
               disabled={isLoading}
-              onClick={() =>
-                deleteDocFromFirestore(params?.row, CUSTOMERS, setLoader, dispatch, deleteCustomer)
-              }>
+              onClick={() => handleDelete(params)}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
