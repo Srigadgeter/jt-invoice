@@ -190,7 +190,7 @@ const Invoice = () => {
   const isNewMode = pageMode === MODES.NEW;
   const isEditMode = pageMode === MODES.EDIT;
 
-  const customerList = customers.map((item) => item?.name);
+  const customerList = customers.map((item) => ({ ...item?.name, address: item?.address }));
 
   const handleBack = () => navigate(INVOICE_ROUTE.to());
 
@@ -256,16 +256,20 @@ const Invoice = () => {
         if (val?.customerName?.value === "new" && val?.newCustomerName) {
           const customerNameData = generateKeyValuePair(val?.newCustomerName);
           const isCustomerNameAlreadyPresent = customerList.some(
-            (item) => item?.value === customerNameData?.value
+            (item) =>
+              item?.value === customerNameData?.value && item?.address === val?.newCustomerAddress
           );
           if (isCustomerNameAlreadyPresent)
-            throw new Error("newCustomerName:This customer name already exists");
+            throw new Error(
+              "newCustomerName:This customer name already exists with the same address"
+            );
           else {
             customerFormValues.name = customerNameData;
             customerFormValues.address = val?.newCustomerAddress || null;
             customerFormValues.gstNumber = val?.newCustomerGSTNumber || null;
             customerFormValues.phoneNumber = val?.newCustomerPhoneNumber || null;
             customerFormValues.createdAt = getNow();
+            customerFormValues.updatedAt = [];
           }
         } else {
           const existingCustomerData = customers.filter(
@@ -1001,7 +1005,8 @@ const Invoice = () => {
                       Array.isArray(customerList) &&
                       customerList.map((item) => (
                         <MenuItem key={item?.value} value={item?.value}>
-                          {item?.label}
+                          <strong>{item?.label}</strong>&nbsp;-&nbsp;
+                          {item?.address}
                         </MenuItem>
                       ))}
                   </Select>
