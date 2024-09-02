@@ -66,6 +66,7 @@ const Products = () => {
   const { EDIT } = MODES;
   const { PRODUCTS } = FIREBASE_COLLECTIONS;
   const { products = [] } = useSelector((state) => state?.products);
+  const { invoices = [] } = useSelector((state) => state?.invoices);
   const dispatch = useDispatch();
 
   const productsCollectionRef = collection(db, PRODUCTS);
@@ -86,6 +87,23 @@ const Products = () => {
     setSelectedProduct(product);
     setSelectedProductId(product?.id ?? null);
     handleOpenModal();
+  };
+
+  const handleDelete = (params) => {
+    const isReferencedArr = [];
+    invoices.forEach((item) => {
+      const isPresent = item?.products.filter((p) => p?.productName?.id === params?.row?.id);
+      isReferencedArr.push(isPresent);
+    });
+
+    const isReferenced = isReferencedArr.flat();
+
+    if (!isReferenced.length)
+      deleteDocFromFirestore(params?.row, PRODUCTS, setLoader, dispatch, deleteProduct);
+    else
+      throw new Error(
+        "product:Cannot delete the product since this product is referenced in one or more invoices"
+      );
   };
 
   const validateForm = (field) => {
@@ -116,6 +134,7 @@ const Products = () => {
     enableReinitialize: true,
     validationSchema: productSchema,
     onSubmit: async (val, { setErrors }) => {
+      setLoader(true);
       try {
         const productNameObj = generateKeyValuePair(val?.productName);
 
@@ -166,6 +185,8 @@ const Products = () => {
         setErrors({
           productName: error?.message
         });
+      } finally {
+        setLoader(false);
       }
     }
   });
@@ -267,9 +288,7 @@ const Products = () => {
               size="large"
               aria-label="delete"
               disabled={isLoading}
-              onClick={() =>
-                deleteDocFromFirestore(params?.row, PRODUCTS, setLoader, dispatch, deleteProduct)
-              }>
+              onClick={() => handleDelete(params)}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
