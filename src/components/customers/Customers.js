@@ -13,9 +13,9 @@ import { collection } from "firebase/firestore";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PersonIcon from "@mui/icons-material/Person";
 import { useOutletContext } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
 import {
   addDocToFirestore,
@@ -307,7 +307,7 @@ const Customers = () => {
     <Box px={3} mt={1}>
       {(loading || isLoading) && <Loader height="calc(100vh - 50px)" />}
 
-      <TitleBanner page="CUSTOMERS" Icon={ShoppingBagIcon} />
+      <TitleBanner page="CUSTOMERS" Icon={PersonIcon} />
 
       <Box sx={styles.box}>
         <Button
