@@ -82,3 +82,29 @@ export const getNewInvoiceNumber = (invoices) => {
   const lastInvoiceNumber = invoices.reduce((max, val) => (val > max ? val : max), 0);
   return lastInvoiceNumber + 1;
 };
+
+// export const downloadFile = ({ fileName, extension, url = null, blob = null }) => {
+//   // Create a new anchor element
+//   const a = document.createElement("a");
+
+//   let fileUrl = null;
+//   if (url) fileUrl = url;
+//   else if (blob) fileUrl = window.URL.createObjectURL(url);
+
+//   if (fileUrl) {
+//     // Set the href, download & target attributes for the anchor element
+//     a.href = fileUrl;
+//     a.download = `${fileName}.${extension}`;
+//     a.target = "_blank";
+
+//     // Required for Firefox
+//     // Attaches the anchor tag to the DOM
+//     document.body.appendChild(a);
+
+//     // Programmatically trigger a click on the anchor element
+//     a.click();
+
+//     // Removes the anchor tag from the DOM
+//     document.body.removeChild(a);
+//   }
+// };
