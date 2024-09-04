@@ -132,7 +132,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
     },
     {
       field: "productName",
-      headerName: "Products",
+      headerName: "Particulars",
       sortable: false,
       flex: 1,
       renderCell: ({ value }) => (
