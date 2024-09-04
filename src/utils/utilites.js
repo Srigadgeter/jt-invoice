@@ -79,7 +79,10 @@ export const getFY = () => {
 };
 
 export const getNewInvoiceNumber = (invoices) => {
-  const lastInvoiceNumber = invoices.reduce((max, val) => (val > max ? val : max), 0);
+  const lastInvoiceNumber = invoices.reduce(
+    (max, val) => (val?.invoiceNumber > max ? val?.invoiceNumber : max),
+    0
+  );
   return lastInvoiceNumber + 1;
 };
 
