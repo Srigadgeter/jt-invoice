@@ -61,7 +61,7 @@
   font-display: swap;
 }
 
-/* Thin */
+/* Thin Italic */
 @font-face {
   font-family: "CharlieDisplay";
   src: url("./assets/fonts/charlie-display-thin-italic.ttf") format("truetype");
@@ -70,7 +70,7 @@
   font-display: swap;
 }
 
-/* Light */
+/* Light Italic */
 @font-face {
   font-family: "CharlieDisplay";
   src: url("./assets/fonts/charlie-display-light-italic.ttf") format("truetype");
@@ -79,7 +79,7 @@
   font-display: swap;
 }
 
-/* Regular */
+/* Regular Italic */
 @font-face {
   font-family: "CharlieDisplay";
   src: url("./assets/fonts/charlie-display-regular-italic.ttf") format("truetype");
@@ -88,7 +88,7 @@
   font-display: swap;
 }
 
-/* Semibold */
+/* Semibold Italic */
 @font-face {
   font-family: "CharlieDisplay";
   src: url("./assets/fonts/charlie-display-semibold-italic.ttf") format("truetype");
@@ -97,7 +97,7 @@
   font-display: swap;
 }
 
-/* Bold */
+/* Bold Italic */
 @font-face {
   font-family: "CharlieDisplay";
   src: url("./assets/fonts/charlie-display-bold-italic.ttf") format("truetype");
@@ -106,7 +106,7 @@
   font-display: swap;
 }
 
-/* Black */
+/* Black Italic */
 @font-face {
   font-family: "CharlieDisplay";
   src: url("./assets/fonts/charlie-display-black-italic.ttf") format("truetype");
@@ -115,7 +115,7 @@
   font-display: swap;
 }
 
-/* Ultra */
+/* Ultra Italic */
 @font-face {
   font-family: "CharlieDisplay";
   src: url("./assets/fonts/charlie-display-ultra-italic.ttf") format("truetype");
