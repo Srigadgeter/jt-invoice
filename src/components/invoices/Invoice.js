@@ -702,7 +702,7 @@ const Invoice = () => {
 
   return (
     <Box>
-      {isLoading && <Loader height="calc(100vh - 50px)" />}
+      {isLoading && <Loader height="100vh" />}
       <AddEditProductModal
         open={openAddEditProductModal}
         initialValues={selectedProduct}
