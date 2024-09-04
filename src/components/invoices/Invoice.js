@@ -41,7 +41,8 @@ import {
   PAGE_INFO,
   INVOICE_STATUS,
   GST_PERCENTAGE,
-  FIREBASE_COLLECTIONS
+  FIREBASE_COLLECTIONS,
+  RECORDS_LIMIT_COUNT
 } from "utils/constants";
 import routes from "routes/routes";
 import {
@@ -700,6 +701,10 @@ const Invoice = () => {
     currentPageData?.products?.length > 0 &&
     !isLoading;
 
+  const totalEntriesCount =
+    (currentPageData?.products?.length ?? 0) + (currentPageData?.extras?.length ?? 0);
+  const disableAddProductExtraBtns = isLoading || totalEntriesCount >= RECORDS_LIMIT_COUNT;
+
   return (
     <Box>
       {isLoading && <Loader height="100vh" />}
@@ -1104,8 +1109,8 @@ const Invoice = () => {
               {!isViewMode && (
                 <Button
                   variant="text"
-                  disabled={isLoading}
                   startIcon={<AddIcon />}
+                  disabled={disableAddProductExtraBtns}
                   size={isMobile() ? "small" : "medium"}
                   onClick={() => handleOpenAddEditProductModal()}>
                   Add &nbsp; Product
@@ -1142,8 +1147,8 @@ const Invoice = () => {
               {!isViewMode && (
                 <Button
                   variant="text"
-                  disabled={isLoading}
                   startIcon={<AddIcon />}
+                  disabled={disableAddProductExtraBtns}
                   size={isMobile() ? "small" : "medium"}
                   onClick={() => handleOpenAddEditExtraModal()}>
                   Add &nbsp; Extra

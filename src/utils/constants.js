@@ -49,3 +49,5 @@ export const FIREBASE_COLLECTIONS = {
   PRODUCTS: "products",
   CUSTOMERS: "customers"
 };
+
+export const RECORDS_LIMIT_COUNT = 15;
