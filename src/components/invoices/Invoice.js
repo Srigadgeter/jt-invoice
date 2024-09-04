@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import Switch from "@mui/material/Switch";
 import Tooltip from "@mui/material/Tooltip";
+import { DataGrid } from "@mui/x-data-grid";
 import MenuItem from "@mui/material/MenuItem";
 import AddIcon from "@mui/icons-material/Add";
 import TextField from "@mui/material/TextField";
@@ -22,7 +23,6 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import { collection, doc, writeBatch } from "firebase/firestore";
-import { DataGrid, GridFooterContainer } from "@mui/x-data-grid";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -57,6 +57,7 @@ import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import invoiceSchema from "validationSchemas/invoiceSchema";
+import CustomDataGridFooter from "components/common/CustomDataGridFooter";
 import { addDocToFirestore, editDocInFirestore } from "integrations/firestoreHelpers";
 
 import AddEditProductModal from "./AddEditProductModal";
@@ -128,55 +129,6 @@ const styles = {
   selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
   selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
-
-const CustomFooter = ({ columns, rows = [] }) => (
-  <GridFooterContainer>
-    <div style={{ display: "flex", width: "100%", alignItems: "center" }}>
-      {columns.map((column) => {
-        const doCalc = [
-          "productQuantityPieces",
-          "productQuantityMeters",
-          "productAmount",
-          "producGstAmount",
-          "productAmountInclGST",
-          "amount"
-        ].some((item) => item === column?.field);
-        const isAmountField = ["productAmountInclGST", "amount"].some(
-          (item) => item === column?.field
-        );
-        const total = doCalc ? rows.reduce((sum, row) => sum + (row[column?.field] || 0), 0) : 0;
-        return (
-          <Box
-            key={column?.field}
-            sx={{
-              p: "0 10px",
-              flex: column?.flex,
-              textAlign: "right",
-              width: column?.width
-            }}>
-            <Box component="span" fontWeight="600">
-              {column?.field === "productName" || column?.field === "reason" ? "Total" : null}
-              {column?.field === "productQuantityPieces"
-                ? `${total} ${total === 1 ? "pc" : "pcs"}`
-                : null}
-              {column?.field === "productQuantityMeters"
-                ? `${total} ${total === 1 ? "mtr" : "mtrs"}`
-                : null}
-              {column?.field === "productAmount" || column?.field === "producGstAmount"
-                ? indianCurrencyFormatter(total)
-                : null}
-            </Box>
-            {isAmountField ? (
-              <Typography fontSize={15} fontWeight={600} color="primary.main">
-                {indianCurrencyFormatter(total)}
-              </Typography>
-            ) : null}
-          </Box>
-        );
-      })}
-    </div>
-  </GridFooterContainer>
-);
 
 const Invoice = () => {
   const { INVOICES: INVOICE_ROUTE, INVOICE_EDIT } = routes;
@@ -1164,7 +1116,7 @@ const Invoice = () => {
               disableColumnMenu
               sx={styles.dataGrid}
               slots={{
-                footer: CustomFooter
+                footer: CustomDataGridFooter
               }}
               slotProps={{
                 footer: {
@@ -1202,7 +1154,7 @@ const Invoice = () => {
               disableColumnMenu
               sx={styles.dataGrid}
               slots={{
-                footer: CustomFooter
+                footer: CustomDataGridFooter
               }}
               slotProps={{
                 footer: {
