@@ -83,9 +83,13 @@ export const getNewInvoiceNumber = (invoices) => {
   return lastInvoiceNumber + 1;
 };
 
-export const formatInvoiceNumber = (invoiceNumber) => {
+export const formatInvoiceNumber = (invoice, isFull = false) => {
+  const { invoiceNumber, startYear, endYear } = invoice;
   const str = `0000${invoiceNumber}`;
-  return str.slice(-5);
+  const invoiceNumStr = str.slice(-5);
+  return isFull
+    ? `${process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}${startYear}${endYear}${invoiceNumStr}`
+    : invoiceNumStr;
 };
 
 // export const downloadFile = ({ fileName, extension, url = null, blob = null }) => {
