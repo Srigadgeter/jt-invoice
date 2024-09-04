@@ -83,6 +83,11 @@ export const getNewInvoiceNumber = (invoices) => {
   return lastInvoiceNumber + 1;
 };
 
+export const formatInvoiceNumber = (invoiceNumber) => {
+  const str = `0000${invoiceNumber}`;
+  return str.slice(-5);
+};
+
 // export const downloadFile = ({ fileName, extension, url = null, blob = null }) => {
 //   // Create a new anchor element
 //   const a = document.createElement("a");
