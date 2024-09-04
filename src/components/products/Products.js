@@ -271,7 +271,7 @@ const Products = () => {
 
   return (
     <Box px={3} mt={1}>
-      {(loading || isLoading) && <Loader height="calc(100vh - 50px)" />}
+      {(loading || isLoading) && <Loader height="100vh" />}
 
       <TitleBanner page="PRODUCTS" Icon={ShoppingBagIcon} />
 
