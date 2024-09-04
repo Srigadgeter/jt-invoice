@@ -37,7 +37,11 @@ const SideDrawer = ({ list, handleClose, anchor = "left", open = false }) => {
     <Drawer anchor={anchor} open={open} onClose={handleClose}>
       <Stack gap={2} p={2}>
         <Stack gap={2} direction="row">
-          <Avatar alt="JT" src={Logo} variant="square" />
+          <Avatar
+            src={Logo}
+            variant="square"
+            alt={process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}
+          />
           <Typography sx={styles.companyName}>Jayanthi Tex</Typography>
         </Stack>
         <Divider />

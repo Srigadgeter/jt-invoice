@@ -101,7 +101,11 @@ const Header = ({ setOpenDrawer }) => {
         <IconButton size="large" aria-label="Sidedrawer" onClick={() => setOpenDrawer(true)}>
           <MenuIcon />
         </IconButton>
-        <Avatar alt="JT" src={Logo} variant="square" />
+        <Avatar
+          src={Logo}
+          variant="square"
+          alt={process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}
+        />
       </Stack>
       <Stack direction="row" alignItems="center">
         <MaterialUISwitch
@@ -111,7 +115,9 @@ const Header = ({ setOpenDrawer }) => {
           }}
           checked={appTheme === DEFAULT_DARK}
         />
-        <Avatar sx={styles.avatar}>JT</Avatar>
+        <Avatar sx={styles.avatar}>
+          {process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}
+        </Avatar>
       </Stack>
     </Box>
   );
