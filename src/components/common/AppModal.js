@@ -42,7 +42,9 @@ const AppModal = ({ open, title, handleClose, children, footer, modalStyle = {},
         <Box sx={styles.header}>
           <Typography variant="h5">{title}</Typography>
         </Box>
-        <Box sx={styles.content}>{children}</Box>
+        <Box id="content" sx={styles.content}>
+          {children}
+        </Box>
         {footer && <Box sx={styles.footer}>{footer}</Box>}
       </Box>
     </Modal>
