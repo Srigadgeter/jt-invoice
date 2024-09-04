@@ -106,6 +106,7 @@ const styles = {
     justifyContent: "flex-end"
   },
   dataGrid: {
+    ...(commonStyles?.dataGridHeader || {}),
     ".MuiDataGrid-virtualScroller": {
       minHeight: "50px"
     }

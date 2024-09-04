@@ -35,6 +35,11 @@ const commonStyles = {
         }
       }
     }
+  },
+  dataGridHeader: {
+    ".MuiDataGrid-columnHeaderTitle": {
+      fontWeight: 600
+    }
   }
 };
 
