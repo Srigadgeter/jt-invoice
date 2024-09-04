@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import { DataGrid } from "@mui/x-data-grid";
@@ -8,6 +9,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
+import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -24,7 +26,16 @@ import TitleBanner from "components/common/TitleBanner";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
 import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
-import { formatDate, getDaysDiff, indianCurrencyFormatter, isMobile } from "utils/utilites";
+import {
+  formatDate,
+  formatInvoiceNumber,
+  getDaysDiff,
+  indianCurrencyFormatter,
+  isMobile
+} from "utils/utilites";
+import PdfGenerator from "components/common/PdfGenerator";
+import InvoiceTemplate from "components/templates/InvoiceTemplate";
+import AppModal from "components/common/AppModal";
 
 const styles = {
   box: {
@@ -42,11 +53,30 @@ const styles = {
       px: 0.75,
       py: 0.5
     }
-  })
+  }),
+  modalStyle: {
+    width: "fit-content",
+    height: "800px",
+    "& #content": {
+      height: "calc(100vh - 280px)",
+      overflowX: "hidden",
+      overflowY: "overlay",
+      scrollbarWidth: "7px",
+      ":hover": {
+        "::-webkit-scrollbar": {
+          display: "block"
+        }
+      }
+    }
+  }
 };
 
 const Invoices = () => {
   const [isLoading, setLoader] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+  const [trigger, setTrigger] = useState(null);
 
   const { loading = false } = useOutletContext();
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
@@ -64,7 +94,24 @@ const Invoices = () => {
     );
   };
 
-  const handleDownload = () => {};
+  const handleViewPDF = (rowData) => {
+    setOpenModal(true);
+    setSelectedInvoice(rowData);
+    setSelectedInvoiceId(rowData?.id);
+  };
+
+  const handleClose = () => {
+    setSelectedInvoice(null);
+    setSelectedInvoiceId(null);
+    setOpenModal(false);
+  };
+
+  const handleDownload = async () => {
+    setLoader(true);
+    await trigger();
+    setLoader(false);
+    handleClose();
+  };
 
   const handleNew = () => {
     navigate(INVOICE_NEW.to());
@@ -128,7 +175,7 @@ const Invoices = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 260,
+      width: 220,
       sortable: false,
       renderCell: (params) => (
         <Box>
@@ -172,18 +219,8 @@ const Invoices = () => {
               size="large"
               aria-label="view invoice as pdf"
               disabled={loading || isLoading}
-              // onClick={() => }
-            >
+              onClick={() => handleViewPDF(params?.row)}>
               <DescriptionIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Download PDF">
-            <IconButton
-              size="large"
-              disabled={loading || isLoading}
-              aria-label="download invoice as pdf"
-              onClick={() => handleDownload(params?.row?.id)}>
-              <DownloadIcon />
             </IconButton>
           </Tooltip>
         </Box>
@@ -195,9 +232,32 @@ const Invoices = () => {
     columns.splice(1, 1, { field: "customerName", headerName: "Customer Name", width: 300 });
   }
 
+  const footerContent = () => (
+    <Stack direction="row" justifyContent="flex-end" alignItems="center">
+      <Stack direction="row" spacing={1}>
+        <Button
+          variant="outlined"
+          disabled={isLoading}
+          onClick={handleClose}
+          startIcon={<CloseIcon />}
+          size={isMobile() ? "small" : "medium"}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          disabled={isLoading}
+          onClick={handleDownload}
+          startIcon={<DownloadIcon />}
+          size={isMobile() ? "small" : "medium"}>
+          Download
+        </Button>
+      </Stack>
+    </Stack>
+  );
+
   return (
     <Box px={3} mt={1}>
-      {(loading || isLoading) && <Loader height="calc(100vh - 50px)" />}
+      {(loading || isLoading) && <Loader height="100vh" />}
 
       <TitleBanner page="INVOICES" Icon={ReceiptLongIcon} />
 
@@ -230,6 +290,21 @@ const Invoices = () => {
       ) : (
         <ClickNew prefixMessage="Click here to create your" hightlightedText="invoices" />
       )}
+
+      <AppModal
+        open={openModal}
+        title="Invoice Preview"
+        footer={footerContent()}
+        handleClose={handleClose}
+        modalStyle={styles.modalStyle}>
+        {isLoading && <Loader />}
+        <PdfGenerator
+          filename={selectedInvoice ? formatInvoiceNumber(selectedInvoice, true) : ""}
+          Template={InvoiceTemplate}
+          dataId={selectedInvoiceId}
+          setTrigger={setTrigger}
+        />
+      </AppModal>
     </Box>
   );
 };
