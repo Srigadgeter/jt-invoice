@@ -268,7 +268,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
             <Typography>LR Number</Typography>
             <Typography>LR Date</Typography>
             <Typography>Destination</Typography>
-            <Typography>Payment Method</Typography>
+            <Typography>Payment Status</Typography>
           </Stack>
           <Stack>
             <Typography fontWeight={600}>{formatDate(selectedInvoice?.invoiceDate)}</Typography>
@@ -282,7 +282,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
             <Typography fontWeight={600}>{formatDate(selectedInvoice?.lrDate)}</Typography>
             <Typography fontWeight={600}>{selectedInvoice?.transportDestination?.label}</Typography>
             <Typography fontWeight={600}>
-              {selectedInvoice?.paymentStatus === "paid" ? "Prepaid" : "To pay"}
+              {selectedInvoice?.paymentStatus === "paid" ? "Paid" : "To pay"}
             </Typography>
           </Stack>
         </Stack>
