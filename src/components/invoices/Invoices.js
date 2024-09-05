@@ -18,14 +18,6 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
-import routes from "routes/routes";
-import Loader from "components/common/Loader";
-import commonStyles from "utils/commonStyles";
-import ClickNew from "components/common/ClickNew";
-import TitleBanner from "components/common/TitleBanner";
-import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
-import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
-import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
 import {
   formatDate,
   formatInvoiceNumber,
@@ -33,9 +25,18 @@ import {
   indianCurrencyFormatter,
   isMobile
 } from "utils/utilites";
-import PdfGenerator from "components/common/PdfGenerator";
-import InvoiceTemplate from "components/templates/InvoiceTemplate";
+import routes from "routes/routes";
+import Loader from "components/common/Loader";
+import commonStyles from "utils/commonStyles";
+import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import TitleBanner from "components/common/TitleBanner";
+import PdfGenerator from "components/common/PdfGenerator";
+import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
+import { addNotification } from "store/slices/notificationsSlice";
+import InvoiceTemplate from "components/templates/InvoiceTemplate";
+import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
+import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
 
 const styles = {
   box: {
@@ -86,6 +87,8 @@ const Invoices = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const filename = selectedInvoice ? formatInvoiceNumber(selectedInvoice, true) : "";
+
   const handleOpen = (type, startYear, endYear, id) => {
     navigate(
       type === VIEW
@@ -109,6 +112,12 @@ const Invoices = () => {
   const handleDownload = async () => {
     setLoader(true);
     await trigger();
+    dispatch(
+      addNotification({
+        message: `Successfully downlaoded the invoice '${filename}'`,
+        variant: "success"
+      })
+    );
     setLoader(false);
     handleClose();
   };
@@ -209,7 +218,15 @@ const Invoices = () => {
               aria-label="delete"
               disabled={loading || isLoading}
               onClick={() =>
-                deleteDocFromFirestore(params?.row, INVOICES, setLoader, dispatch, deleteInvoice)
+                deleteDocFromFirestore(
+                  params?.row,
+                  INVOICES,
+                  setLoader,
+                  dispatch,
+                  deleteInvoice,
+                  `Successfully deleted invoice '${params?.row?.invoiceNumber}'`,
+                  "There is an issue with deleting the invoice"
+                )
               }>
               <DeleteIcon />
             </IconButton>
@@ -297,9 +314,8 @@ const Invoices = () => {
         footer={footerContent()}
         handleClose={handleClose}
         modalStyle={styles.modalStyle}>
-        {isLoading && <Loader />}
         <PdfGenerator
-          filename={selectedInvoice ? formatInvoiceNumber(selectedInvoice, true) : ""}
+          filename={filename}
           Template={InvoiceTemplate}
           dataId={selectedInvoiceId}
           setTrigger={setTrigger}
