@@ -30,6 +30,7 @@ import AppModal from "components/common/AppModal";
 import TitleBanner from "components/common/TitleBanner";
 import productSchema from "validationSchemas/productSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
+import { addNotification } from "store/slices/notificationsSlice";
 import { addProduct, deleteProduct, editProduct } from "store/slices/productsSlice";
 import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 
@@ -95,11 +96,24 @@ const Products = () => {
     const isReferenced = isReferencedArr.flat();
 
     if (!isReferenced.length)
-      deleteDocFromFirestore(params?.row, PRODUCTS, setLoader, dispatch, deleteProduct);
-    else
-      throw new Error(
-        "product:Cannot delete the product since this product is referenced in one or more invoices"
+      deleteDocFromFirestore(
+        params?.row,
+        PRODUCTS,
+        setLoader,
+        dispatch,
+        deleteProduct,
+        `Successfully deleted a product, '${params?.row?.label}'`,
+        "There is an issue with deleting the product"
       );
+    else {
+      const message = `Cannot delete the product '${params.row?.label}' since it is referenced in one or more invoices`;
+      dispatch(
+        addNotification({
+          message,
+          variant: "warning"
+        })
+      );
+    }
   };
 
   const validateForm = (field) => {
@@ -158,17 +172,25 @@ const Products = () => {
             await editDocInFirestore(
               PRODUCTS,
               formValues,
+              dispatch,
+              "Successfully updated the product",
               "There is an issue with updating the product"
             );
 
             await dispatch(editProduct(formValues));
           } else {
-            const { id: productDocId } = await addDocToFirestore(productsCollectionRef, formValues);
+            const { id: productDocId } = await addDocToFirestore(
+              productsCollectionRef,
+              formValues,
+              dispatch,
+              `Successfully added a new product, '${formValues?.label}'`,
+              "There is an issue with adding the new product"
+            );
 
             if (productDocId) {
               formValues.id = productDocId;
               await dispatch(addProduct(formValues));
-            } else throw new Error("There is an issue with adding the new product");
+            }
           }
 
           // reset the form
