@@ -91,7 +91,7 @@ export const formatInvoiceNumber = (invoice, isFull = false) => {
   const str = `0000${invoiceNumber}`;
   const invoiceNumStr = str.slice(-5);
   return isFull
-    ? `${process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}${startYear}${endYear}${invoiceNumStr}`
+    ? `${process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}${startYear}${endYear}TX${invoiceNumStr}`
     : invoiceNumStr;
 };
 
