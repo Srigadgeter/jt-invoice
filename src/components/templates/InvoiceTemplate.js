@@ -60,7 +60,14 @@ const styles = {
   h100: {
     height: "100%"
   },
+  divider: {
+    borderColor: (theme) => theme.palette.common.dividerBorder
+  },
   dataGrid: {
+    borderColor: (theme) => theme.palette.common.tableBorder,
+    ".MuiDataGrid-withBorderColor": {
+      borderColor: (theme) => theme.palette.common.tableBorder
+    },
     ".MuiDataGrid-cellContent": {
       fontSize: "12px"
     },
@@ -230,7 +237,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
           </Stack>
         </Box>
       </Stack>
-      <Divider />
+      <Divider sx={styles.divider} />
       <Stack direction="row" justifyContent="space-between" sx={styles.details}>
         <Stack sx={styles.to}>
           <Typography>To</Typography>
@@ -342,7 +349,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
           </Stack>
         </Stack>
       </Stack>
-      <Divider />
+      <Divider sx={styles.divider} />
       <Stack direction="row" justifyContent="space-between">
         <Stack>
           <Typography fontWeight={600} sx={styles.underline}>
