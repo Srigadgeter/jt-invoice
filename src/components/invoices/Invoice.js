@@ -58,6 +58,7 @@ import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import invoiceSchema from "validationSchemas/invoiceSchema";
+import { addNotification } from "store/slices/notificationsSlice";
 import CustomDataGridFooter from "components/common/CustomDataGridFooter";
 import { addDocToFirestore, editDocInFirestore } from "integrations/firestoreHelpers";
 
@@ -286,7 +287,10 @@ const Invoice = () => {
         if (customerFormValues?.name) {
           const { docRef, id: customerId } = await addDocToFirestore(
             customersCollectionRef,
-            customerFormValues
+            customerFormValues,
+            dispatch,
+            `Successfully added a new customer, '${customerFormValues?.name?.label}'`,
+            "There is an issue with adding the new customer"
           );
 
           if (customerId) {
@@ -295,7 +299,7 @@ const Invoice = () => {
               ...customerFormValues,
               id: customerId
             };
-          } else throw new Error("customer:There is an issue with adding the new customer details");
+          }
         }
 
         const currentProducts = [];
@@ -325,7 +329,14 @@ const Invoice = () => {
                   id: productId
                 }
               });
-            } else throw new Error("product:There is an issue fetching id for the new products");
+            } else {
+              const message = `There is an issue fetching id for the new product(s)`;
+              dispatch(
+                addNotification({
+                  message
+                })
+              );
+            }
           } else {
             // fetching doc ref by id
             const docRef = doc(db, PRODUCTS, product?.productName?.id);
@@ -340,9 +351,21 @@ const Invoice = () => {
         try {
           // committing the batch of write operation
           await batch.commit();
+          const message = `Successfully added new product(s)`;
+          dispatch(
+            addNotification({
+              message,
+              variant: "success"
+            })
+          );
         } catch (error) {
           console.error(error);
-          throw new Error("product:There is an issue with adding the new product");
+          const message = `There is an issue with adding the new product(s)`;
+          dispatch(
+            addNotification({
+              message
+            })
+          );
         }
 
         formValues.products = [...currentProducts];
@@ -384,12 +407,15 @@ const Invoice = () => {
             // add or update data to the store
             const { id: invoiceDocId } = await addDocToFirestore(
               invoicesCollectionRef,
-              invoiceFirebasePayload
+              invoiceFirebasePayload,
+              dispatch,
+              `Successfully added invoice '${formValues?.invoiceNumber}'`,
+              "There is an issue with adding the new invoice"
             );
 
             if (invoiceDocId) {
               formValues.id = invoiceDocId;
-            } else throw new Error("invoice:There is an issue with adding the new invoice");
+            }
 
             await dispatch(addInvoice(formValues));
           }
@@ -397,6 +423,8 @@ const Invoice = () => {
             await editDocInFirestore(
               INVOICES,
               invoiceFirebasePayload,
+              dispatch,
+              `Successfully updated invoice '${formValues?.invoiceNumber}'`,
               "There is an issue with updating the invoice"
             );
 
