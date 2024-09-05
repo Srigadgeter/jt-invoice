@@ -1,9 +1,16 @@
 import { addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 
 import { db } from "integrations/firebase";
+import { addNotification } from "store/slices/notificationsSlice";
 
 // Function helps to write document to the firestore
-export const addDocToFirestore = async (collectionRef, payload) => {
+export const addDocToFirestore = async (
+  collectionRef,
+  payload,
+  dispatch,
+  successMessage,
+  errorMessage
+) => {
   let docRef = null;
   let id = null;
 
@@ -11,8 +18,20 @@ export const addDocToFirestore = async (collectionRef, payload) => {
     // Write the document to the firestore & get back the document reference
     docRef = await addDoc(collectionRef, payload);
     id = docRef?.id;
+
+    dispatch(
+      addNotification({
+        message: successMessage,
+        variant: "success"
+      })
+    );
   } catch (error) {
     console.error(error);
+    dispatch(
+      addNotification({
+        message: errorMessage
+      })
+    );
   }
 
   // Returning the document reference & id of a new document
@@ -20,7 +39,13 @@ export const addDocToFirestore = async (collectionRef, payload) => {
 };
 
 // Function helps to update document in the firestore
-export const editDocInFirestore = async (collectionName, payload, errorMessage) => {
+export const editDocInFirestore = async (
+  collectionName,
+  payload,
+  dispatch,
+  successMessage,
+  errorMessage
+) => {
   const { id, ...rest } = payload;
 
   try {
@@ -29,9 +54,20 @@ export const editDocInFirestore = async (collectionName, payload, errorMessage) 
 
     // Update the document
     await updateDoc(docRef, { ...rest });
+
+    dispatch(
+      addNotification({
+        message: successMessage,
+        variant: "success"
+      })
+    );
   } catch (error) {
     console.error(error);
-    throw new Error(errorMessage);
+    dispatch(
+      addNotification({
+        message: errorMessage
+      })
+    );
   }
 };
 
@@ -41,7 +77,9 @@ export const deleteDocFromFirestore = async (
   collectionName,
   setLoader,
   dispatch,
-  storeFn
+  storeFn,
+  successMessage,
+  errorMessage
 ) => {
   if (rowData?.id) {
     setLoader(true);
@@ -55,8 +93,20 @@ export const deleteDocFromFirestore = async (
 
       // Delete product from the store
       dispatch(storeFn(rowData));
+
+      dispatch(
+        addNotification({
+          message: successMessage,
+          variant: "success"
+        })
+      );
     } catch (error) {
       console.error(error);
+      dispatch(
+        addNotification({
+          message: errorMessage
+        })
+      );
     } finally {
       setLoader(false);
     }
