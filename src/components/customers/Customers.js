@@ -30,6 +30,7 @@ import AppModal from "components/common/AppModal";
 import TitleBanner from "components/common/TitleBanner";
 import customerSchema from "validationSchemas/customerSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
+import { addNotification } from "store/slices/notificationsSlice";
 import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 import { addCustomer, deleteCustomer, editCustomer } from "store/slices/customersSlice";
 
@@ -101,11 +102,23 @@ const Customers = () => {
     const isReferenced = invoices.filter((item) => item?.customer?.id === params?.row?.id);
 
     if (!isReferenced.length)
-      deleteDocFromFirestore(params?.row, CUSTOMERS, setLoader, dispatch, deleteCustomer);
+      deleteDocFromFirestore(
+        params?.row,
+        CUSTOMERS,
+        setLoader,
+        dispatch,
+        deleteCustomer,
+        `Successfully deleted a customer, '${params?.row?.name?.label}'`,
+        "There is an issue with deleting the customer"
+      );
     else {
-      const errorMessage =
-        "Cannot delete the customer since this customer is referenced in one or more invoices";
-      console.error(errorMessage);
+      const message = `Cannot delete the customer '${params.row?.name?.label}' since it is referenced in one or more invoices`;
+      dispatch(
+        addNotification({
+          message,
+          variant: "warning"
+        })
+      );
     }
   };
 
@@ -171,6 +184,8 @@ const Customers = () => {
             await editDocInFirestore(
               CUSTOMERS,
               formValues,
+              dispatch,
+              "Successfully updated the customer",
               "There is an issue with updating the customer"
             );
 
@@ -178,13 +193,16 @@ const Customers = () => {
           } else {
             const { id: customerDocId } = await addDocToFirestore(
               customersCollectionRef,
-              formValues
+              formValues,
+              dispatch,
+              `Successfully added a new customer, '${formValues?.name?.label}'`,
+              "There is an issue with adding the new customer"
             );
 
             if (customerDocId) {
               formValues.id = customerDocId;
               await dispatch(addCustomer(formValues));
-            } else throw new Error("There is an issue with adding the new customer");
+            }
           }
 
           // reset the form
