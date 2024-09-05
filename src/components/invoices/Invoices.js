@@ -1,59 +1,49 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { Box, Button, Chip, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import React, { useState } from "react";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
+import Tooltip from "@mui/material/Tooltip";
 import { DataGrid } from "@mui/x-data-grid";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useDispatch, useSelector } from "react-redux";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import AddIcon from "@mui/icons-material/Add";
-import { collection, getDocs } from "firebase/firestore";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import DescriptionIcon from "@mui/icons-material/Description";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
 import {
-  firebaseDateToISOString,
   formatDate,
+  formatInvoiceNumber,
   getDaysDiff,
   indianCurrencyFormatter,
   isMobile
 } from "utils/utilites";
 import routes from "routes/routes";
-import { db } from "integrations/firebase";
-import { setProducts } from "store/slices/productsSlice";
-import { setCustomers } from "store/slices/customersSlice";
-import { setInvoice, setInvoices } from "store/slices/invoicesSlice";
-import { PAGE_INFO, MODES, FIREBASE_COLLECTIONS } from "utils/constants";
+import Loader from "components/common/Loader";
+import commonStyles from "utils/commonStyles";
+import ClickNew from "components/common/ClickNew";
+import AppModal from "components/common/AppModal";
+import TitleBanner from "components/common/TitleBanner";
+import PdfGenerator from "components/common/PdfGenerator";
+import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
+import { addNotification } from "store/slices/notificationsSlice";
+import InvoiceTemplate from "components/templates/InvoiceTemplate";
+import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
+import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
 
 const styles = {
-  titleCard: {
-    p: 4,
-    mb: 1,
-    color: (theme) => (theme.palette.mode === "dark" ? "common.black" : "common.white"),
-    borderRadius: "15px",
-    boxShadow: (theme) => (theme.palette.mode === "dark" ? "#c0bfbf59" : "#00000059"),
-    backgroundImage: (theme) =>
-      `linear-gradient( 64.5deg, ${theme.palette.common.pink} 14.7%, ${theme.palette.primary.main} 88.7% )`
-  },
-  titleIcon: {
-    fontSize: 70
-  },
   box: {
     display: "flex",
     justifyContent: "flex-end"
   },
-  dataGrid: {
-    mt: 1,
-    ".MuiDataGrid-virtualScroller": {
-      overflowX: "hidden",
-      height: "calc(100vh - 370px)",
-      scrollbarWidth: "7px",
-      ":hover": {
-        "::-webkit-scrollbar": {
-          display: "block"
-        }
-      }
-    }
-  },
+  dataGrid: commonStyles?.dataGrid ?? {},
   chip: (value) => ({
     width: "70px",
     height: "auto",
@@ -64,24 +54,40 @@ const styles = {
       px: 0.75,
       py: 0.5
     }
-  })
+  }),
+  modalStyle: {
+    width: "fit-content",
+    height: "800px",
+    "& #content": {
+      height: "calc(100vh - 280px)",
+      overflowX: "hidden",
+      overflowY: "overlay",
+      scrollbarWidth: "7px",
+      ":hover": {
+        "::-webkit-scrollbar": {
+          display: "block"
+        }
+      }
+    }
+  }
 };
 
 const Invoices = () => {
   const [isLoading, setLoader] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
+  const [trigger, setTrigger] = useState(null);
 
+  const { loading = false } = useOutletContext();
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
-  const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
+  const { INVOICES } = FIREBASE_COLLECTIONS;
   const { invoices = [] } = useSelector((state) => state?.invoices);
-  const { products = [] } = useSelector((state) => state?.products);
-  const { customers = [] } = useSelector((state) => state?.customers);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const invoicesCollectionRef = collection(db, INVOICES);
-  const productsCollectionRef = collection(db, PRODUCTS);
-  const customersCollectionRef = collection(db, CUSTOMERS);
+  const filename = selectedInvoice ? formatInvoiceNumber(selectedInvoice, true) : "";
 
   const handleOpen = (type, startYear, endYear, id) => {
     navigate(
@@ -91,134 +97,40 @@ const Invoices = () => {
     );
   };
 
-  const handleDownload = () => {};
+  const handleViewPDF = (rowData) => {
+    setOpenModal(true);
+    setSelectedInvoice(rowData);
+    setSelectedInvoiceId(rowData?.id);
+  };
+
+  const handleClose = () => {
+    setSelectedInvoice(null);
+    setSelectedInvoiceId(null);
+    setOpenModal(false);
+  };
+
+  const handleDownload = async () => {
+    setLoader(true);
+    await trigger();
+    dispatch(
+      addNotification({
+        message: `Successfully downlaoded the invoice '${filename}'`,
+        variant: "success"
+      })
+    );
+    setLoader(false);
+    handleClose();
+  };
 
   const handleNew = () => {
     navigate(INVOICE_NEW.to());
   };
 
-  // Serialize the TimeStamp data
-  const serializeTimeStampData = (value) => {
-    if (value && (value instanceof Date || typeof value.toDate === "function"))
-      return firebaseDateToISOString(value);
-    return value;
-  };
-
-  // Serialize the data
-  const serializeData = (obj) => {
-    const modifiedData = {};
-    Object.entries(obj).forEach(([key, value]) => {
-      if (key === "updatedAt")
-        modifiedData.updatedAt = value?.map((timeStamp) => serializeTimeStampData(timeStamp));
-      // Serialize firebase timestamp data otherwise return value
-      else modifiedData[key] = serializeTimeStampData(value);
-    });
-    return modifiedData;
-  };
-
-  // Serialize the Invoice data
-  const serializeInvoiceData = (productArray, customerArray, invoiceArray) => {
-    const serializedInvoices = [];
-
-    invoiceArray.forEach((invoice) => {
-      const modifiedData = {};
-      Object.entries(invoice).forEach(([key, value]) => {
-        // Serialize firebase products reference data
-        if (key === "products") {
-          const modifiedProducts = value?.map((product) => ({
-            ...product,
-            productName: productArray.filter((p) => p?.id === product?.productName?.id)?.[0]
-          }));
-          modifiedData.products = modifiedProducts;
-        }
-        // Serialize firebase customers reference data
-        else if (key === "customer") {
-          const customer = customerArray.filter((c) => c?.id === value?.id)?.[0];
-          modifiedData.customer = customer;
-          modifiedData.customerName = { id: customer?.id, ...customer?.name };
-        } else if (key === "updatedAt")
-          modifiedData.updatedAt = value?.map((timeStamp) => serializeTimeStampData(timeStamp));
-        // Serialize firebase timestamp data otherwise return value
-        else modifiedData[key] = serializeTimeStampData(value);
-      });
-      serializedInvoices.push(modifiedData);
-    });
-
-    dispatch(setInvoices(serializedInvoices));
-    setLoader(false);
-  };
-
-  // fetch data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Function for get all products
-        const fetchedProducts = [...products];
-
-        if (!(fetchedProducts && Array.isArray(fetchedProducts) && fetchedProducts.length > 0)) {
-          console.warn("<< fetching products >>");
-          setLoader(true);
-          await getDocs(productsCollectionRef)
-            .then((querySnapshot) => querySnapshot.docs)
-            .then((docs) => {
-              docs.forEach((doc) =>
-                fetchedProducts.push({ ...serializeData(doc.data()), id: doc?.id })
-              );
-              dispatch(setProducts(fetchedProducts));
-              setLoader(false);
-            });
-        }
-
-        // Function for get all customers
-        const fetchedCustomers = [...customers];
-
-        if (!(fetchedCustomers && Array.isArray(fetchedCustomers) && fetchedCustomers.length > 0)) {
-          console.warn("<< fetching customers >>");
-          setLoader(true);
-          await getDocs(customersCollectionRef)
-            .then((querySnapshot) => querySnapshot.docs)
-            .then((docs) => {
-              docs.forEach((doc) =>
-                fetchedCustomers.push({ ...serializeData(doc.data()), id: doc?.id })
-              );
-              dispatch(setCustomers(fetchedCustomers));
-              setLoader(false);
-            });
-        }
-
-        // Function for get all invoices
-        if (
-          !(invoices && Array.isArray(invoices) && invoices.length > 0) &&
-          fetchedProducts &&
-          Array.isArray(fetchedProducts) &&
-          fetchedProducts.length > 0 &&
-          fetchedCustomers &&
-          Array.isArray(fetchedCustomers) &&
-          fetchedCustomers.length > 0
-        ) {
-          setLoader(true);
-          console.warn("<< fetching invoices >>");
-          await getDocs(invoicesCollectionRef)
-            .then((querySnapshot) => querySnapshot.docs)
-            .then((docs) => {
-              const fetchedInvoices = docs.map((doc) => ({ ...doc.data(), id: doc?.id }));
-              serializeInvoiceData(fetchedProducts, fetchedCustomers, fetchedInvoices);
-            });
-        }
-      } catch (err) {
-        console.error(err);
-        setLoader(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   const columns = [
     {
       field: "invoiceNumber",
       headerName: "Invoice Number",
-      width: 180
+      width: 130
     },
     {
       field: "customerName",
@@ -229,7 +141,7 @@ const Invoices = () => {
     {
       field: "invoiceDate",
       headerName: "Invoice Date",
-      width: 130,
+      width: 120,
       valueFormatter: ({ value }) => formatDate(value)
     },
     {
@@ -272,14 +184,15 @@ const Invoices = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 150,
+      width: 220,
       sortable: false,
       renderCell: (params) => (
         <Box>
           <Tooltip title="View">
             <IconButton
-              aria-label={VIEW}
               size="large"
+              aria-label={VIEW}
+              disabled={loading || isLoading}
               onClick={() => {
                 dispatch(setInvoice(params?.row?.id));
                 handleOpen(VIEW, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
@@ -289,8 +202,9 @@ const Invoices = () => {
           </Tooltip>
           <Tooltip title="Edit">
             <IconButton
-              aria-label={EDIT}
               size="large"
+              aria-label={EDIT}
+              disabled={loading || isLoading}
               onClick={() => {
                 dispatch(setInvoice(params?.row?.id));
                 handleOpen(EDIT, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
@@ -298,12 +212,32 @@ const Invoices = () => {
               <EditIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Download">
+          <Tooltip title="Delete">
             <IconButton
-              aria-label="download invoice"
               size="large"
-              onClick={() => handleDownload(params?.row?.id)}>
-              <DownloadIcon />
+              aria-label="delete"
+              disabled={loading || isLoading}
+              onClick={() =>
+                deleteDocFromFirestore(
+                  params?.row,
+                  INVOICES,
+                  setLoader,
+                  dispatch,
+                  deleteInvoice,
+                  `Successfully deleted invoice '${params?.row?.invoiceNumber}'`,
+                  "There is an issue with deleting the invoice"
+                )
+              }>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="View PDF">
+            <IconButton
+              size="large"
+              aria-label="view invoice as pdf"
+              disabled={loading || isLoading}
+              onClick={() => handleViewPDF(params?.row)}>
+              <DescriptionIcon />
             </IconButton>
           </Tooltip>
         </Box>
@@ -315,48 +249,78 @@ const Invoices = () => {
     columns.splice(1, 1, { field: "customerName", headerName: "Customer Name", width: 300 });
   }
 
+  const footerContent = () => (
+    <Stack direction="row" justifyContent="flex-end" alignItems="center">
+      <Stack direction="row" spacing={1}>
+        <Button
+          variant="outlined"
+          disabled={isLoading}
+          onClick={handleClose}
+          startIcon={<CloseIcon />}
+          size={isMobile() ? "small" : "medium"}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          disabled={isLoading}
+          onClick={handleDownload}
+          startIcon={<DownloadIcon />}
+          size={isMobile() ? "small" : "medium"}>
+          Download
+        </Button>
+      </Stack>
+    </Stack>
+  );
+
   return (
     <Box px={3} mt={1}>
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={styles.titleCard}>
-        <Stack>
-          <Typography variant="h3">{PAGE_INFO?.INVOICES?.title}</Typography>
-          <Typography variant="body1" pl={0.25}>
-            {PAGE_INFO?.INVOICES?.description}
-          </Typography>
-        </Stack>
-        <ReceiptLongIcon sx={styles.titleIcon} />
-      </Stack>
+      {(loading || isLoading) && <Loader height="100vh" />}
+
+      <TitleBanner page="INVOICES" Icon={ReceiptLongIcon} />
 
       <Box sx={styles.box}>
         <Button
           variant="contained"
-          disabled={isLoading}
+          disabled={loading || isLoading}
           startIcon={<AddIcon />}
           onClick={() => handleNew()}>
           New
         </Button>
       </Box>
 
-      <DataGrid
-        sx={styles.dataGrid}
-        loading={isLoading}
-        rows={invoices}
-        columns={columns}
-        pageSizeOptions={[10]}
-        initialState={{
-          sorting: {
-            sortModel: [{ field: "invoiceDate", sort: "desc" }]
-          },
-          pagination: {
-            paginationModel: { page: 0, pageSize: 10 }
-          }
-        }}
-        disableColumnMenu
-      />
+      {invoices && Array.isArray(invoices) && invoices.length > 0 ? (
+        <DataGrid
+          sx={styles.dataGrid}
+          rows={invoices}
+          columns={columns}
+          pageSizeOptions={[10]}
+          initialState={{
+            sorting: {
+              sortModel: [{ field: "invoiceDate", sort: "desc" }]
+            },
+            pagination: {
+              paginationModel: { page: 0, pageSize: 10 }
+            }
+          }}
+          disableColumnMenu
+        />
+      ) : (
+        <ClickNew prefixMessage="Click here to create your" hightlightedText="invoices" />
+      )}
+
+      <AppModal
+        open={openModal}
+        title="Invoice Preview"
+        footer={footerContent()}
+        handleClose={handleClose}
+        modalStyle={styles.modalStyle}>
+        <PdfGenerator
+          filename={filename}
+          Template={InvoiceTemplate}
+          dataId={selectedInvoiceId}
+          setTrigger={setTrigger}
+        />
+      </AppModal>
     </Box>
   );
 };

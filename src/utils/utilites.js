@@ -1,6 +1,5 @@
 /* eslint-disable no-restricted-globals */
 import dayjs from "dayjs";
-import { addDoc } from "firebase/firestore";
 
 export const isMobile = () => window.innerWidth <= 768;
 
@@ -31,7 +30,7 @@ export const getSum = (arr, key = null, initialValue = 0) => {
   return 0;
 };
 
-export const Now = dayjs().toISOString();
+export const getNow = () => dayjs().toISOString();
 
 export const formatDate = (date) => dayjs(date).format("DD MMM YYYY");
 
@@ -61,6 +60,9 @@ export const getDaysDiff = (d1, d2 = new Date(), showAgo = false) => {
   return `${diff}${showAgo ? " ago" : ""}`;
 };
 
+// Check if the current time is after or on 6 PM
+export const isEveningNow = () => new Date().getHours() >= 18;
+
 export const getFY = () => {
   const now = dayjs();
   const month = now.format("M");
@@ -76,16 +78,45 @@ export const getFY = () => {
   };
 };
 
-export const addDocToFirebase = async (collectionRef, payload) => {
-  let docRef = null;
-  let id = null;
-
-  try {
-    docRef = await addDoc(collectionRef, payload);
-    id = docRef?.id;
-  } catch (error) {
-    console.error(error);
-  }
-
-  return { docRef, id };
+export const getNewInvoiceNumber = (invoices) => {
+  const lastInvoiceNumber = invoices.reduce(
+    (max, val) => (val?.invoiceNumber > max ? val?.invoiceNumber : max),
+    0
+  );
+  return lastInvoiceNumber + 1;
 };
+
+export const formatInvoiceNumber = (invoice, isFull = false) => {
+  const { invoiceNumber, startYear, endYear } = invoice;
+  const str = `0000${invoiceNumber}`;
+  const invoiceNumStr = str.slice(-5);
+  return isFull
+    ? `${process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}${startYear}${endYear}TX${invoiceNumStr}`
+    : invoiceNumStr;
+};
+
+// export const downloadFile = ({ fileName, extension, url = null, blob = null }) => {
+//   // Create a new anchor element
+//   const a = document.createElement("a");
+
+//   let fileUrl = null;
+//   if (url) fileUrl = url;
+//   else if (blob) fileUrl = window.URL.createObjectURL(url);
+
+//   if (fileUrl) {
+//     // Set the href, download & target attributes for the anchor element
+//     a.href = fileUrl;
+//     a.download = `${fileName}.${extension}`;
+//     a.target = "_blank";
+
+//     // Required for Firefox
+//     // Attaches the anchor tag to the DOM
+//     document.body.appendChild(a);
+
+//     // Programmatically trigger a click on the anchor element
+//     a.click();
+
+//     // Removes the anchor tag from the DOM
+//     document.body.removeChild(a);
+//   }
+// };

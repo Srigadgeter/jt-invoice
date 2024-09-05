@@ -19,6 +19,27 @@ const commonStyles = {
   }),
   selectDropdownNewMenuItem: {
     color: "primary.main"
+  },
+  dataGrid: {
+    mt: 1,
+    ".MuiDataGrid-columnHeaderTitle": {
+      fontWeight: 600
+    },
+    ".MuiDataGrid-virtualScroller": {
+      overflowX: "hidden",
+      height: "calc(100vh - 370px)",
+      scrollbarWidth: "7px",
+      ":hover": {
+        "::-webkit-scrollbar": {
+          display: "block"
+        }
+      }
+    }
+  },
+  dataGridHeader: {
+    ".MuiDataGrid-columnHeaderTitle": {
+      fontWeight: 600
+    }
   }
 };
 

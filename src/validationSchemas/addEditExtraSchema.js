@@ -1,6 +1,6 @@
 import * as yup from "yup";
 
-// Schema for the AddEditExtraModal component
+// Schema for the AddEditExtraModal component in the Invoice page
 const addEditExtraSchema = yup.object({
   reason: yup.object({
     label: yup.string().trim(),

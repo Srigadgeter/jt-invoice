@@ -1,49 +1,48 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import {
-  Box,
-  Button,
-  FormControl,
-  FormHelperText,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  Switch,
-  TextField,
-  Tooltip,
-  Typography
-} from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
+import Select from "@mui/material/Select";
+import Switch from "@mui/material/Switch";
+import Tooltip from "@mui/material/Tooltip";
 import { DataGrid } from "@mui/x-data-grid";
+import MenuItem from "@mui/material/MenuItem";
 import AddIcon from "@mui/icons-material/Add";
+import TextField from "@mui/material/TextField";
 import EditIcon from "@mui/icons-material/Edit";
-import { collection, doc, writeBatch } from "firebase/firestore";
+import IconButton from "@mui/material/IconButton";
+import InputLabel from "@mui/material/InputLabel";
+import Typography from "@mui/material/Typography";
+import FormControl from "@mui/material/FormControl";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
+import { useDispatch, useSelector } from "react-redux";
+import FormHelperText from "@mui/material/FormHelperText";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
+import { collection, doc, writeBatch } from "firebase/firestore";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import {
-  addDocToFirebase,
   formatDateForInputField,
   formatDateToISOString,
   generateKeyValuePair,
   getFY,
+  getNewInvoiceNumber,
+  getNow,
   indianCurrencyFormatter,
-  isMobile,
-  Now
+  isMobile
 } from "utils/utilites";
 import {
   MODES,
   PAGE_INFO,
   INVOICE_STATUS,
   GST_PERCENTAGE,
-  FIREBASE_COLLECTIONS
+  FIREBASE_COLLECTIONS,
+  RECORDS_LIMIT_COUNT
 } from "utils/constants";
 import routes from "routes/routes";
 import {
@@ -59,6 +58,10 @@ import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import invoiceSchema from "validationSchemas/invoiceSchema";
+import { addNotification } from "store/slices/notificationsSlice";
+import CustomDataGridFooter from "components/common/CustomDataGridFooter";
+import { addDocToFirestore, editDocInFirestore } from "integrations/firestoreHelpers";
+
 import AddEditProductModal from "./AddEditProductModal";
 import AddEditExtraModal from "./AddEditExtraModal";
 
@@ -106,6 +109,7 @@ const styles = {
     justifyContent: "flex-end"
   },
   dataGrid: {
+    ...(commonStyles?.dataGridHeader || {}),
     ".MuiDataGrid-virtualScroller": {
       minHeight: "50px"
     }
@@ -123,29 +127,13 @@ const styles = {
     bgcolor: (theme) =>
       theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.common.white
   },
-  ...commonStyles
-};
-
-const INITIAL_VALUES = {
-  invoiceDate: Now,
-  baleCount: 0,
-  paymentStatus: INVOICE_STATUS.UNPAID,
-  paymentDate: null,
-  lrNum: "",
-  lrDate: Now,
-  logistics: { value: "", label: "" },
-  newLogistics: "",
-  transportDestination: { value: "", label: "" },
-  newTransportDestination: "",
-  customerName: { value: "", label: "" },
-  newCustomerName: "",
-  newCustomerGSTNumber: "",
-  newCustomerPhoneNumber: "",
-  newCustomerAddress: ""
+  selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
+  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
+  selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
 const Invoice = () => {
-  const { HOME, INVOICE_EDIT } = routes;
+  const { INVOICES: INVOICE_ROUTE, INVOICE_EDIT } = routes;
   const { INVOICE } = PAGE_INFO;
   const {
     pageMode = "",
@@ -158,11 +146,35 @@ const Invoice = () => {
   } = useSelector((state) => state?.invoices);
   const { customers } = useSelector((state) => state?.customers);
 
+  // INITIAL_VALUES constant placed here in order to get new datatime value for invoiceDate & lrDate fields
+  // when user frequently creates multiple invoice
+  const INITIAL_VALUES = {
+    invoiceDate: getNow(),
+    baleCount: 0,
+    paymentStatus: INVOICE_STATUS.UNPAID,
+    paymentDate: null,
+    lrNum: "",
+    lrDate: getNow(),
+    logistics: { value: "", label: "" },
+    newLogistics: "",
+    transportDestination: { value: "", label: "" },
+    newTransportDestination: "",
+    customerName: { value: "", label: "" },
+    newCustomerName: "",
+    newCustomerGSTNumber: "",
+    newCustomerPhoneNumber: "",
+    newCustomerAddress: ""
+  };
+
+  // Storing the formik initial value & using as state value in order to avoid the form becomes unresponsive or inaccessible
+  const [initialValues, setInitialValues] = useState(INITIAL_VALUES);
   const [isLoading, setLoader] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductIndex, setSelectedProductIndex] = useState(null);
   const [selectedExtra, setSelectedExtra] = useState(null);
   const [selectedExtraIndex, setSelectedExtraIndex] = useState(null);
+
+  const initialValuesRef = useRef(false);
 
   const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
   const invoicesCollectionRef = collection(db, INVOICES);
@@ -182,9 +194,9 @@ const Invoice = () => {
   const isNewMode = pageMode === MODES.NEW;
   const isEditMode = pageMode === MODES.EDIT;
 
-  const customerList = customers.map((item) => item?.name);
+  const customerList = customers.map((item) => ({ ...item?.name, address: item?.address }));
 
-  const handleBack = () => navigate(HOME.to());
+  const handleBack = () => navigate(INVOICE_ROUTE.to());
 
   const {
     dirty,
@@ -199,15 +211,15 @@ const Invoice = () => {
     handleSubmit,
     setFieldValue
   } = useFormik({
+    initialValues,
     enableReinitialize: true,
-    initialValues: isNewMode ? INITIAL_VALUES : currentPageData,
     validationSchema: invoiceSchema,
     onSubmit: async (val, { setErrors }) => {
       // setting loader true
       setLoader(true);
 
       try {
-        // trim & frame the form values
+        // frame the form values
         const formValues = {};
         const customerFormValues = {};
         Object.entries(val).forEach(([key, value]) => {
@@ -216,7 +228,8 @@ const Invoice = () => {
             !key.toLowerCase().includes("new") &&
             !key.toLowerCase().includes("customer")
           ) {
-            if (key.toLowerCase().includes("date")) formValues[key] = formatDateToISOString(value);
+            if (!isEditMode && key.toLowerCase().includes("date"))
+              formValues[key] = formatDateToISOString(value);
             else formValues[key] = value;
           }
         });
@@ -247,16 +260,20 @@ const Invoice = () => {
         if (val?.customerName?.value === "new" && val?.newCustomerName) {
           const customerNameData = generateKeyValuePair(val?.newCustomerName);
           const isCustomerNameAlreadyPresent = customerList.some(
-            (item) => item?.value === customerNameData?.value
+            (item) =>
+              item?.value === customerNameData?.value && item?.address === val?.newCustomerAddress
           );
           if (isCustomerNameAlreadyPresent)
-            throw new Error("newCustomerName:This customer name already exists");
+            throw new Error(
+              "newCustomerName:This customer name already exists with the same address"
+            );
           else {
             customerFormValues.name = customerNameData;
             customerFormValues.address = val?.newCustomerAddress || null;
             customerFormValues.gstNumber = val?.newCustomerGSTNumber || null;
             customerFormValues.phoneNumber = val?.newCustomerPhoneNumber || null;
-            customerFormValues.createdAt = Now;
+            customerFormValues.createdAt = getNow();
+            customerFormValues.updatedAt = [];
           }
         } else {
           const existingCustomerData = customers.filter(
@@ -268,9 +285,12 @@ const Invoice = () => {
         }
 
         if (customerFormValues?.name) {
-          const { docRef, id: customerId } = await addDocToFirebase(
+          const { docRef, id: customerId } = await addDocToFirestore(
             customersCollectionRef,
-            customerFormValues
+            customerFormValues,
+            dispatch,
+            `Successfully added a new customer, '${customerFormValues?.name?.label}'`,
+            "There is an issue with adding the new customer"
           );
 
           if (customerId) {
@@ -279,7 +299,7 @@ const Invoice = () => {
               ...customerFormValues,
               id: customerId
             };
-          } else throw new Error("customer:There is an issue with adding the new customer details");
+          }
         }
 
         const currentProducts = [];
@@ -309,7 +329,14 @@ const Invoice = () => {
                   id: productId
                 }
               });
-            } else throw new Error("product:There is an issue fetching id for the new products");
+            } else {
+              const message = `There is an issue fetching id for the new product(s)`;
+              dispatch(
+                addNotification({
+                  message
+                })
+              );
+            }
           } else {
             // fetching doc ref by id
             const docRef = doc(db, PRODUCTS, product?.productName?.id);
@@ -324,9 +351,21 @@ const Invoice = () => {
         try {
           // committing the batch of write operation
           await batch.commit();
+          const message = `Successfully added new product(s)`;
+          dispatch(
+            addNotification({
+              message,
+              variant: "success"
+            })
+          );
         } catch (error) {
           console.error(error);
-          throw new Error("product:There is an issue with adding the new product");
+          const message = `There is an issue with adding the new product(s)`;
+          dispatch(
+            addNotification({
+              message
+            })
+          );
         }
 
         formValues.products = [...currentProducts];
@@ -336,45 +375,59 @@ const Invoice = () => {
           formValues.extras = currentPageData?.extras;
         formValues.totalAmount = currentPageData?.totalAmount || 0;
 
-        formValues.invoiceNumber = invoices.length + 1;
+        formValues.invoiceNumber = isEditMode
+          ? currentPageData?.invoiceNumber
+          : getNewInvoiceNumber(invoices);
 
         const { startYear: sYear, endYear: eYear } = getFY();
-        formValues.startYear = sYear;
-        formValues.endYear = eYear;
+        formValues.startYear = isEditMode ? currentPageData?.startYear : sYear;
+        formValues.endYear = isEditMode ? currentPageData?.endYear : eYear;
 
-        if (formValues?.products?.length > 0 && formValues?.customer?.id && customerDocRef) {
+        formValues.createdAt = isEditMode ? currentPageData?.createdAt : getNow();
+        formValues.updatedAt = isEditMode ? [...(currentPageData?.updatedAt || []), getNow()] : [];
+
+        if (
+          formValues?.products?.length > 0 &&
+          formValues?.customer?.id &&
+          currentProductsRef.length &&
+          customerDocRef
+        ) {
+          const invoiceFirebasePayload = {
+            ...formValues,
+            products: [...currentProductsRef],
+            customer: customerDocRef
+          };
+
+          formValues.customerName = {
+            ...formValues?.customer?.name,
+            id: formValues?.customer?.id
+          };
+
           if (isNewMode) {
             // add or update data to the store
-            formValues.createdAt = Now;
-            formValues.updatedAt = [];
-
-            const invoiceFirebasePayload = {
-              ...formValues,
-              products: [...currentProductsRef],
-              customer: customerDocRef
-            };
-
-            const { docRef, id: invoiceDocId } = await addDocToFirebase(
+            const { id: invoiceDocId } = await addDocToFirestore(
               invoicesCollectionRef,
-              invoiceFirebasePayload
+              invoiceFirebasePayload,
+              dispatch,
+              `Successfully added invoice '${formValues?.invoiceNumber}'`,
+              "There is an issue with adding the new invoice"
             );
 
             if (invoiceDocId) {
-              customerDocRef = docRef;
               formValues.id = invoiceDocId;
-            } else throw new Error("invoice:There is an issue with adding the new invoice");
-
-            formValues.customerName = {
-              ...formValues?.customer?.name,
-              id: formValues?.customer?.id
-            };
+            }
 
             await dispatch(addInvoice(formValues));
           }
           if (isEditMode) {
-            formValues.updatedAt = [...(currentPageData?.updatedAt || []), Now];
+            await editDocInFirestore(
+              INVOICES,
+              invoiceFirebasePayload,
+              dispatch,
+              `Successfully updated invoice '${formValues?.invoiceNumber}'`,
+              "There is an issue with updating the invoice"
+            );
 
-            // TODO: Work on edit doc of firebase
             await dispatch(editInvoice(formValues));
           }
 
@@ -418,11 +471,23 @@ const Invoice = () => {
     if (invoiceId) dispatch(setInvoice(invoiceId));
   }, [invoiceId]);
 
+  useEffect(() => {
+    if (!initialValuesRef.current) {
+      if ((isViewMode || isEditMode) && selectedInvoice) {
+        setInitialValues(selectedInvoice);
+        initialValuesRef.current = true;
+      } else if (isNewMode) {
+        setInitialValues(INITIAL_VALUES);
+        initialValuesRef.current = true;
+      }
+    }
+  }, [isEditMode, isViewMode, isNewMode, selectedInvoice]);
+
   const handleSwitchChange = ({ target: { name, checked } }) => {
     setValues({
       ...values,
       [name]: checked ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
-      paymentDate: checked ? Now : null
+      paymentDate: checked ? getNow() : null
     });
   };
 
@@ -484,7 +549,7 @@ const Invoice = () => {
       sortable: false,
       width: 50,
       renderCell: (params) =>
-        params.api.state.rows.dataRowIds.findIndex((id) => id === params.id) + 1
+        params.api.state.rows.dataRowIds.findIndex((id) => id === params?.id) + 1
     },
     {
       field: "productName",
@@ -552,7 +617,7 @@ const Invoice = () => {
       sortable: false,
       width: 50,
       renderCell: (params) =>
-        params.api.state.rows.dataRowIds.findIndex((id) => id === params.id) + 1
+        params.api.state.rows.dataRowIds.findIndex((id) => id === params?.id) + 1
     },
     {
       field: "reason",
@@ -591,8 +656,8 @@ const Invoice = () => {
               disabled={isLoading}
               onClick={() =>
                 handleEditProduct(
-                  params.row,
-                  params.api.state.rows.dataRowIds.findIndex((id) => id === params.id)
+                  params?.row,
+                  params?.api?.state?.rows?.dataRowIds.findIndex((id) => id === params?.id)
                 )
               }>
               <EditIcon />
@@ -603,7 +668,7 @@ const Invoice = () => {
               size="large"
               aria-label="remove"
               disabled={isLoading}
-              onClick={() => dispatch(removeProduct(params.row))}>
+              onClick={() => dispatch(removeProduct(params?.row))}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -626,8 +691,8 @@ const Invoice = () => {
               disabled={isLoading}
               onClick={() =>
                 handleEditExtra(
-                  params.row,
-                  params.api.state.rows.dataRowIds.findIndex((id) => id === params.id)
+                  params?.row,
+                  params?.api?.state?.rows?.dataRowIds.findIndex((id) => id === params?.id)
                 )
               }>
               <EditIcon />
@@ -638,7 +703,7 @@ const Invoice = () => {
               size="large"
               aria-label="remove"
               disabled={isLoading}
-              onClick={() => dispatch(removeExtra(params.row))}>
+              onClick={() => dispatch(removeExtra(params?.row))}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -664,9 +729,13 @@ const Invoice = () => {
     currentPageData?.products?.length > 0 &&
     !isLoading;
 
+  const totalEntriesCount =
+    (currentPageData?.products?.length ?? 0) + (currentPageData?.extras?.length ?? 0);
+  const disableAddProductExtraBtns = isLoading || totalEntriesCount >= RECORDS_LIMIT_COUNT;
+
   return (
     <Box>
-      {isLoading && <Loader height="calc(100vh - 50px)" />}
+      {isLoading && <Loader height="100vh" />}
       <AddEditProductModal
         open={openAddEditProductModal}
         initialValues={selectedProduct}
@@ -971,7 +1040,8 @@ const Invoice = () => {
                       Array.isArray(customerList) &&
                       customerList.map((item) => (
                         <MenuItem key={item?.value} value={item?.value}>
-                          {item?.label}
+                          <strong>{item?.label}</strong>&nbsp;-&nbsp;
+                          {item?.address}
                         </MenuItem>
                       ))}
                   </Select>
@@ -1067,8 +1137,8 @@ const Invoice = () => {
               {!isViewMode && (
                 <Button
                   variant="text"
-                  disabled={isLoading}
                   startIcon={<AddIcon />}
+                  disabled={disableAddProductExtraBtns}
                   size={isMobile() ? "small" : "medium"}
                   onClick={() => handleOpenAddEditProductModal()}>
                   Add &nbsp; Product
@@ -1076,9 +1146,17 @@ const Invoice = () => {
               )}
             </Stack>
             <DataGrid
-              hideFooter
               disableColumnMenu
               sx={styles.dataGrid}
+              slots={{
+                footer: CustomDataGridFooter
+              }}
+              slotProps={{
+                footer: {
+                  columns: productTableColumns,
+                  rows: currentPageData?.products || []
+                }
+              }}
               columns={productTableColumns}
               rows={currentPageData?.products || []}
               getRowId={(row) => row?.productName?.value}
@@ -1097,8 +1175,8 @@ const Invoice = () => {
               {!isViewMode && (
                 <Button
                   variant="text"
-                  disabled={isLoading}
                   startIcon={<AddIcon />}
+                  disabled={disableAddProductExtraBtns}
                   size={isMobile() ? "small" : "medium"}
                   onClick={() => handleOpenAddEditExtraModal()}>
                   Add &nbsp; Extra
@@ -1106,9 +1184,17 @@ const Invoice = () => {
               )}
             </Stack>
             <DataGrid
-              hideFooter
               disableColumnMenu
               sx={styles.dataGrid}
+              slots={{
+                footer: CustomDataGridFooter
+              }}
+              slotProps={{
+                footer: {
+                  columns: extraTableColumns,
+                  rows: currentPageData?.extras || []
+                }
+              }}
               columns={extraTableColumns}
               rows={currentPageData?.extras || []}
               getRowId={(row) => row?.reason?.value}

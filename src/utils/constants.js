@@ -12,6 +12,14 @@ export const PAGE_INFO = {
     customerDetails: "Customer Details",
     products: "Products",
     extras: "Extras"
+  },
+  PRODUCTS: {
+    title: "Products",
+    description: "Quality items that are being sold to our customers"
+  },
+  CUSTOMERS: {
+    title: "Customers",
+    description: "Heart of our business"
   }
 };
 
@@ -41,3 +49,5 @@ export const FIREBASE_COLLECTIONS = {
   PRODUCTS: "products",
   CUSTOMERS: "customers"
 };
+
+export const RECORDS_LIMIT_COUNT = 15;

@@ -23,7 +23,9 @@ const styles = {
   fullWidth: {
     width: "100%"
   },
-  ...commonStyles
+  selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
+  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
+  selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
 const INITIAL_VALUES = {
@@ -54,7 +56,7 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
     validationSchema: addEditExtraSchema,
     onSubmit: async (val, { setErrors }) => {
       try {
-        // trim & frame the form values
+        // frame the form values
         const formValues = {
           amount: val?.amount
         };
@@ -130,8 +132,8 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
   return (
     <AppModal
       open={open}
+      footer={footerContent()}
       handleClose={handleCancel}
-      footer={footerContent(values, isValid, dirty, handleSubmit)}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Extra`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
         <Stack direction="row" spacing={2} sx={styles.fullWidth}>

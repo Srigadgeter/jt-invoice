@@ -2,8 +2,10 @@ import { lazy } from "react";
 
 // Pages import
 const SignIn = lazy(() => import("components/signIn/SignIn"));
-const Invoices = lazy(() => import("components/invoices/Invoices"));
 const Invoice = lazy(() => import("components/invoices/Invoice"));
+const Invoices = lazy(() => import("components/invoices/Invoices"));
+const Products = lazy(() => import("components/products/Products"));
+const Customers = lazy(() => import("components/customers/Customers"));
 
 const routes = {
   SIGN_IN: {
@@ -35,6 +37,16 @@ const routes = {
     path: "/invoice/:startYear/:endYear/:invoiceId/edit",
     to: (startYear, endYear, invoiceId) => `/invoice/${startYear}/${endYear}/${invoiceId}/edit`,
     component: Invoice
+  },
+  PRODUCTS: {
+    path: "/products",
+    to: () => "/products",
+    component: Products
+  },
+  CUSTOMERS: {
+    path: "/customers",
+    to: () => "/customers",
+    component: Customers
   }
 };
 

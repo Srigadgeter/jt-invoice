@@ -1,10 +1,17 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Avatar from "@mui/material/Avatar";
+import Switch from "@mui/material/Switch";
 import { styled } from "@mui/material/styles";
-import { Avatar, Box, Stack, Switch } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import IconButton from "@mui/material/IconButton";
+import { useDispatch, useSelector } from "react-redux";
 
-import { DEFAULT_DARK } from "utils/constants";
-import { toggleTheme } from "store/slices/appSlice";
+import { isEveningNow } from "utils/utilites";
+import { DEFAULT_DARK, DEFAULT_LIGHT } from "utils/constants";
+import { setTheme, toggleTheme } from "store/slices/appSlice";
+
 import Logo from "assets/svg/logo.svg";
 
 const styles = {
@@ -80,13 +87,26 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   }
 }));
 
-const Header = () => {
+const Header = ({ setOpenDrawer }) => {
   const { appTheme } = useSelector((state) => state.app);
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    dispatch(setTheme(isEveningNow() ? DEFAULT_DARK : DEFAULT_LIGHT));
+  }, []);
+
   return (
     <Box sx={styles.header}>
-      <Avatar alt="JT" src={Logo} variant="square" sx={styles.logo} />
+      <Stack direction="row" alignItems="center">
+        <IconButton size="large" aria-label="Sidedrawer" onClick={() => setOpenDrawer(true)}>
+          <MenuIcon />
+        </IconButton>
+        <Avatar
+          src={Logo}
+          variant="square"
+          alt={process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}
+        />
+      </Stack>
       <Stack direction="row" alignItems="center">
         <MaterialUISwitch
           sx={styles.themeSwitch}
@@ -95,7 +115,9 @@ const Header = () => {
           }}
           checked={appTheme === DEFAULT_DARK}
         />
-        <Avatar sx={styles.avatar}>JT</Avatar>
+        <Avatar sx={styles.avatar}>
+          {process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}
+        </Avatar>
       </Stack>
     </Box>
   );

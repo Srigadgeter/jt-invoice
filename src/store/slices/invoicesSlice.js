@@ -91,6 +91,10 @@ const invoicesSlice = createSlice({
       });
       invoicesSlice.caseReducers.resetInvoiceValues(state);
     },
+    deleteInvoice: (state, action) => {
+      const filteredInvoices = state?.invoices?.filter((item) => item?.id !== action?.payload?.id);
+      state.invoices = filteredInvoices;
+    },
     setPageMode: (state, action) => {
       state.pageMode = action?.payload;
     },
@@ -240,6 +244,7 @@ export const {
   setInvoice,
   addInvoice,
   editInvoice,
+  deleteInvoice,
   setPageMode,
   addProduct,
   editProduct,

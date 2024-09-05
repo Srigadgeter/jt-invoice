@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import Stack from "@mui/material/Stack";
-import { useDispatch, useSelector } from "react-redux";
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -11,14 +10,15 @@ import CloseIcon from "@mui/icons-material/Close";
 import InputLabel from "@mui/material/InputLabel";
 import Typography from "@mui/material/Typography";
 import FormControl from "@mui/material/FormControl";
+import { useDispatch, useSelector } from "react-redux";
 import FormHelperText from "@mui/material/FormHelperText";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import commonStyles from "utils/commonStyles";
 import { GST_PERCENTAGE } from "utils/constants";
 import AppModal from "components/common/AppModal";
-import { generateKeyValuePair, isMobile, Now } from "utils/utilites";
 import { addProduct, editProduct } from "store/slices/invoicesSlice";
+import { generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
 
 const styles = {
@@ -28,7 +28,9 @@ const styles = {
   amount: {
     fontWeight: 400
   },
-  ...commonStyles
+  selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
+  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
+  selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
 const INITIAL_VALUES = {
@@ -65,7 +67,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
       try {
         const gstAmount = parseFloat(((amount * GST_PERCENTAGE) / 100).toFixed(2));
 
-        // trim & frame the form values
+        // frame the form values
         const formValues = {
           productQuantityPieces: val?.productQuantityPieces,
           productQuantityMeters: val?.productQuantityMeters,
@@ -88,7 +90,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
 
         const filteredproduct = productList.filter((p) => p?.value === productValueLabel?.value);
         const productId = filteredproduct.length ? filteredproduct[0]?.id : "new";
-        const productCreatedAt = filteredproduct.length ? filteredproduct[0]?.createdAt : Now;
+        const productCreatedAt = filteredproduct.length ? filteredproduct[0]?.createdAt : getNow();
         const productUpdatedAt = filteredproduct.length ? filteredproduct[0]?.updatedAt : [];
 
         formValues.productName = {
@@ -130,8 +132,8 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
           !(errors?.productQuantityPieces || errors?.productQuantityMeters || errors.productRate)
         ) {
           amt =
-            (values?.productQuantityPieces ?? 1) *
-            (values?.productQuantityMeters ?? 1) *
+            (values?.productQuantityPieces || 1) *
+            (values?.productQuantityMeters || 1) *
             values.productRate;
         }
       }
@@ -193,8 +195,8 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
   return (
     <AppModal
       open={open}
+      footer={footerContent()}
       handleClose={handleCancel}
-      footer={footerContent(values, isValid, dirty, handleSubmit)}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Product`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
         <Stack direction="row" spacing={2} sx={styles.fullWidth}>
