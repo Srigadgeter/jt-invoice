@@ -13,8 +13,6 @@ const AllRoutes = () => {
 
   return (
     <Routes>
-      <Route exact path={SIGN_IN.path} element={<SIGN_IN.component />} />
-      <Route path="*" element={<NotFound />} />
       <Route exact element={<PrivateRoutes />}>
         <Route exact path={HOME.path} element={<HOME.component />} />
         <Route exact path={INVOICES.path} element={<INVOICES.component />} />
@@ -24,6 +22,9 @@ const AllRoutes = () => {
         <Route exact path={PRODUCTS.path} element={<PRODUCTS.component />} />
         <Route exact path={CUSTOMERS.path} element={<CUSTOMERS.component />} />
       </Route>
+      <Route exact path={HOME.path} element={<SIGN_IN.component />} />
+      <Route exact path={SIGN_IN.path} element={<SIGN_IN.component />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
