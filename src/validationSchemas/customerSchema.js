@@ -1,6 +1,6 @@
 import * as yup from "yup";
 
-// Schema for the AddEditProductModal component in the Product page
+// Schema for the AddEditCustomerModal component in the Customers page
 const customerSchema = yup.object({
   name: yup
     .string()
