@@ -11,13 +11,14 @@ const Header = lazy(() => import("components/common/Header"));
 const SideDrawer = lazy(() => import("components/common/SideDrawer"));
 
 const PrivateRoutes = () => {
-  const { SIGN_IN } = routes;
-  const loggedIn = true; // TODO: rework logic
-
   const [isLoading, setLoader] = useState(false);
   const [openDrawer, setOpenDrawer] = useState(false);
 
+  const { SIGN_IN } = routes;
   const dispatch = useDispatch();
+
+  const { user = {} } = useSelector((state) => state?.app);
+  const isLoggedIn = !!user?.uid;
 
   const { invoices = [] } = useSelector((state) => state?.invoices);
   const { products = [] } = useSelector((state) => state?.products);
@@ -25,7 +26,9 @@ const PrivateRoutes = () => {
 
   // fetch data
   useEffect(() => {
-    fetchData(dispatch, setLoader, invoices, products, customers);
+    if (isLoggedIn) {
+      fetchData(dispatch, setLoader, invoices, products, customers);
+    }
   }, []);
 
   const content = (
@@ -36,7 +39,7 @@ const PrivateRoutes = () => {
     </>
   );
 
-  return loggedIn ? content : <Navigate to={SIGN_IN.path} replace />;
+  return isLoggedIn ? content : <Navigate to={SIGN_IN.path} replace />;
 };
 
 export default PrivateRoutes;
