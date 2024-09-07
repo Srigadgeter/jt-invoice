@@ -31,6 +31,7 @@ import TitleBanner from "components/common/TitleBanner";
 import productSchema from "validationSchemas/productSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addNotification } from "store/slices/notificationsSlice";
+import { updateMatchedProductInAllInvoices } from "store/slices/invoicesSlice";
 import { addProduct, deleteProduct, editProduct } from "store/slices/productsSlice";
 import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 
@@ -178,6 +179,7 @@ const Products = () => {
             );
 
             await dispatch(editProduct(formValues));
+            await dispatch(updateMatchedProductInAllInvoices(formValues));
           } else {
             const { id: productDocId } = await addDocToFirestore(
               productsCollectionRef,

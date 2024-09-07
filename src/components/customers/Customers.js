@@ -31,6 +31,7 @@ import TitleBanner from "components/common/TitleBanner";
 import customerSchema from "validationSchemas/customerSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addNotification } from "store/slices/notificationsSlice";
+import { updateMatchedCustomerInAllInvoices } from "store/slices/invoicesSlice";
 import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 import { addCustomer, deleteCustomer, editCustomer } from "store/slices/customersSlice";
 
@@ -190,6 +191,7 @@ const Customers = () => {
             );
 
             await dispatch(editCustomer(formValues));
+            await dispatch(updateMatchedCustomerInAllInvoices(formValues));
           } else {
             const { id: customerDocId } = await addDocToFirestore(
               customersCollectionRef,

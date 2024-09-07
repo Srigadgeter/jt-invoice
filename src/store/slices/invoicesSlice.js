@@ -234,6 +234,39 @@ const invoicesSlice = createSlice({
           propKey: "reason"
         }
       });
+    },
+    updateMatchedProductInAllInvoices: (state, action) => {
+      const currentProduct = action?.payload;
+      const currentInvoices = [...state.invoices];
+      const modifiedInvoices = currentInvoices?.map((invoice) => ({
+        ...invoice,
+        products: invoice?.products?.map((product) => ({
+          ...product,
+          productName:
+            product?.productName?.id === currentProduct?.id
+              ? { ...currentProduct }
+              : product?.productName
+        }))
+      }));
+      state.invoices = modifiedInvoices;
+    },
+    updateMatchedCustomerInAllInvoices: (state, action) => {
+      const currentCustomer = action?.payload;
+      const currentInvoices = [...state.invoices];
+      state.invoices = currentInvoices?.map((invoice) => ({
+        ...invoice,
+        customer:
+          invoice?.customer?.id === currentCustomer?.id
+            ? { ...currentCustomer }
+            : { ...invoice?.customer },
+        customerName:
+          invoice?.customer?.id === currentCustomer?.id
+            ? {
+                id: currentCustomer?.id,
+                ...currentCustomer?.name
+              }
+            : { ...invoice?.customerName }
+      }));
     }
   }
 });
@@ -251,7 +284,9 @@ export const {
   removeProduct,
   addExtra,
   editExtra,
-  removeExtra
+  removeExtra,
+  updateMatchedProductInAllInvoices,
+  updateMatchedCustomerInAllInvoices
 } = invoicesSlice.actions;
 
 export default invoicesSlice.reducer;
