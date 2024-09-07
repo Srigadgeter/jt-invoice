@@ -18,7 +18,9 @@ const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         // Ignore these action types
-        ignoredActions: ["invoices/setInvoices"]
+        ignoredActions: ["app/setUser", "invoices/setInvoices"],
+        // Ignore these paths in the state
+        ignoredPaths: ["app.user"]
       }
     })
 });

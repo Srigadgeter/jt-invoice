@@ -1,16 +1,23 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
+import Menu from "@mui/material/Menu";
+import { signOut } from "firebase/auth";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
 import Switch from "@mui/material/Switch";
+import MenuItem from "@mui/material/MenuItem";
 import { styled } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
 import { useDispatch, useSelector } from "react-redux";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
+import { auth } from "integrations/firebase";
 import { isEveningNow } from "utils/utilites";
 import { DEFAULT_DARK, DEFAULT_LIGHT } from "utils/constants";
-import { setTheme, toggleTheme } from "store/slices/appSlice";
+import { setTheme, setUser, toggleTheme } from "store/slices/appSlice";
 
 import Logo from "assets/svg/logo.svg";
 
@@ -36,6 +43,9 @@ const styles = {
     bgcolor: "primary.main",
     width: 34,
     height: 34
+  },
+  menu: {
+    mt: 1.2
   }
 };
 
@@ -88,12 +98,29 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
 }));
 
 const Header = ({ setOpenDrawer }) => {
-  const { appTheme } = useSelector((state) => state.app);
+  const [anchorEl, setAnchorEl] = useState(null);
+
   const dispatch = useDispatch();
+  const { appTheme } = useSelector((state) => state?.app);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    dispatch(setUser({}));
+  };
 
   useEffect(() => {
     dispatch(setTheme(isEveningNow() ? DEFAULT_DARK : DEFAULT_LIGHT));
   }, []);
+
+  const open = Boolean(anchorEl);
 
   return (
     <Box sx={styles.header}>
@@ -115,9 +142,31 @@ const Header = ({ setOpenDrawer }) => {
           }}
           checked={appTheme === DEFAULT_DARK}
         />
-        <Avatar sx={styles.avatar}>
+        <Avatar
+          sx={styles.avatar}
+          aria-haspopup="true"
+          onClick={handleClick}
+          aria-expanded={open ? "true" : undefined}
+          aria-controls={open ? "basic-menu" : undefined}>
           {process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME_SHORT_FORM}
         </Avatar>
+
+        <Menu
+          id="menu"
+          open={open}
+          sx={styles.menu}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+          MenuListProps={{
+            "aria-labelledby": "basic-button"
+          }}>
+          <MenuItem onClick={handleSignOut}>
+            <ListItemIcon>
+              <ExitToAppIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Sign out</ListItemText>
+          </MenuItem>
+        </Menu>
       </Stack>
     </Box>
   );
