@@ -36,6 +36,7 @@ const styles = {
 
     "& *": {
       userSelect: "none",
+      textTransform: "uppercase",
       color: (theme) => `${theme.palette.common.black} !important`
     }
   },
@@ -50,6 +51,9 @@ const styles = {
     borderRadius: "20px",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0
+  },
+  companyAddress: {
+    textTransform: "none"
   },
   to: {
     width: "65%"
@@ -106,6 +110,7 @@ const styles = {
     width: "fit-content",
     borderBottom: (theme) => `1px dashed ${theme.palette.common.black}`
   },
+  email: { textTransform: "lowercase" },
   emailIcon: { pt: "1px" }
 };
 
@@ -221,7 +226,9 @@ const InvoiceTemplate = ({ reference, dataId }) => {
           </Typography>
           <Stack direction="row" alignItems="center" gap={0.5}>
             <LocationOnIcon fontSize="small" />
-            <Typography>{process.env.REACT_APP_INVOICE_TEMPLATE_ADDRESS}</Typography>
+            <Typography sx={styles.companyAddress}>
+              {process.env.REACT_APP_INVOICE_TEMPLATE_ADDRESS}
+            </Typography>
           </Stack>
           <Stack direction="row" gap={1}>
             <Typography>GSTIN</Typography>
@@ -344,7 +351,9 @@ const InvoiceTemplate = ({ reference, dataId }) => {
             </Stack>
             <Stack direction="row" alignItems="center" gap={2}>
               <EmailIcon fontSize="small" sx={styles.emailIcon} />
-              <Typography>{process.env.REACT_APP_INVOICE_TEMPLATE_EMAIL}</Typography>
+              <Typography sx={styles.email}>
+                {process.env.REACT_APP_INVOICE_TEMPLATE_EMAIL}
+              </Typography>
             </Stack>
           </Stack>
         </Stack>
