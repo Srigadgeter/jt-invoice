@@ -58,6 +58,10 @@ const styles = {
   modalStyle: {
     width: "fit-content",
     height: "800px",
+    bgcolor: (theme) => theme.palette.common.white,
+    "& #header": {
+      color: (theme) => theme.palette.common.black
+    },
     "& #content": {
       height: "calc(100vh - 280px)",
       overflowX: "hidden",
