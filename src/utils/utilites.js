@@ -120,3 +120,11 @@ export const formatInvoiceNumber = (invoice, isFull = false) => {
 //     document.body.removeChild(a);
 //   }
 // };
+
+export const removeItemFromLS = (key) => localStorage.removeItem(key);
+
+export const getItemFromLS = (key, doParse = false) =>
+  doParse ? JSON.parse(localStorage.getItem(key)) : localStorage.getItem(key);
+
+export const setItemToLS = (key, data, doStringify = false) =>
+  doStringify ? localStorage.setItem(key, JSON.stringify(data)) : localStorage.setItem(key, data);
