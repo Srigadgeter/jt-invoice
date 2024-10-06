@@ -5,6 +5,8 @@ import { Navigate, Outlet } from "react-router-dom";
 
 import { fetchData } from "utils/fetchUtils";
 import { drawerList } from "utils/drawerList";
+import { getItemFromLS } from "utils/utilites";
+import { LOCALSTORAGE_KEYS } from "utils/constants";
 import routes from "./routes";
 
 const Header = lazy(() => import("components/common/Header"));
@@ -15,10 +17,12 @@ const PrivateRoutes = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
 
   const { SIGN_IN } = routes;
+  const { LS_USER } = LOCALSTORAGE_KEYS;
   const dispatch = useDispatch();
 
   const { user = {} } = useSelector((state) => state?.app);
-  const isLoggedIn = !!user?.uid;
+  const storedUserData = getItemFromLS(LS_USER, true);
+  const isLoggedIn = !!user?.uid || !!storedUserData?.uid;
 
   const { invoices = [] } = useSelector((state) => state?.invoices);
   const { products = [] } = useSelector((state) => state?.products);

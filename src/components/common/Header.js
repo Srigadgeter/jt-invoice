@@ -113,6 +113,7 @@ const Header = ({ setOpenDrawer }) => {
 
   const handleSignOut = async () => {
     await signOut(auth);
+    localStorage.clear();
     dispatch(setUser({}));
   };
 
