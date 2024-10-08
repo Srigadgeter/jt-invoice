@@ -39,13 +39,17 @@ const AppModal = ({ open, title, handleClose, children, footer, modalStyle = {},
       aria-describedby={`modal-${ariaData}-description`}
       {...props}>
       <Box sx={[styles.modal, modalStyle]}>
-        <Box sx={styles.header}>
+        <Box id="header" sx={styles.header}>
           <Typography variant="h5">{title}</Typography>
         </Box>
         <Box id="content" sx={styles.content}>
           {children}
         </Box>
-        {footer && <Box sx={styles.footer}>{footer}</Box>}
+        {footer && (
+          <Box id="footer" sx={styles.footer}>
+            {footer}
+          </Box>
+        )}
       </Box>
     </Modal>
   );

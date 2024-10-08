@@ -1,7 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { MODES } from "utils/constants";
-import { getSum } from "utils/utilites";
+import { getSum, setItemToLS } from "utils/utilites";
+import { LOCALSTORAGE_KEYS, MODES } from "utils/constants";
+
+const { LS_INVOICES } = LOCALSTORAGE_KEYS;
 
 const initialState = {
   invoices: [],
@@ -64,6 +66,7 @@ const invoicesSlice = createSlice({
     },
     setInvoices: (state, action) => {
       state.invoices = action?.payload;
+      setItemToLS(LS_INVOICES, action?.payload, true);
       invoicesSlice.caseReducers.setAllList(state, action);
     },
     setInvoice: (state, action) => {
@@ -75,6 +78,7 @@ const invoicesSlice = createSlice({
       const updatedInvoices = [...state.invoices];
       updatedInvoices.push({ ...action?.payload });
       state.invoices = updatedInvoices;
+      setItemToLS(LS_INVOICES, updatedInvoices, true);
       invoicesSlice.caseReducers.setAllList(state, {
         payload: [...updatedInvoices]
       });
@@ -86,6 +90,7 @@ const invoicesSlice = createSlice({
         return item;
       });
       state.invoices = modifiedInvoices;
+      setItemToLS(LS_INVOICES, modifiedInvoices, true);
       invoicesSlice.caseReducers.setAllList(state, {
         payload: [...modifiedInvoices]
       });
@@ -94,6 +99,7 @@ const invoicesSlice = createSlice({
     deleteInvoice: (state, action) => {
       const filteredInvoices = state?.invoices?.filter((item) => item?.id !== action?.payload?.id);
       state.invoices = filteredInvoices;
+      setItemToLS(LS_INVOICES, filteredInvoices, true);
     },
     setPageMode: (state, action) => {
       state.pageMode = action?.payload;
@@ -249,11 +255,12 @@ const invoicesSlice = createSlice({
         }))
       }));
       state.invoices = modifiedInvoices;
+      setItemToLS(LS_INVOICES, modifiedInvoices, true);
     },
     updateMatchedCustomerInAllInvoices: (state, action) => {
       const currentCustomer = action?.payload;
       const currentInvoices = [...state.invoices];
-      state.invoices = currentInvoices?.map((invoice) => ({
+      const modifiedInvoices = currentInvoices?.map((invoice) => ({
         ...invoice,
         customer:
           invoice?.customer?.id === currentCustomer?.id
@@ -267,6 +274,8 @@ const invoicesSlice = createSlice({
               }
             : { ...invoice?.customerName }
       }));
+      state.invoices = modifiedInvoices;
+      setItemToLS(LS_INVOICES, modifiedInvoices, true);
     }
   }
 });

@@ -750,7 +750,8 @@ const Invoice = () => {
       />
       <Stack direction="row" justifyContent="space-between" sx={styles.headerStack}>
         <Typography variant="h5" fontWeight="500">
-          {isNewMode ? INVOICE.titleNew : isViewMode ? INVOICE.title : INVOICE.titleEdit}
+          {isNewMode ? INVOICE.titleNew : isViewMode ? INVOICE.title : INVOICE.titleEdit}{" "}
+          {isNewMode ? null : `#${selectedInvoice?.invoiceNumber}`}
         </Typography>
         <Stack direction="row" justifyContent="space-between" spacing={2}>
           {isViewMode && (
