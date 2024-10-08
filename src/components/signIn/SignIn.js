@@ -9,9 +9,11 @@ import { useNavigate } from "react-router-dom";
 import TextField from "@mui/material/TextField";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
+import { setItemToLS } from "utils/utilites";
 import { auth } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import { setUser } from "store/slices/appSlice";
+import { LOCALSTORAGE_KEYS } from "utils/constants";
 import signInSchema from "validationSchemas/signInSchema";
 
 import Logo from "assets/svg/logo.svg";
@@ -46,6 +48,7 @@ const SignIn = () => {
   const [isLoading, setLoader] = useState(false);
 
   const { HOME } = routes;
+  const { LS_USER } = LOCALSTORAGE_KEYS;
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -69,8 +72,11 @@ const SignIn = () => {
         // sign in using firebase auth
         const userCredential = await signInWithEmailAndPassword(auth, val?.email, val?.password);
 
-        // store the user info
+        // store the user info in the redux store
         dispatch(setUser(userCredential?.user));
+
+        // store the user info in the localStorage
+        setItemToLS(LS_USER, userCredential?.user, true);
 
         // navigate to home page in the private routes
         navigate(HOME.to());

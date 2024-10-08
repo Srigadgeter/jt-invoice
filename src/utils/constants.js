@@ -51,3 +51,10 @@ export const FIREBASE_COLLECTIONS = {
 };
 
 export const RECORDS_LIMIT_COUNT = 15;
+
+export const LOCALSTORAGE_KEYS = {
+  LS_USER: "user",
+  LS_INVOICES: "invoices",
+  LS_PRODUCTS: "products",
+  LS_CUSTOMERS: "customers"
+};

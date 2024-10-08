@@ -2,11 +2,12 @@
 import { collection, getDocs } from "firebase/firestore";
 
 import { db } from "integrations/firebase";
-import { FIREBASE_COLLECTIONS } from "utils/constants";
-import { firebaseDateToISOString } from "utils/utilites";
+import { setUser } from "store/slices/appSlice";
 import { setInvoices } from "store/slices/invoicesSlice";
 import { setProducts } from "store/slices/productsSlice";
 import { setCustomers } from "store/slices/customersSlice";
+import { firebaseDateToISOString, getItemFromLS } from "utils/utilites";
+import { FIREBASE_COLLECTIONS, LOCALSTORAGE_KEYS } from "utils/constants";
 
 const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
 
@@ -116,4 +117,19 @@ export const fetchData = async (dispatch, setLoader, invoices, products, custome
   } finally {
     setLoader(false);
   }
+};
+
+// restore the redux store from localStorage
+export const restoreAppData = (dispatch) => {
+  const { LS_USER, LS_INVOICES, LS_PRODUCTS, LS_CUSTOMERS } = LOCALSTORAGE_KEYS;
+
+  const storedUser = getItemFromLS(LS_USER, true) || {};
+  const storedInvoices = getItemFromLS(LS_INVOICES, true) || [];
+  const storedProducts = getItemFromLS(LS_PRODUCTS, true) || [];
+  const storedCustomers = getItemFromLS(LS_CUSTOMERS, true) || [];
+
+  dispatch(setUser(storedUser));
+  if (LS_INVOICES.length > 0) dispatch(setInvoices(storedInvoices));
+  if (LS_PRODUCTS.length > 0) dispatch(setProducts(storedProducts));
+  if (LS_CUSTOMERS.length > 0) dispatch(setCustomers(storedCustomers));
 };
