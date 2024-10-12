@@ -6,7 +6,7 @@ const customerSchema = yup.object({
     .string()
     .required("Customer Name is required")
     .min(3, "Customer Name must be at least 3 characters")
-    .max(30, "Customer Name should not be more than 30 characters")
+    .max(40, "Customer Name should not be more than 40 characters")
     .trim(),
   gstNumber: yup
     .string()
