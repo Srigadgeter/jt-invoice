@@ -57,7 +57,6 @@ const styles = {
   }),
   modalStyle: {
     width: "fit-content",
-    height: "800px",
     bgcolor: (theme) => theme.palette.common.white,
     "& #header": {
       color: (theme) => theme.palette.common.black
@@ -140,6 +139,7 @@ const Invoices = () => {
       field: "customerName",
       headerName: "Customer Name",
       flex: 1,
+      minWidth: 200,
       valueFormatter: ({ value }) => value?.label
     },
     {

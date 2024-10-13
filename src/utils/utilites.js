@@ -128,3 +128,12 @@ export const getItemFromLS = (key, doParse = false) =>
 
 export const setItemToLS = (key, data, doStringify = false) =>
   doStringify ? localStorage.setItem(key, JSON.stringify(data)) : localStorage.setItem(key, data);
+
+export const sortByStringProperty = (arr, prop) =>
+  arr.sort((a, b) => {
+    const x = a[prop];
+    const y = b[prop];
+    if (x < y) return -1; // sort x before y
+    if (x > y) return 1; // sort y before x
+    return 0; // keep original order of x & y
+  });
