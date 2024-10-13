@@ -564,6 +564,7 @@ const Invoice = () => {
       headerName: "Product Name",
       sortable: false,
       flex: 1,
+      minWidth: 200,
       valueFormatter: ({ value }) => value?.label
     },
     {
@@ -632,6 +633,7 @@ const Invoice = () => {
       headerName: "Reason",
       sortable: false,
       flex: 1,
+      minWidth: 200,
       valueFormatter: ({ value }) => value?.label
     },
     {

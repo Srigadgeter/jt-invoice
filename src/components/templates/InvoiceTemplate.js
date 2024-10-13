@@ -147,6 +147,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
       headerName: "Particulars",
       sortable: false,
       flex: 1,
+      minWidth: 200,
       renderCell: ({ value }) => (
         <Typography fontSize={14} fontWeight={600}>
           {value?.label}

@@ -140,6 +140,7 @@ const Invoices = () => {
       field: "customerName",
       headerName: "Customer Name",
       flex: 1,
+      minWidth: 200,
       valueFormatter: ({ value }) => value?.label
     },
     {
