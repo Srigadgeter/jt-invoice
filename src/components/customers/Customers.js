@@ -244,6 +244,7 @@ const Customers = () => {
       field: "name",
       headerName: "Name",
       flex: 1,
+      minWidth: 200,
       valueFormatter: ({ value }) => value?.label,
       sortComparator: (v1, v2) => v1?.label.localeCompare(v2?.label) // default sorting based on label property of the name
     },

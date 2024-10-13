@@ -55,7 +55,7 @@ const invoiceSchema = yup.object({
       schema
         .required("New Customer Name is required")
         .min(3, "New Customer Name must be at least 3 characters")
-        .max(30, "New Customer Name should not be more than 30 characters")
+        .max(40, "New Customer Name should not be more than 40 characters")
         .trim()
   }),
   newCustomerGSTNumber: yup.string().when("customerName.value", {

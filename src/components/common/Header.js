@@ -16,8 +16,9 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
 import { auth } from "integrations/firebase";
 import { isEveningNow } from "utils/utilites";
+import { clearAllStoreData } from "utils/fetchUtils";
 import { DEFAULT_DARK, DEFAULT_LIGHT } from "utils/constants";
-import { setTheme, setUser, toggleTheme } from "store/slices/appSlice";
+import { setTheme, toggleTheme } from "store/slices/appSlice";
 
 import Logo from "assets/svg/logo.svg";
 
@@ -114,7 +115,7 @@ const Header = ({ setOpenDrawer }) => {
   const handleSignOut = async () => {
     await signOut(auth);
     localStorage.clear();
-    dispatch(setUser({}));
+    clearAllStoreData(dispatch);
   };
 
   useEffect(() => {

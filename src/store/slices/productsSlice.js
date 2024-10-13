@@ -13,6 +13,9 @@ const productsSlice = createSlice({
   name: "products",
   initialState,
   reducers: {
+    clearProductsSlice: (state) => {
+      state.products = initialState.products;
+    },
     setProducts: (state, action) => {
       state.products = action?.payload;
       setItemToLS(LS_PRODUCTS, action?.payload, true);
@@ -39,6 +42,7 @@ const productsSlice = createSlice({
   }
 });
 
-export const { setProducts, addProduct, editProduct, deleteProduct } = productsSlice.actions;
+export const { clearProductsSlice, setProducts, addProduct, editProduct, deleteProduct } =
+  productsSlice.actions;
 
 export default productsSlice.reducer;

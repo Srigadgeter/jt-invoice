@@ -13,6 +13,9 @@ const customersSlice = createSlice({
   name: "customers",
   initialState,
   reducers: {
+    clearCustomersSlice: (state) => {
+      state.customers = initialState.customers;
+    },
     setCustomers: (state, action) => {
       state.customers = action?.payload;
       setItemToLS(LS_CUSTOMERS, action?.payload, true);
@@ -41,6 +44,7 @@ const customersSlice = createSlice({
   }
 });
 
-export const { setCustomers, addCustomer, editCustomer, deleteCustomer } = customersSlice.actions;
+export const { clearCustomersSlice, setCustomers, addCustomer, editCustomer, deleteCustomer } =
+  customersSlice.actions;
 
 export default customersSlice.reducer;

@@ -11,6 +11,10 @@ const appSlice = createSlice({
   name: "app",
   initialState,
   reducers: {
+    clearAppSlice: (state) => {
+      state.user = initialState.user;
+      state.appTheme = initialState.appTheme;
+    },
     setTheme: (state, action) => {
       state.appTheme = action.payload;
     },
@@ -23,6 +27,6 @@ const appSlice = createSlice({
   }
 });
 
-export const { setTheme, toggleTheme, setUser } = appSlice.actions;
+export const { clearAppSlice, setTheme, toggleTheme, setUser } = appSlice.actions;
 
 export default appSlice.reducer;
