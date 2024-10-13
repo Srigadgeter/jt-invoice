@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { getSum, setItemToLS } from "utils/utilites";
 import { LOCALSTORAGE_KEYS, MODES } from "utils/constants";
+import { getSum, setItemToLS, sortByStringProperty } from "utils/utilites";
 
 const { LS_INVOICES } = LOCALSTORAGE_KEYS;
 
@@ -42,6 +42,8 @@ const invoicesSlice = createSlice({
         value: key,
         label: value
       }));
+      sortByStringProperty(arr, "value");
+
       state[`${name}List`] = arr;
     },
     setAllList: (state, action) => {

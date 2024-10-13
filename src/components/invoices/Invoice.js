@@ -34,7 +34,8 @@ import {
   getNewInvoiceNumber,
   getNow,
   indianCurrencyFormatter,
-  isMobile
+  isMobile,
+  sortByStringProperty
 } from "utils/utilites";
 import {
   MODES,
@@ -194,7 +195,8 @@ const Invoice = () => {
   const isNewMode = pageMode === MODES.NEW;
   const isEditMode = pageMode === MODES.EDIT;
 
-  const customerList = customers.map((item) => ({ ...item?.name, address: item?.address }));
+  const tempCustomerList = customers.map((item) => ({ ...item?.name, address: item?.address }));
+  const customerList = sortByStringProperty(tempCustomerList, "value");
 
   const handleBack = () => navigate(INVOICE_ROUTE.to());
 

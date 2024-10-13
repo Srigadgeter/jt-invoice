@@ -18,8 +18,8 @@ import commonStyles from "utils/commonStyles";
 import { GST_PERCENTAGE } from "utils/constants";
 import AppModal from "components/common/AppModal";
 import { addProduct, editProduct } from "store/slices/invoicesSlice";
-import { generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
+import { generateKeyValuePair, getNow, isMobile, sortByStringProperty } from "utils/utilites";
 
 const styles = {
   fullWidth: {
@@ -46,7 +46,8 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
 
   const dispatch = useDispatch();
 
-  const { products: productList } = useSelector((state) => state?.products);
+  const { products = [] } = useSelector((state) => state?.products);
+  const productList = sortByStringProperty([...products], "value");
 
   const {
     dirty,
