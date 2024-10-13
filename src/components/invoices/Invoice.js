@@ -58,6 +58,8 @@ import {
 import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
+import { addProduct } from "store/slices/productsSlice";
+import { addCustomer } from "store/slices/customersSlice";
 import invoiceSchema from "validationSchemas/invoiceSchema";
 import { addNotification } from "store/slices/notificationsSlice";
 import CustomDataGridFooter from "components/common/CustomDataGridFooter";
@@ -297,10 +299,12 @@ const Invoice = () => {
 
           if (customerId) {
             customerDocRef = docRef;
-            formValues.customer = {
+            const newCustomerObj = {
               ...customerFormValues,
               id: customerId
             };
+            formValues.customer = newCustomerObj;
+            await dispatch(addCustomer(newCustomerObj));
           }
         }
 
@@ -308,7 +312,7 @@ const Invoice = () => {
         const currentProductsRef = [];
         const batch = writeBatch(db);
 
-        currentPageData?.products.forEach((product) => {
+        currentPageData?.products.forEach(async (product) => {
           if (product?.productName?.id === "new") {
             // creating the doc ref
             const docRef = doc(productsCollectionRef);
@@ -324,13 +328,15 @@ const Invoice = () => {
                 ...product,
                 productName: docRef
               });
-              currentProducts.push({
+              const newProductObj = {
                 ...product,
                 productName: {
                   ...payload,
                   id: productId
                 }
-              });
+              };
+              currentProducts.push(newProductObj);
+              await dispatch(addProduct(newProductObj?.productName));
             } else {
               const message = `There is an issue fetching id for the new product(s)`;
               dispatch(
