@@ -311,9 +311,12 @@ const Invoice = () => {
         const currentProducts = [];
         const currentProductsRef = [];
         const batch = writeBatch(db);
+        let newFlag = false;
 
         currentPageData?.products.forEach(async (product) => {
           if (product?.productName?.id === "new") {
+            newFlag = true;
+
             // creating the doc ref
             const docRef = doc(productsCollectionRef);
 
@@ -356,24 +359,26 @@ const Invoice = () => {
           }
         });
 
-        try {
-          // committing the batch of write operation
-          await batch.commit();
-          const message = `Successfully added new product(s)`;
-          dispatch(
-            addNotification({
-              message,
-              variant: "success"
-            })
-          );
-        } catch (error) {
-          console.error(error);
-          const message = `There is an issue with adding the new product(s)`;
-          dispatch(
-            addNotification({
-              message
-            })
-          );
+        if (newFlag) {
+          try {
+            // committing the batch of write operation
+            await batch.commit();
+            const message = `Successfully added new product(s)`;
+            dispatch(
+              addNotification({
+                message,
+                variant: "success"
+              })
+            );
+          } catch (error) {
+            console.error(error);
+            const message = `There is an issue with adding the new product(s)`;
+            dispatch(
+              addNotification({
+                message
+              })
+            );
+          }
         }
 
         formValues.products = [...currentProducts];
