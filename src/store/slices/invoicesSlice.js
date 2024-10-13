@@ -20,10 +20,20 @@ const invoicesSlice = createSlice({
   name: "invoices",
   initialState,
   reducers: {
+    clearInvoicesSlice: (state) => {
+      state.invoices = initialState.invoices;
+      state.extrasList = initialState.extrasList;
+      state.logisticsList = initialState.logisticsList;
+      state.transportDestinationList = initialState.transportDestinationList;
+      state.selectedInvoiceInitialValue = initialState.selectedInvoiceInitialValue;
+      state.selectedInvoice = initialState.selectedInvoice;
+      state.newInvoice = initialState.newInvoice;
+      state.pageMode = initialState.pageMode;
+    },
     resetInvoiceValues: (state) => {
-      state.selectedInvoiceInitialValue = {};
-      state.selectedInvoice = {};
-      state.newInvoice = {};
+      state.selectedInvoiceInitialValue = initialState.selectedInvoiceInitialValue;
+      state.selectedInvoice = initialState.selectedInvoice;
+      state.newInvoice = initialState.newInvoice;
     },
     setList: (state, action) => {
       const { invoices, name } = action.payload;
@@ -283,6 +293,7 @@ const invoicesSlice = createSlice({
 });
 
 export const {
+  clearInvoicesSlice,
   resetInvoiceValues,
   setInvoices,
   setInvoice,

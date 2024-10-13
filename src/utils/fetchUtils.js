@@ -1,10 +1,10 @@
 import { collection, getDocs } from "firebase/firestore";
 
 import { db } from "integrations/firebase";
-import { setUser } from "store/slices/appSlice";
-import { setInvoices } from "store/slices/invoicesSlice";
-import { setProducts } from "store/slices/productsSlice";
-import { setCustomers } from "store/slices/customersSlice";
+import { clearAppSlice, setUser } from "store/slices/appSlice";
+import { clearInvoicesSlice, setInvoices } from "store/slices/invoicesSlice";
+import { clearProductsSlice, setProducts } from "store/slices/productsSlice";
+import { clearCustomersSlice, setCustomers } from "store/slices/customersSlice";
 import { firebaseDateToISOString, getItemFromLS } from "utils/utilites";
 import { FIREBASE_COLLECTIONS, LOCALSTORAGE_KEYS } from "utils/constants";
 
@@ -131,4 +131,11 @@ export const restoreAppData = (dispatch) => {
   if (LS_INVOICES.length > 0) dispatch(setInvoices(storedInvoices));
   if (LS_PRODUCTS.length > 0) dispatch(setProducts(storedProducts));
   if (LS_CUSTOMERS.length > 0) dispatch(setCustomers(storedCustomers));
+};
+
+export const clearAllStoreData = (dispatch) => {
+  dispatch(clearAppSlice());
+  dispatch(clearInvoicesSlice());
+  dispatch(clearProductsSlice());
+  dispatch(clearCustomersSlice());
 };
