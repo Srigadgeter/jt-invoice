@@ -16,7 +16,8 @@ const styles = {
     textAlign: "right",
     width: column?.width,
     fontSize: isPdf ? 12 : 14
-  })
+  }),
+  lowercaseText: { textTransform: "lowercase" }
 };
 
 const CustomDataGridFooter = ({ columns, rows = [], isPdf = false }) => (
@@ -36,9 +37,12 @@ const CustomDataGridFooter = ({ columns, rows = [], isPdf = false }) => (
         );
         const total = doCalc ? rows.reduce((sum, row) => sum + (row[column?.field] || 0), 0) : 0;
 
+        const islowercaseField =
+          column?.field === "productQuantityPieces" || column?.field === "productQuantityMeters";
+
         return (
           <Box key={column?.field} sx={styles.box2(isPdf, column)}>
-            <Box component="span" fontWeight="600">
+            <Box component="span" fontWeight="600" sx={islowercaseField && styles.lowercaseText}>
               {(column?.field === "productName" || column?.field === "reason") && !isPdf
                 ? "Total"
                 : null}
