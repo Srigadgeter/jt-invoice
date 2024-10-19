@@ -36,6 +36,7 @@ const CustomDataGridFooter = ({ columns, rows = [], isPdf = false }) => (
           (item) => item === column?.field
         );
         const total = doCalc ? rows.reduce((sum, row) => sum + (row[column?.field] || 0), 0) : 0;
+        const roundedOffTotal = Math.ceil(total);
 
         const islowercaseField =
           column?.field === "productQuantityPieces" || column?.field === "productQuantityMeters";
@@ -58,7 +59,12 @@ const CustomDataGridFooter = ({ columns, rows = [], isPdf = false }) => (
             </Box>
             {isAmountField ? (
               <Typography fontSize={15} fontWeight={isPdf ? 700 : 600} color="primary.main">
-                {indianCurrencyFormatter(total)}
+                {isPdf ? indianCurrencyFormatter(roundedOffTotal) : indianCurrencyFormatter(total)}
+              </Typography>
+            ) : null}
+            {isAmountField && isPdf && roundedOffTotal > total ? (
+              <Typography fontSize={10} color="primary.main">
+                &#40;Rounded Off&#41;
               </Typography>
             ) : null}
           </Box>
