@@ -17,7 +17,7 @@ const styles = {
     width: column?.width,
     fontSize: isPdf ? 12 : 14
   }),
-  lowercaseText: { textTransform: "lowercase" }
+  lowercaseText: { textTransform: "lowercase !important" }
 };
 
 const CustomDataGridFooter = ({ columns, rows = [], isPdf = false }) => (
