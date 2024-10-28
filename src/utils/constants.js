@@ -58,3 +58,18 @@ export const LOCALSTORAGE_KEYS = {
   LS_PRODUCTS: "products",
   LS_CUSTOMERS: "customers"
 };
+
+// Threshold values
+export const GST_LEN = 15;
+export const PRODUCT_NAME_MIN_LEN = 3;
+export const PRODUCT_NAME_MAX_LEN = 30;
+export const CUSTOMER_NAME_MIN_LEN = 3;
+export const CUSTOMER_NAME_MAX_LEN = 40;
+export const CUSTOMER_ADDRESS_MIN_LEN = 10;
+export const CUSTOMER_ADDRESS_MAX_LEN = 150;
+export const EXTRA_REASON_MIN_LEN = 3;
+export const EXTRA_REASON_MAX_LEN = 30;
+export const LOGISTICS_NAME_MIN_LEN = 2;
+export const LOGISTICS_NAME_MAX_LEN = 15;
+export const TRANSPORT_DESTINATION_NAME_MIN_LEN = 3;
+export const TRANSPORT_DESTINATION_NAME_MAX_LEN = 15;

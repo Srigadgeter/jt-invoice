@@ -1,17 +1,31 @@
 import * as yup from "yup";
 
+import {
+  CUSTOMER_ADDRESS_MAX_LEN,
+  CUSTOMER_ADDRESS_MIN_LEN,
+  CUSTOMER_NAME_MAX_LEN,
+  CUSTOMER_NAME_MIN_LEN,
+  GST_LEN
+} from "utils/constants";
+
 // Schema for the AddEditCustomerModal component in the Customers page
 const customerSchema = yup.object({
   name: yup
     .string()
     .required("Customer Name is required")
-    .min(3, "Customer Name must be at least 3 characters")
-    .max(40, "Customer Name should not be more than 40 characters")
+    .min(
+      CUSTOMER_NAME_MIN_LEN,
+      `Customer Name must be at least ${CUSTOMER_NAME_MIN_LEN} characters`
+    )
+    .max(
+      CUSTOMER_NAME_MAX_LEN,
+      `Customer Name should not be more than ${CUSTOMER_NAME_MAX_LEN} characters`
+    )
     .trim(),
   gstNumber: yup
     .string()
     .nullable()
-    .length(15, "GST number should be 15 characters")
+    .length(GST_LEN, `GST number should be ${GST_LEN} characters`)
     .trim()
     .matches(
       /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9]{1}Z[0-9A-Z]{1}$/,
@@ -28,8 +42,14 @@ const customerSchema = yup.object({
   address: yup
     .string()
     .required("Customer Address is required")
-    .min(10, "Customer Address must be at least 10 characters")
-    .max(150, "Customer Address should not be more than 150 characters")
+    .min(
+      CUSTOMER_ADDRESS_MIN_LEN,
+      `Customer Address must be at least ${CUSTOMER_ADDRESS_MIN_LEN} characters`
+    )
+    .max(
+      CUSTOMER_ADDRESS_MAX_LEN,
+      `Customer Address should not be more than ${CUSTOMER_ADDRESS_MAX_LEN} characters`
+    )
     .trim()
 });
 
