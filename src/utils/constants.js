@@ -62,7 +62,7 @@ export const LOCALSTORAGE_KEYS = {
 // Threshold values
 export const GST_LEN = 15;
 export const PRODUCT_NAME_MIN_LEN = 3;
-export const PRODUCT_NAME_MAX_LEN = 30;
+export const PRODUCT_NAME_MAX_LEN = 35;
 export const CUSTOMER_NAME_MIN_LEN = 3;
 export const CUSTOMER_NAME_MAX_LEN = 40;
 export const CUSTOMER_ADDRESS_MIN_LEN = 10;
