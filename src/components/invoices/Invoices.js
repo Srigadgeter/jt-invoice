@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
@@ -7,6 +7,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { DataGrid } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import { useReactToPrint } from "react-to-print";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import CloseIcon from "@mui/icons-material/Close";
@@ -17,6 +18,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useOutletContext } from "react-router-dom";
+import LocalPrintshopOutlinedIcon from "@mui/icons-material/LocalPrintshopOutlined";
 
 import {
   formatDate,
@@ -81,6 +83,8 @@ const Invoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
   const [trigger, setTrigger] = useState(null);
+  const printRef = useRef(null);
+  const printTrigger = useReactToPrint({ contentRef: printRef });
 
   const { loading = false } = useOutletContext();
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
@@ -123,6 +127,29 @@ const Invoices = () => {
     );
     setLoader(false);
     handleClose();
+  };
+
+  const getPrintRef = (ref) => {
+    printRef.current = ref.current;
+  };
+
+  const handlePrint = async () => {
+    setLoader(true);
+
+    try {
+      // trigger browser print dialog
+      await printTrigger();
+    } catch (error) {
+      dispatch(
+        addNotification({
+          message: "An error occurred while printing. Please try again later.",
+          variant: "error"
+        })
+      );
+    } finally {
+      setLoader(false);
+      handleClose();
+    }
   };
 
   const handleNew = () => {
@@ -265,12 +292,20 @@ const Invoices = () => {
           Cancel
         </Button>
         <Button
-          variant="contained"
+          variant="outlined"
           disabled={isLoading}
           onClick={handleDownload}
           startIcon={<DownloadIcon />}
           size={isMobile() ? "small" : "medium"}>
           Download
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handlePrint}
+          size={isMobile() ? "small" : "medium"}
+          disabled={isLoading || !printRef.current}
+          startIcon={<LocalPrintshopOutlinedIcon />}>
+          Print
         </Button>
       </Stack>
     </Stack>
@@ -323,6 +358,7 @@ const Invoices = () => {
           Template={InvoiceTemplate}
           dataId={selectedInvoiceId}
           setTrigger={setTrigger}
+          getRef={getPrintRef}
         />
       </AppModal>
     </Box>
