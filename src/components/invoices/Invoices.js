@@ -118,15 +118,25 @@ const Invoices = () => {
 
   const handleDownload = async () => {
     setLoader(true);
-    await trigger();
-    dispatch(
-      addNotification({
-        message: `Successfully downlaoded the invoice '${filename}'`,
-        variant: "success"
-      })
-    );
-    setLoader(false);
-    handleClose();
+    try {
+      await trigger();
+      dispatch(
+        addNotification({
+          message: `Successfully downlaoded the invoice '${filename}'`,
+          variant: "success"
+        })
+      );
+    } catch (error) {
+      dispatch(
+        addNotification({
+          message: "An error occurred while downloading. Please try again later.",
+          variant: "error"
+        })
+      );
+    } finally {
+      setLoader(false);
+      handleClose();
+    }
   };
 
   const getPrintRef = (ref) => {
