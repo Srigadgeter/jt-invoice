@@ -28,7 +28,7 @@ const styles = {
   templateBox: {
     color: "black",
     width: "210mm",
-    height: "308mm",
+    height: "302mm",
     display: "flex",
     overflow: "hidden",
     boxSizing: "border-box",
@@ -296,7 +296,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
         </Stack>
       </Stack>
       <DataGrid
-        rowHeight={35}
+        rowHeight={33}
         disableColumnMenu
         sx={styles.dataGrid}
         slots={{
