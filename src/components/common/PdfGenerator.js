@@ -1,7 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { usePDF, Resolution } from "react-to-pdf";
 
-const PdfGenerator = ({ Template, filename, dataId, setTrigger }) => {
+const PdfGenerator = ({ Template, filename, dataId, setTrigger, getRef }) => {
+  const ref = useRef();
+
   const options = {
     filename,
     page: {
@@ -16,7 +18,12 @@ const PdfGenerator = ({ Template, filename, dataId, setTrigger }) => {
     setTrigger(() => toPDF);
   }, []);
 
-  return <Template reference={targetRef} dataId={dataId} />;
+  useEffect(() => {
+    getRef(ref);
+    targetRef.current = ref.current;
+  }, [ref]);
+
+  return <Template reference={ref} dataId={dataId} />;
 };
 
 export default PdfGenerator;

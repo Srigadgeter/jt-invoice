@@ -1,6 +1,8 @@
 /* eslint-disable func-names */
 import * as yup from "yup";
 
+import { PRODUCT_NAME_MAX_LEN, PRODUCT_NAME_MIN_LEN } from "utils/constants";
+
 // Schema for the AddEditProductModal component in the Invoice page
 const addEditProductSchema = yup
   .object({
@@ -13,8 +15,14 @@ const addEditProductSchema = yup
       then: (schema) =>
         schema
           .required("New Product Name is required")
-          .min(3, "New Product Name must be at least 3 characters")
-          .max(30, "New Product Name should not be more than 30 characters")
+          .min(
+            PRODUCT_NAME_MIN_LEN,
+            `New Product Name must be at least ${PRODUCT_NAME_MIN_LEN} characters`
+          )
+          .max(
+            PRODUCT_NAME_MAX_LEN,
+            `New Product Name should not be more than ${PRODUCT_NAME_MAX_LEN} characters`
+          )
           .trim()
     }),
     productQuantityPieces: yup
