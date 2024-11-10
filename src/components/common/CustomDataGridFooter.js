@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { GridFooterContainer } from "@mui/x-data-grid";
 import { indianCurrencyFormatter } from "utils/utilites";
+import { GST_PERCENTAGE } from "utils/constants";
 
 const styles = {
   box: {
@@ -14,9 +15,17 @@ const styles = {
     p: "0 10px",
     flex: column?.flex,
     textAlign: "right",
-    width: column?.width,
+    width:
+      isPdf && (column?.field === "productRate" || column?.field === "productAmount")
+        ? "0px"
+        : isPdf && column?.field === "producGstAmount"
+          ? `calc(${column.width * 3}px - 40px)`
+          : column?.width,
     fontSize: isPdf ? 12 : 14
   }),
+  box3: {
+    minWidth: 0
+  },
   lowercaseText: { textTransform: "lowercase !important" }
 };
 
@@ -53,9 +62,19 @@ const CustomDataGridFooter = ({ columns, rows = [], isPdf = false }) => (
               {column?.field === "productQuantityMeters"
                 ? `${total} ${total === 1 ? "mtr" : "mtrs"}`
                 : null}
-              {column?.field === "productAmount" || column?.field === "producGstAmount"
+              {!isPdf && (column?.field === "productAmount" || column?.field === "producGstAmount")
                 ? indianCurrencyFormatter(total)
                 : null}
+              {isPdf && column?.field === "producGstAmount" ? (
+                <>
+                  <Typography fontSize={12} fontWeight={600}>
+                    CGST &#40;{GST_PERCENTAGE / 2}%&#41;: {indianCurrencyFormatter(total / 2)}
+                  </Typography>
+                  <Typography fontSize={12} fontWeight={600}>
+                    SGST &#40;{GST_PERCENTAGE / 2}%&#41;: {indianCurrencyFormatter(total / 2)}
+                  </Typography>
+                </>
+              ) : null}
             </Box>
             {isAmountField ? (
               <Typography fontSize={15} fontWeight={isPdf ? 700 : 600} color="primary.main">
