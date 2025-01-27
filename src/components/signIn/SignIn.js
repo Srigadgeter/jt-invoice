@@ -25,11 +25,21 @@ const styles = {
     height: "100vh",
     backgroundImage: "linear-gradient(to top, #f77062 0%, #fe5196 100%)"
   },
-  stack2: {
+  paper: (theme) => ({
+    [theme.breakpoints.between("0", "650")]: {
+      width: "80%",
+      maxWidth: 500
+    }
+  }),
+  stack2: (theme) => ({
     width: 500,
+    maxWidth: 500,
     borderRadius: 1,
-    borderBottom: (theme) => `7px solid ${theme.palette.secondary.light}`
-  },
+    borderBottom: `7px solid ${theme.palette.secondary.light}`,
+    [theme.breakpoints.between("0", "650")]: {
+      width: "auto"
+    }
+  }),
   logo: {
     width: 100,
     height: 100
@@ -97,7 +107,7 @@ const SignIn = () => {
   return (
     <Stack justifyContent="center" alignItems="center" sx={styles.stack}>
       {isLoading && <Loader height="100vh" />}
-      <Paper elevation={5}>
+      <Paper elevation={5} sx={styles.paper}>
         <Stack justifyContent="center" alignItems="center" gap={3} p={5} pb={6} sx={styles.stack2}>
           <Avatar
             src={Logo}
