@@ -26,7 +26,6 @@ const commonStyles = {
       fontWeight: 600
     },
     ".MuiDataGrid-virtualScroller": {
-      overflowX: "hidden",
       height: "calc(100vh - 370px)",
       scrollbarWidth: "7px",
       ":hover": {
