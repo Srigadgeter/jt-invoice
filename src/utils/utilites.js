@@ -79,7 +79,14 @@ export const getFY = () => {
 };
 
 export const getNewInvoiceNumber = (invoices) => {
-  const lastInvoiceNumber = invoices.reduce(
+  const { startYear: sy, endYear: ey } = getFY();
+
+  // get only current FY invoices
+  const currentFYInvoices = invoices.filter(
+    (invoice) => Number(invoice.startYear) === sy && Number(invoice.endYear) === ey
+  );
+
+  const lastInvoiceNumber = currentFYInvoices.reduce(
     (max, val) => (val?.invoiceNumber > max ? val?.invoiceNumber : max),
     0
   );
@@ -137,3 +144,20 @@ export const sortByStringProperty = (arr, prop) =>
     if (x > y) return 1; // sort y before x
     return 0; // keep original order of x & y
   });
+
+export const getInvoicesPageTabs = () => {
+  const { startYear: sy } = getFY();
+  const tabs = [];
+
+  // eslint-disable-next-line no-plusplus
+  for (let i = Number(sy); i >= Number(process.env.REACT_APP_INVOICE_START_YEAR); i--) {
+    tabs.push({
+      sy: i,
+      ey: i + 1,
+      value: `${i}-${i + 1}`,
+      label: `${i}-${i + 1}`
+    });
+  }
+
+  return tabs;
+};
