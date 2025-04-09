@@ -11,6 +11,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
 
 import Logo from "assets/svg/logo.svg";
+import { getFY } from "utils/utilites";
 
 const styles = {
   companyName: {
@@ -32,6 +33,7 @@ const styles = {
 
 const SideDrawer = ({ list, handleClose, anchor = "left", open = false }) => {
   const navigate = useNavigate();
+  const { startYear: sy, endYear: ey } = getFY();
 
   return (
     <Drawer anchor={anchor} open={open} onClose={handleClose}>
@@ -54,7 +56,7 @@ const SideDrawer = ({ list, handleClose, anchor = "left", open = false }) => {
               handleClose();
               // setTimeout to avoid flickering since the routes are loaded lazily
               setTimeout(() => {
-                navigate(item?.page?.to());
+                navigate(item?.key === "invoices" ? item?.page?.to(sy, ey) : item?.page?.to());
               }, 500);
             }}>
             <ListItemIcon sx={styles.listIcon}>{item?.icon}</ListItemIcon>

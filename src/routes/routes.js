@@ -19,13 +19,13 @@ const routes = {
     component: Invoices
   },
   INVOICES: {
-    path: "/invoices",
-    to: () => "/invoices",
+    path: "/invoices/:startYear/:endYear",
+    to: (startYear, endYear) => `/invoices/${startYear}/${endYear}`,
     component: Invoices
   },
   INVOICE_NEW: {
-    path: "/invoice/new",
-    to: () => `/invoice/new`,
+    path: "/invoice/:startYear/:endYear/new",
+    to: (startYear, endYear) => `/invoice/${startYear}/${endYear}/new`,
     component: Invoice
   },
   INVOICE_VIEW: {
