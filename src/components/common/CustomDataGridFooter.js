@@ -51,7 +51,8 @@ const CustomDataGridFooter = ({ columns, rows = [], isPdf = false }) => (
           column?.field === "productQuantityPieces" || column?.field === "productQuantityMeters";
 
         return (
-          <Box key={column?.field} sx={styles.box2(isPdf, column)}>
+          // eslint-disable-next-line no-unused-vars
+          <Box key={column?.field} sx={(theme) => styles.box2(isPdf, column)}>
             <Box component="span" fontWeight="600" sx={islowercaseField && styles.lowercaseText}>
               {(column?.field === "productName" || column?.field === "reason") && !isPdf
                 ? "Total"

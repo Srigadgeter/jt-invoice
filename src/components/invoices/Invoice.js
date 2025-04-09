@@ -200,7 +200,8 @@ const Invoice = () => {
   const tempCustomerList = customers.map((item) => ({ ...item?.name, address: item?.address }));
   const customerList = sortByStringProperty(tempCustomerList, "value");
 
-  const handleBack = () => navigate(INVOICE_ROUTE.to());
+  const handleBack = () =>
+    navigate(INVOICE_ROUTE.to(currentPageData?.startYear, currentPageData?.endYear));
 
   const {
     dirty,
@@ -748,6 +749,9 @@ const Invoice = () => {
     (currentPageData?.products?.length ?? 0) + (currentPageData?.extras?.length ?? 0);
   const disableAddProductExtraBtns = isLoading || totalEntriesCount >= RECORDS_LIMIT_COUNT;
 
+  const { startYear: currentSY } = getFY();
+  const isCurrentFY = Number(currentPageData.startYear) === Number(currentSY);
+
   return (
     <Box>
       {isLoading && <Loader height="100vh" />}
@@ -769,7 +773,7 @@ const Invoice = () => {
           {isNewMode ? null : `#${selectedInvoice?.invoiceNumber}`}
         </Typography>
         <Stack direction="row" justifyContent="space-between" spacing={2}>
-          {isViewMode && (
+          {isViewMode && isCurrentFY && (
             <Button
               variant="contained"
               disabled={isLoading}

@@ -1,8 +1,11 @@
-import React, { useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import Tab from "@mui/material/Tab";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
 import Tooltip from "@mui/material/Tooltip";
 import { DataGrid } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
@@ -17,13 +20,15 @@ import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import LocalPrintshopOutlinedIcon from "@mui/icons-material/LocalPrintshopOutlined";
 
 import {
   formatDate,
   formatInvoiceNumber,
   getDaysDiff,
+  getFY,
+  getInvoicesPageTabs,
   indianCurrencyFormatter,
   isMobile
 } from "utils/utilites";
@@ -42,10 +47,19 @@ import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
 
 const styles = {
   box: {
+    gap: 2,
     display: "flex",
-    justifyContent: "flex-end"
+    borderBottom: 1,
+    alignItems: "center",
+    borderColor: "divider",
+    justifyContent: "space-between"
   },
-  dataGrid: commonStyles?.dataGrid ?? {},
+  dataGrid: {
+    ...(commonStyles?.dataGrid ?? {}),
+    ".MuiDataGrid-virtualScroller": {
+      height: "calc(100vh - 382px)"
+    }
+  },
   chip: (value) => ({
     width: "70px",
     height: "auto",
@@ -83,6 +97,10 @@ const Invoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
   const [trigger, setTrigger] = useState(null);
+  const tabs = getInvoicesPageTabs();
+  const [tabValue, setTabValue] = useState(tabs?.[0]);
+  const [invoices, setInvoices] = useState([]);
+
   const printRef = useRef(null);
   const printTrigger = useReactToPrint({ contentRef: printRef });
 
@@ -90,11 +108,21 @@ const Invoices = () => {
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
   const { VIEW, EDIT } = MODES;
   const { INVOICES } = FIREBASE_COLLECTIONS;
-  const { invoices = [] } = useSelector((state) => state?.invoices);
+  const { invoices: storeInvoicesData } = useSelector((state) => state.invoices);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const filename = selectedInvoice ? formatInvoiceNumber(selectedInvoice, true) : "";
+
+  const { startYear: syParam = "", endYear: eyParam = "" } = useParams();
+  const { startYear: currentSY, endYear: currentEY } = getFY();
+  const { value: fy, sy, ey } = tabValue;
+  const isCurrentFY = sy === Number(currentSY);
+
+  const handleTabChange = (_, newValue) => {
+    const selectedTab = tabs.filter((tab) => tab.value === newValue)?.[0];
+    setTabValue(selectedTab);
+  };
 
   const handleOpen = (type, startYear, endYear, id) => {
     navigate(
@@ -163,8 +191,21 @@ const Invoices = () => {
   };
 
   const handleNew = () => {
-    navigate(INVOICE_NEW.to());
+    navigate(INVOICE_NEW.to(currentSY, currentEY));
   };
+
+  useEffect(() => {
+    if (Array.isArray(storeInvoicesData) && tabValue) {
+      const specificFYInvoices = storeInvoicesData.filter(
+        (invoice) => Number(invoice.startYear) === sy && Number(invoice.endYear) === ey
+      );
+      setInvoices(specificFYInvoices);
+    }
+  }, [storeInvoicesData, tabValue]);
+
+  useEffect(() => {
+    if (syParam && eyParam) handleTabChange(null, `${syParam}-${eyParam}`);
+  }, [syParam, eyParam]);
 
   const columns = [
     {
@@ -241,37 +282,41 @@ const Invoices = () => {
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Edit">
-            <IconButton
-              size="large"
-              aria-label={EDIT}
-              disabled={loading || isLoading}
-              onClick={() => {
-                dispatch(setInvoice(params?.row?.id));
-                handleOpen(EDIT, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
-              }}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton
-              size="large"
-              aria-label="delete"
-              disabled={loading || isLoading}
-              onClick={() =>
-                deleteDocFromFirestore(
-                  params?.row,
-                  INVOICES,
-                  setLoader,
-                  dispatch,
-                  deleteInvoice,
-                  `Successfully deleted invoice '${params?.row?.invoiceNumber}'`,
-                  "There is an issue with deleting the invoice"
-                )
-              }>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
+          {isCurrentFY ? (
+            <Fragment>
+              <Tooltip title="Edit">
+                <IconButton
+                  size="large"
+                  aria-label={EDIT}
+                  disabled={loading || isLoading}
+                  onClick={() => {
+                    dispatch(setInvoice(params?.row?.id));
+                    handleOpen(EDIT, params?.row?.startYear, params?.row?.endYear, params?.row?.id);
+                  }}>
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete">
+                <IconButton
+                  size="large"
+                  aria-label="delete"
+                  disabled={loading || isLoading}
+                  onClick={() =>
+                    deleteDocFromFirestore(
+                      params?.row,
+                      INVOICES,
+                      setLoader,
+                      dispatch,
+                      deleteInvoice,
+                      `Successfully deleted invoice '${params?.row?.invoiceNumber}'`,
+                      "There is an issue with deleting the invoice"
+                    )
+                  }>
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Fragment>
+          ) : null}
           <Tooltip title="View PDF">
             <IconButton
               size="large"
@@ -327,15 +372,33 @@ const Invoices = () => {
 
       <TitleBanner page="INVOICES" Icon={ReceiptLongIcon} />
 
-      <Box sx={styles.box}>
-        <Button
-          variant="contained"
-          disabled={loading || isLoading}
-          startIcon={<AddIcon />}
-          onClick={() => handleNew()}>
-          New
-        </Button>
-      </Box>
+      {fy && (
+        <TabContext value={fy}>
+          <Box sx={styles.box}>
+            <TabList
+              scrollButtons
+              value={fy}
+              variant="scrollable"
+              allowScrollButtonsMobile
+              onChange={handleTabChange}
+              aria-label="invoices page tabs">
+              {tabs.map(({ value, label }) => (
+                <Tab key={`tab-${value}`} value={value} label={label} />
+              ))}
+            </TabList>
+
+            {isCurrentFY ? (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleNew()}
+                disabled={loading || isLoading}>
+                New
+              </Button>
+            ) : null}
+          </Box>
+        </TabContext>
+      )}
 
       {invoices && Array.isArray(invoices) && invoices.length > 0 ? (
         <DataGrid
