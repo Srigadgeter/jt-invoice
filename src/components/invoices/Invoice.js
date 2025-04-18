@@ -201,7 +201,9 @@ const Invoice = () => {
   const customerList = sortByStringProperty(tempCustomerList, "value");
 
   const handleBack = () =>
-    navigate(INVOICE_ROUTE.to(currentPageData?.startYear, currentPageData?.endYear));
+    navigate(
+      INVOICE_ROUTE.to(currentPageData?.startYear || startYear, currentPageData?.endYear || endYear)
+    );
 
   const {
     dirty,
