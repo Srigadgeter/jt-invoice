@@ -83,7 +83,7 @@ export const getNewInvoiceNumber = (invoices) => {
 
   // get only current FY invoices
   const currentFYInvoices = invoices.filter(
-    (invoice) => Number(invoice.startYear) === sy && Number(invoice.endYear) === ey
+    (invoice) => Number(invoice.startYear) === Number(sy) && Number(invoice.endYear) === Number(ey)
   );
 
   const lastInvoiceNumber = currentFYInvoices.reduce(
