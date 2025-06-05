@@ -332,7 +332,12 @@ const Invoices = () => {
   ];
 
   if (isMobile()) {
-    columns.splice(1, 1, { field: "customerName", headerName: "Customer Name", width: 300 });
+    columns.splice(1, 1, {
+      field: "customerName",
+      headerName: "Customer Name",
+      width: 300,
+      valueFormatter: ({ value }) => value?.label
+    });
   }
 
   const footerContent = () => (
