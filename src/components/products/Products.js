@@ -27,13 +27,14 @@ import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import TitleBanner from "components/common/TitleBanner";
 import productSchema from "validationSchemas/productSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addNotification } from "store/slices/notificationsSlice";
 import { updateMatchedProductInAllInvoices } from "store/slices/invoicesSlice";
 import { addProduct, deleteProduct, editProduct } from "store/slices/productsSlice";
-import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
+import { formatDate, generateKeyValuePair, getNow } from "utils/utilites";
 
 const styles = {
   titleIcon: {
@@ -59,6 +60,8 @@ const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [initialValues, setInitialValues] = useState(INITIAL_VALUES);
+
+  const { isMobile } = useBreakpoints();
 
   const { loading = false } = useOutletContext();
   const { EDIT } = MODES;
@@ -278,7 +281,7 @@ const Products = () => {
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -286,7 +289,7 @@ const Products = () => {
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Save
         </Button>
       </Stack>

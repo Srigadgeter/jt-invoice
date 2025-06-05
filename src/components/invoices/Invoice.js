@@ -34,7 +34,6 @@ import {
   getNewInvoiceNumber,
   getNow,
   indianCurrencyFormatter,
-  isMobile,
   sortByStringProperty
 } from "utils/utilites";
 import {
@@ -58,6 +57,7 @@ import {
 import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
+import useBreakpoints from "hooks/useBreakpoints";
 import { addProduct } from "store/slices/productsSlice";
 import { addCustomer } from "store/slices/customersSlice";
 import invoiceSchema from "validationSchemas/invoiceSchema";
@@ -178,6 +178,8 @@ const Invoice = () => {
   const [selectedExtraIndex, setSelectedExtraIndex] = useState(null);
 
   const initialValuesRef = useRef(false);
+
+  const { isMobile } = useBreakpoints();
 
   const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
   const invoicesCollectionRef = collection(db, INVOICES);
@@ -780,7 +782,7 @@ const Invoice = () => {
               variant="contained"
               disabled={isLoading}
               startIcon={<EditIcon />}
-              size={isMobile() ? "small" : "medium"}
+              size={isMobile ? "small" : "medium"}
               onClick={() => handleChangePageMode(EDIT)}>
               Edit
             </Button>
@@ -790,7 +792,7 @@ const Invoice = () => {
             disabled={isLoading}
             onClick={() => handleBack()}
             startIcon={<ArrowBackIosNewIcon />}
-            size={isMobile() ? "small" : "medium"}>
+            size={isMobile ? "small" : "medium"}>
             Back
           </Button>
         </Stack>
@@ -1161,7 +1163,7 @@ const Invoice = () => {
                   variant="text"
                   startIcon={<AddIcon />}
                   disabled={disableAddProductExtraBtns}
-                  size={isMobile() ? "small" : "medium"}
+                  size={isMobile ? "small" : "medium"}
                   onClick={() => handleOpenAddEditProductModal()}>
                   Add &nbsp; Product
                 </Button>
@@ -1199,7 +1201,7 @@ const Invoice = () => {
                   variant="text"
                   startIcon={<AddIcon />}
                   disabled={disableAddProductExtraBtns}
-                  size={isMobile() ? "small" : "medium"}
+                  size={isMobile ? "small" : "medium"}
                   onClick={() => handleOpenAddEditExtraModal()}>
                   Add &nbsp; Extra
                 </Button>
@@ -1242,7 +1244,7 @@ const Invoice = () => {
             variant="contained"
             onClick={handleSubmit}
             disabled={!isSubmitEnabled}
-            size={isMobile() ? "small" : "medium"}>
+            size={isMobile ? "small" : "medium"}>
             {isNewMode ? "Submit" : "Save"}
           </Button>
         )}
