@@ -29,14 +29,14 @@ import {
   getDaysDiff,
   getFY,
   getInvoicesPageTabs,
-  indianCurrencyFormatter,
-  isMobile
+  indianCurrencyFormatter
 } from "utils/utilites";
 import routes from "routes/routes";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import TitleBanner from "components/common/TitleBanner";
 import PdfGenerator from "components/common/PdfGenerator";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
@@ -44,6 +44,8 @@ import { addNotification } from "store/slices/notificationsSlice";
 import InvoiceTemplate from "components/templates/InvoiceTemplate";
 import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
 import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
+
+import InvoiceCards from "./InvoiceCards";
 
 const styles = {
   box: {
@@ -53,6 +55,19 @@ const styles = {
     alignItems: "center",
     borderColor: "divider",
     justifyContent: "space-between"
+  },
+  tabList: {
+    width: "100%",
+    ".MuiTabs-scrollButtons": {
+      "&.Mui-disabled": {
+        opacity: 0.3,
+        cursor: "not-allowed",
+        pointerEvents: "auto"
+      }
+    }
+  },
+  newButton: {
+    minWidth: "fit-content"
   },
   dataGrid: {
     ...(commonStyles?.dataGrid ?? {}),
@@ -103,6 +118,8 @@ const Invoices = () => {
 
   const printRef = useRef(null);
   const printTrigger = useReactToPrint({ contentRef: printRef });
+
+  const { isMobile } = useBreakpoints();
 
   const { loading = false } = useOutletContext();
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
@@ -231,10 +248,7 @@ const Invoices = () => {
       headerName: "Payment Status",
       width: 120,
       renderCell: ({ value }) => (
-        <Chip
-          label={value?.toLowerCase() === "paid" ? "Paid" : "Unpaid"}
-          sx={styles.chip(value?.toLowerCase())}
-        />
+        <Chip label={value === "paid" ? "Paid" : "Unpaid"} sx={styles.chip(value)} />
       )
     },
     {
@@ -331,7 +345,7 @@ const Invoices = () => {
     }
   ];
 
-  if (isMobile()) {
+  if (isMobile) {
     columns.splice(1, 1, {
       field: "customerName",
       headerName: "Customer Name",
@@ -348,7 +362,7 @@ const Invoices = () => {
           disabled={isLoading}
           onClick={handleClose}
           startIcon={<CloseIcon />}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -356,13 +370,13 @@ const Invoices = () => {
           disabled={isLoading}
           onClick={handleDownload}
           startIcon={<DownloadIcon />}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Download
         </Button>
         <Button
           variant="contained"
           onClick={handlePrint}
-          size={isMobile() ? "small" : "medium"}
+          size={isMobile ? "small" : "medium"}
           disabled={isLoading || !printRef.current}
           startIcon={<LocalPrintshopOutlinedIcon />}>
           Print
@@ -381,8 +395,9 @@ const Invoices = () => {
         <TabContext value={fy}>
           <Box sx={styles.box}>
             <TabList
-              scrollButtons
               value={fy}
+              scrollButtons
+              sx={styles.tabList}
               variant="scrollable"
               allowScrollButtonsMobile
               onChange={handleTabChange}
@@ -395,6 +410,7 @@ const Invoices = () => {
             {isCurrentFY ? (
               <Button
                 variant="contained"
+                sx={styles.newButton}
                 startIcon={<AddIcon />}
                 onClick={() => handleNew()}
                 disabled={loading || isLoading}>
@@ -405,25 +421,38 @@ const Invoices = () => {
         </TabContext>
       )}
 
-      {invoices && Array.isArray(invoices) && invoices.length > 0 ? (
-        <DataGrid
-          sx={styles.dataGrid}
-          rows={invoices}
-          columns={columns}
-          pageSizeOptions={[10]}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: "invoiceDate", sort: "desc" }]
-            },
-            pagination: {
-              paginationModel: { page: 0, pageSize: 10 }
-            }
-          }}
-          disableColumnMenu
+      {isMobile && invoices && Array.isArray(invoices) && invoices.length > 0 && (
+        <InvoiceCards
+          invoices={invoices}
+          setLoader={setLoader}
+          handleOpen={handleOpen}
+          isCurrentFY={isCurrentFY}
+          handleViewPDF={handleViewPDF}
+          loading={loading || isLoading}
         />
-      ) : (
-        <ClickNew prefixMessage="Click here to create your" hightlightedText="invoices" />
       )}
+
+      {!isMobile ? (
+        invoices && Array.isArray(invoices) && invoices.length > 0 ? (
+          <DataGrid
+            sx={styles.dataGrid}
+            rows={invoices}
+            columns={columns}
+            pageSizeOptions={[10]}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "invoiceDate", sort: "desc" }]
+              },
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 }
+              }
+            }}
+            disableColumnMenu
+          />
+        ) : (
+          <ClickNew prefixMessage="Click here to create your" hightlightedText="invoices" />
+        )
+      ) : null}
 
       <AppModal
         open={openModal}
