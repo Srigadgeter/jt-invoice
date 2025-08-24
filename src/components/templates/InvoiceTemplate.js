@@ -120,6 +120,8 @@ const InvoiceTemplate = ({ reference, dataId }) => {
   const selectedInvoice = invoices.find((item) => item?.id === dataId);
   const products = [...(selectedInvoice?.products || [])];
 
+  const isDirectSource = selectedInvoice?.customer?.source?.value === "direct";
+
   if (
     selectedInvoice?.extras &&
     Array.isArray(selectedInvoice?.extras) &&
@@ -344,11 +346,19 @@ const InvoiceTemplate = ({ reference, dataId }) => {
           <Stack justifyItems="center">
             <Stack direction="row" alignItems="center" gap={2}>
               <PersonIcon fontSize="small" />
-              <Typography>{process.env.REACT_APP_INVOICE_TEMPLATE_NAME}</Typography>
+              <Typography>
+                {isDirectSource
+                  ? process.env.REACT_APP_INVOICE_TEMPLATE_NAME
+                  : process.env.REACT_APP_INVOICE_TEMPLATE_NAME2}
+              </Typography>
             </Stack>
             <Stack direction="row" alignItems="center" gap={2}>
               <PhoneIcon fontSize="small" />
-              <Typography>{process.env.REACT_APP_INVOICE_TEMPLATE_PHONE}</Typography>
+              <Typography>
+                {isDirectSource
+                  ? process.env.REACT_APP_INVOICE_TEMPLATE_PHONE
+                  : process.env.REACT_APP_INVOICE_TEMPLATE_PHONE2}
+              </Typography>
             </Stack>
             <Stack direction="row" alignItems="center" gap={2}>
               <EmailIcon fontSize="small" sx={styles.emailIcon} />
