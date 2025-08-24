@@ -22,6 +22,14 @@ const customerSchema = yup.object({
       `Customer Name should not be more than ${CUSTOMER_NAME_MAX_LEN} characters`
     )
     .trim(),
+  source: yup.object({
+    label: yup.string().trim(),
+    value: yup.string().trim().required("Source is required")
+  }),
+  newSource: yup.string().when("source.value", {
+    is: "new",
+    then: (schema) => schema.required("New Source is required").trim()
+  }),
   gstNumber: yup
     .string()
     .nullable()

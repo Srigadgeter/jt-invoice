@@ -88,6 +88,18 @@ const invoiceSchema = yup.object({
         )
         .trim()
   }),
+  newCustomerSource: yup.string().when("customerName.value", {
+    is: "new",
+    then: () =>
+      yup.object({
+        label: yup.string().trim(),
+        value: yup.string().trim().required("Source is required")
+      })
+  }),
+  newCustomerNewSource: yup.string().when("newCustomerSource.value", {
+    is: "new",
+    then: (schema) => schema.required("New Source is required").trim()
+  }),
   newCustomerGSTNumber: yup.string().when("customerName.value", {
     is: "new",
     then: (schema) =>
