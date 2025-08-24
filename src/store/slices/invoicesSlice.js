@@ -41,12 +41,18 @@ const invoicesSlice = createSlice({
 
       if (name === "extras") {
         invoices.forEach((invoice) => {
-          invoice?.extras?.forEach((extra) =>
-            listMap.set(extra?.reason?.value, extra?.reason?.label)
-          );
+          invoice?.extras?.forEach((extra) => {
+            if (extra?.reason?.value && extra?.reason?.label) {
+              listMap.set(extra?.reason?.value, extra?.reason?.label);
+            }
+          });
         });
       } else {
-        invoices.forEach((invoice) => listMap.set(invoice[name]?.value, invoice[name]?.label));
+        invoices.forEach((invoice) => {
+          if (invoice[name]?.value && invoice[name]?.label) {
+            listMap.set(invoice[name]?.value, invoice[name]?.label);
+          }
+        });
       }
       const arr = Array.from(listMap, ([key, value]) => ({
         value: key,
