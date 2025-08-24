@@ -33,7 +33,7 @@ const customerSchema = yup.object({
     ),
   phoneNumber: yup
     .string()
-    .nullable()
+    .required("Phone Number is required")
     .trim()
     .matches(
       /^(\+91[-\s]?)?[6-9]\d{9}$|^(0\d{2,4}[-\s]?)?\d{6,8}$/,
