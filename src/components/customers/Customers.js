@@ -268,7 +268,7 @@ const Customers = () => {
   };
 
   const handleBulkUpdate = async () => {
-    await bulkUpdateCustomerCollection(dispatch, customers);
+    await bulkUpdateCustomerCollection(dispatch, customers, setLoader);
   };
 
   const columns = [

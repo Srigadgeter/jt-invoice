@@ -6,10 +6,11 @@ import { setCustomers } from "store/slices/customersSlice";
 import { addNotification } from "store/slices/notificationsSlice";
 
 // Function helps to write document to the firestore
-export const bulkUpdateCustomerCollection = async (dispatch, customers) => {
+export const bulkUpdateCustomerCollection = async (dispatch, customers, setLoader) => {
   const { CUSTOMERS } = FIREBASE_COLLECTIONS;
 
   try {
+    setLoader(true);
     const customersCollectionRef = collection(db, CUSTOMERS);
     const querySnapshot = await getDocs(customersCollectionRef);
 
@@ -59,5 +60,7 @@ export const bulkUpdateCustomerCollection = async (dispatch, customers) => {
         message: "Something went wrong!"
       })
     );
+  } finally {
+    setLoader(false);
   }
 };
