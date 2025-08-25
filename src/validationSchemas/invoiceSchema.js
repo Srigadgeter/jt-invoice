@@ -88,7 +88,7 @@ const invoiceSchema = yup.object({
         )
         .trim()
   }),
-  newCustomerSource: yup.string().when("customerName.value", {
+  newCustomerSource: yup.object().when("customerName.value", {
     is: "new",
     then: () =>
       yup.object({
