@@ -21,6 +21,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import { useOutletContext } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import FormHelperText from "@mui/material/FormHelperText";
+import EditNoteOutlinedIcon from "@mui/icons-material/EditNoteOutlined";
 
 import {
   addDocToFirestore,
@@ -36,6 +37,7 @@ import TitleBanner from "components/common/TitleBanner";
 import customerSchema from "validationSchemas/customerSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addNotification } from "store/slices/notificationsSlice";
+import { bulkUpdateCustomerCollection } from "integrations/bulkUpdate";
 import { updateMatchedCustomerInAllInvoices } from "store/slices/invoicesSlice";
 import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 import { addCustomer, deleteCustomer, editCustomer } from "store/slices/customersSlice";
@@ -45,6 +47,7 @@ const styles = {
     fontSize: 70
   },
   box: {
+    gap: 1,
     display: "flex",
     justifyContent: "flex-end"
   },
@@ -264,6 +267,10 @@ const Customers = () => {
     handleCloseModal();
   };
 
+  const handleBulkUpdate = async () => {
+    await bulkUpdateCustomerCollection(dispatch, customers);
+  };
+
   const columns = [
     {
       field: "id",
@@ -370,6 +377,13 @@ const Customers = () => {
       <TitleBanner page="CUSTOMERS" Icon={PersonIcon} />
 
       <Box sx={styles.box}>
+        <Button
+          variant="outlined"
+          disabled={loading || isLoading}
+          startIcon={<EditNoteOutlinedIcon />}
+          onClick={handleBulkUpdate}>
+          Bulk Update
+        </Button>
         <Button
           variant="contained"
           disabled={loading || isLoading}
