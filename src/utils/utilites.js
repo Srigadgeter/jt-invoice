@@ -74,7 +74,8 @@ export const getFY = () => {
 
   return {
     startYear,
-    endYear
+    endYear,
+    month
   };
 };
 
