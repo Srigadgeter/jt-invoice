@@ -91,8 +91,11 @@ const Dashboard = () => {
             [invoice.customer.source.value]: {
               id: invoice.customer.source.value,
               name: invoice.customer.source.label,
-              invoiceCount: (invoiceYearData?.sources?.invoiceCount ?? 0) + 1,
-              total: (invoiceYearData?.sources?.total ?? 0) + invoice.totalAmount
+              invoiceCount:
+                (invoiceYearData?.sources?.[invoice.customer.source.value]?.invoiceCount ?? 0) + 1,
+              total:
+                (invoiceYearData?.sources?.[invoice.customer.source.value]?.total ?? 0) +
+                invoice.totalAmount
             }
           },
           customers: {
@@ -118,10 +121,13 @@ const Dashboard = () => {
                   id: invoice.customer.source.value,
                   name: invoice.customer.source.label,
                   invoiceCount:
-                    (invoiceYearData?.months?.[monthOfInvoice]?.sources?.invoiceCount ?? 0) + 1,
+                    (invoiceYearData?.months?.[monthOfInvoice]?.sources?.[
+                      invoice.customer.source.value
+                    ]?.invoiceCount ?? 0) + 1,
                   total:
-                    (invoiceYearData?.months?.[monthOfInvoice]?.sources?.total ?? 0) +
-                    invoice.totalAmount
+                    (invoiceYearData?.months?.[monthOfInvoice]?.sources?.[
+                      invoice.customer.source.value
+                    ]?.total ?? 0) + invoice.totalAmount
                 }
               },
               customers: {
