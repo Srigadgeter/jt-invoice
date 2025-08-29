@@ -698,11 +698,9 @@ const Dashboard = () => {
 
         <Stack>
           <Typography variant="h6">Monthwise customers info</Typography>
-          {!loading &&
-          customerWiseTableData &&
-          Array.isArray(customerWiseTableData) &&
-          customerWiseTableData.length > 0 ? (
+          {customerWiseTableData && Array.isArray(customerWiseTableData) ? (
             <DataGrid
+              loading={loader}
               sx={styles.dataGrid}
               rows={customerWiseTableData}
               columns={cwTdCols}
@@ -719,11 +717,9 @@ const Dashboard = () => {
 
         <Stack>
           <Typography variant="h6">Monthwise products info</Typography>
-          {!loading &&
-          productWiseTableData &&
-          Array.isArray(productWiseTableData) &&
-          productWiseTableData.length > 0 ? (
+          {productWiseTableData && Array.isArray(productWiseTableData) ? (
             <DataGrid
+              loading={loader}
               sx={styles.dataGrid}
               rows={productWiseTableData}
               columns={pwTdCols}
