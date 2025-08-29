@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import Box from "@mui/material/Box";
@@ -297,7 +296,7 @@ const Dashboard = () => {
 
   const valueFormatter = (value) => (value ? indianCurrencyFormatter(value) : `₹0`);
 
-  const handleSelectChange = ({ target: { name, value } }, list) => {
+  const handleSelectChange = ({ target: { value } }, list) => {
     const selectedOption = list.find((option) => option.value === value);
     setSelectedFY(selectedOption);
   };
