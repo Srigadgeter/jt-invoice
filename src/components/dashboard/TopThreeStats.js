@@ -84,9 +84,7 @@ const TopThreeStats = ({
               <Avatar sx={styles.avatar2}>{index + 1}</Avatar>
               <Stack sx={styles.stack2} justifyContent="center">
                 <Typography sx={styles.amount}>
-                  {showAmount
-                    ? indianCurrencyFormatter(item.total || 0)
-                    : `${item.invoiceCount} pcs`}
+                  {showAmount ? indianCurrencyFormatter(item.total || 0) : `${item.pcs} pcs`}
                 </Typography>
                 <Tooltip title={item.name}>
                   <Typography variant="subtitle1" sx={styles.name}>
