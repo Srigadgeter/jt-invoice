@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-globals */
 import dayjs from "dayjs";
+import { fyMonths } from "./constants";
 
 export const isMobile = () => window.innerWidth <= 768;
 
@@ -170,3 +171,11 @@ export const getMonthWiseData = (obj, property, fallback = 0) =>
 // converting to calendar months order to FY months order
 export const convertToFyData = (list) =>
   list && Array.isArray(list) && list.length > 0 ? [...list.slice(3, 12), ...list.slice(0, 3)] : [];
+
+export const getFyMonths = (startYear, endYear, divider = " ") =>
+  fyMonths && Array.isArray(fyMonths) && fyMonths.length > 0 && startYear < endYear
+    ? [
+        ...[...fyMonths.slice(0, 9)].map((month) => `${month}${divider}${startYear}`),
+        ...[...fyMonths.slice(-3)].map((month) => `${month}${divider}${endYear}`)
+      ]
+    : [];

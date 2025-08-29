@@ -19,10 +19,12 @@ import { formatDate, formatInvoiceNumber, indianCurrencyFormatter } from "utils/
 import Logo from "assets/png/Logo-Outlined.png";
 
 const NOTES = [
-  "We are not responsible for any loss or damage to goods in transit.",
-  "Goods once sold cannot be returned under any circumstances.",
-  "All disputes are subject to Erode jurisdiction."
+  "The company shall not be held responsible for any loss or damage to goods during transit.",
+  "Goods once sold are not eligible for return under any circumstances.",
+  "All disputes arising shall be subject to the exclusive jurisdiction of the courts in Erode."
 ];
+
+const NO_SIGN = "This is a system-generated invoice and does not require a signature.";
 
 const styles = {
   templateBox: {
@@ -52,7 +54,7 @@ const styles = {
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0
   },
-  companyAddress: {
+  textTransformNone: {
     textTransform: "none"
   },
   to: {
@@ -229,7 +231,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
           </Typography>
           <Stack direction="row" alignItems="center" gap={0.5}>
             <LocationOnIcon fontSize="small" />
-            <Typography sx={styles.companyAddress}>
+            <Typography sx={styles.textTransformNone}>
               {process.env.REACT_APP_INVOICE_TEMPLATE_ADDRESS}
             </Typography>
           </Stack>
@@ -370,24 +372,44 @@ const InvoiceTemplate = ({ reference, dataId }) => {
         </Stack>
       </Stack>
       <Divider sx={styles.divider} />
-      <Stack direction="row" justifyContent="space-between">
-        <Stack>
-          <Typography fontWeight={600} sx={styles.underline}>
-            Terms & Conditions
-          </Typography>
+      {isDirectSource ? (
+        <Stack direction="row" justifyContent="space-between">
           <Stack>
-            {NOTES.map((item, index) => (
-              <Typography key={item}>
-                {index + 1}. {item}
-              </Typography>
-            ))}
+            <Typography fontWeight={600} sx={styles.underline}>
+              Terms & Conditions
+            </Typography>
+            <Stack>
+              {NOTES.map((item, index) => (
+                <Typography key={item}>
+                  {index + 1}. {item}
+                </Typography>
+              ))}
+            </Stack>
+          </Stack>
+          <Stack justifyContent="space-between">
+            <Typography>For {process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME}</Typography>
+            <Typography>Authorised Signature</Typography>
           </Stack>
         </Stack>
-        <Stack justifyContent="space-between">
-          <Typography>For {process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME}</Typography>
-          <Typography>Authorised Signature</Typography>
+      ) : (
+        <Stack direction="row" justifyContent="space-between">
+          <Stack>
+            <Typography fontWeight={600} sx={styles.underline}>
+              Terms & Conditions
+            </Typography>
+            <Stack>
+              {NOTES.map((item, index) => (
+                <Typography key={item} variant="subtitle2" sx={styles.textTransformNone}>
+                  {index + 1}. {item}
+                </Typography>
+              ))}
+              <Typography variant="subtitle1" sx={styles.textTransformNone}>
+                {NO_SIGN}
+              </Typography>
+            </Stack>
+          </Stack>
         </Stack>
-      </Stack>
+      )}
     </Box>
   );
 };
