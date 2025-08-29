@@ -2,8 +2,12 @@
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
 import { useSelector } from "react-redux";
+import { DataGrid } from "@mui/x-data-grid";
+import Typography from "@mui/material/Typography";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useOutletContext } from "react-router-dom";
@@ -11,8 +15,14 @@ import { LineChart } from "@mui/x-charts/LineChart";
 import PersonIcon from "@mui/icons-material/Person";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
-import { fyMonths } from "utils/constants";
-import { convertToFyData, getFY, getMonthWiseData, indianCurrencyFormatter } from "utils/utilites";
+import commonStyles from "utils/commonStyles";
+import {
+  getFY,
+  getFyMonths,
+  convertToFyData,
+  getMonthWiseData,
+  indianCurrencyFormatter
+} from "utils/utilites";
 
 import SalesStats from "./SalesStats";
 import TopThreeStats from "./TopThreeStats";
@@ -25,11 +35,27 @@ const styles = {
     flexGrow: 1,
     width: "100%",
     display: "flex",
-    height: "100vh",
+    minHeight: "100vh",
     maxHeight: "max-content",
     flexDirection: "column",
     bgcolor: (theme) =>
       theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.grey[50]
+  },
+  dataGrid: {
+    ...(commonStyles?.dataGrid ?? {}),
+    ".MuiDataGrid-virtualScroller": {
+      height: "calc(100vh - 363px)"
+    },
+    "& .MuiDataGrid-cell:not(:last-child)": {
+      borderRight: "1px solid rgba(224, 224, 224, 1)",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  },
+  gridCellAmount: {
+    fontWeight: 600,
+    textAlign: "center",
+    color: "primary.main"
   }
 };
 
@@ -38,11 +64,18 @@ const Dashboard = () => {
   const [yearlyData, setYearlyData] = useState([]);
   const [sourceData, setSourceData] = useState({});
   const [currentFyTopProducts, setCurrentFyTopProducts] = useState([]);
+  const [currentStartYear, setCurrentStartYear] = useState(null);
+  const [currentEndYear, setCurrentEndYear] = useState(null);
 
   const { loading = false } = useOutletContext();
   const { invoices } = useSelector((state) => state.invoices);
-  const { sourceList = [] } = useSelector((state) => state?.customers);
-  const { startYear: currentStartYear, endYear: currentEndYear, month: currentMonth } = getFY();
+  const { customers = [], sourceList = [] } = useSelector((state) => state?.customers);
+  const { startYear: sy, endYear: ey, month: currentMonth } = getFY();
+
+  useEffect(() => {
+    setCurrentStartYear(sy);
+    setCurrentEndYear(ey);
+  }, [sy, ey]);
 
   useEffect(() => {
     if (sourceList && Array.isArray(sourceList) && sourceList.length > 0) {
@@ -64,7 +97,7 @@ const Dashboard = () => {
 
     try {
       setLoader(true);
-      if (invoices.length > 0) {
+      if (invoices.length > 0 && currentStartYear && currentEndYear) {
         invoices.forEach((invoice) => {
           const invoiceDate = dayjs(invoice.createdAt);
           const monthOfInvoice = invoiceDate.format("M");
@@ -172,7 +205,7 @@ const Dashboard = () => {
     } finally {
       setLoader(false);
     }
-  }, [invoices]);
+  }, [invoices, currentStartYear, currentEndYear]);
 
   const currentFyDataObj = yearlyData?.find(
     (item) => item.startYear === currentStartYear && item.endYear === currentEndYear
@@ -206,7 +239,69 @@ const Dashboard = () => {
     return sObj;
   });
 
+  const currentFyMonthWiseCustomersInfoArr = getMonthWiseData(
+    currentFyMonthlySalesObj,
+    "customers"
+  );
+  const currentFyMonthWiseCustomersInfo = convertToFyData(currentFyMonthWiseCustomersInfoArr);
+
+  let customerWiseTableData = [];
+  if (customers.length > 0 && currentFyMonthWiseCustomersInfo.length > 0) {
+    const filteredCustomers = customers.filter(
+      (c) => !currentFyCustomersSalesInDescOrder.some((cust) => cust.id === c.id)
+    );
+
+    customerWiseTableData = [...currentFyCustomersSalesInDescOrder, ...filteredCustomers].map(
+      (customer) => {
+        const months = currentFyMonthWiseCustomersInfo.map((c) => {
+          if (typeof c === "object") {
+            if (customer.id in c) return c[customer.id];
+          }
+          return null;
+        });
+
+        return {
+          ...customer,
+          months
+        };
+      }
+    );
+  }
+
   const valueFormatter = (value) => (value ? indianCurrencyFormatter(value) : `₹0`);
+
+  const fyMonthsWithYrSuffix = getFyMonths(currentStartYear, currentEndYear);
+
+  const cwTdCols = [
+    {
+      field: "name",
+      headerName: "Customers",
+      flex: 1,
+      minWidth: 200,
+      valueFormatter: ({ value }) => (typeof value === "string" ? value : value?.label)
+    },
+    ...fyMonthsWithYrSuffix.map((m, index) => ({
+      field: m.toLowerCase(),
+      headerName: m,
+      width: 130,
+      sortable: false,
+      renderCell: ({ row }) =>
+        row?.months?.[index] ? (
+          <Stack width="100%">
+            <Chip
+              size="small"
+              variant="outlined"
+              label={`${row.months[index]?.invoiceCount} invoice${
+                row.months[index]?.invoiceCount === 1 ? "" : "s"
+              }`}
+            />
+            <Typography variant="subtitle2" sx={styles.gridCellAmount}>
+              {row.months[index]?.total ? indianCurrencyFormatter(row.months[index]?.total) : `₹0`}
+            </Typography>
+          </Stack>
+        ) : null
+    }))
+  ];
 
   const pieChartParams = {
     innerRadius: 40,
@@ -291,7 +386,7 @@ const Dashboard = () => {
                 margin={{ left: 40, right: 20 }}
                 xAxis={[
                   {
-                    data: fyMonths,
+                    data: fyMonthsWithYrSuffix,
                     label: "Months",
                     scaleType: "point"
                   }
@@ -326,11 +421,10 @@ const Dashboard = () => {
                 height={400}
                 colors={["#2e96ff"]}
                 layout="horizontal"
-                margin={{ left: 45, right: 20 }}
+                margin={{ left: 60, right: 20 }}
                 yAxis={[
                   {
-                    data: fyMonths,
-                    label: "Months",
+                    data: fyMonthsWithYrSuffix,
                     scaleType: "band"
                   }
                 ]}
@@ -393,7 +487,7 @@ const Dashboard = () => {
                 dataset={currentFyMonthlySources}
                 xAxis={[
                   {
-                    data: fyMonths,
+                    data: fyMonthsWithYrSuffix,
                     label: "Months",
                     scaleType: "band"
                   }
@@ -413,6 +507,27 @@ const Dashboard = () => {
           </ChartTemplate>
         </Grid>
       </Grid>
+
+      <Stack>
+        <Typography variant="h6">Monthwise customers info</Typography>
+        {!loading &&
+        customerWiseTableData &&
+        Array.isArray(customerWiseTableData) &&
+        customerWiseTableData.length > 0 ? (
+          <DataGrid
+            sx={styles.dataGrid}
+            rows={customerWiseTableData}
+            columns={cwTdCols}
+            pageSizeOptions={[10]}
+            initialState={{
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 }
+              }
+            }}
+            disableColumnMenu
+          />
+        ) : null}
+      </Stack>
     </Box>
   );
 };
