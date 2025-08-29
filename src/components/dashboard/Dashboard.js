@@ -7,6 +7,8 @@ import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import { useSelector } from "react-redux";
 import { DataGrid } from "@mui/x-data-grid";
+import Tooltip from "@mui/material/Tooltip";
+import StarIcon from "@mui/icons-material/Star";
 import Typography from "@mui/material/Typography";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
@@ -56,7 +58,11 @@ const styles = {
     fontWeight: 600,
     textAlign: "center",
     color: "primary.main"
-  }
+  },
+  star: (color) => ({
+    color,
+    fontSize: "20px"
+  })
 };
 
 const Dashboard = () => {
@@ -278,7 +284,29 @@ const Dashboard = () => {
       headerName: "Customers",
       flex: 1,
       minWidth: 200,
-      valueFormatter: ({ value }) => (typeof value === "string" ? value : value?.label)
+      sortable: false,
+      renderCell: ({ row, value }) => {
+        const goldCustomer =
+          currentFyTopCustomers.length > 0 ? row.id === currentFyTopCustomers[0].id : null;
+        const silverCustomer =
+          currentFyTopCustomers.length > 1 ? row.id === currentFyTopCustomers[1].id : null;
+        const bronzeCustomer =
+          currentFyTopCustomers.length > 2 ? row.id === currentFyTopCustomers[2].id : null;
+
+        const val = typeof value === "string" ? value : value?.label;
+        const color = goldCustomer ? "common.gold" : bronzeCustomer ? "common.bronze" : "silver";
+
+        return (
+          <Stack flexDirection="row" alignItems="center">
+            {goldCustomer || silverCustomer || bronzeCustomer ? (
+              <StarIcon sx={styles.star(color)} />
+            ) : null}
+            <Tooltip title={val}>
+              <Typography variant="body2">{val}</Typography>
+            </Tooltip>
+          </Stack>
+        );
+      }
     },
     ...fyMonthsWithYrSuffix.map((m, index) => ({
       field: m.toLowerCase(),
