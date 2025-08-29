@@ -6,25 +6,30 @@ import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import { useSelector } from "react-redux";
+import Select from "@mui/material/Select";
 import { DataGrid } from "@mui/x-data-grid";
 import Tooltip from "@mui/material/Tooltip";
+import MenuItem from "@mui/material/MenuItem";
 import StarIcon from "@mui/icons-material/Star";
 import Typography from "@mui/material/Typography";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
 import { useOutletContext } from "react-router-dom";
 import { LineChart } from "@mui/x-charts/LineChart";
 import PersonIcon from "@mui/icons-material/Person";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
-import commonStyles from "utils/commonStyles";
 import {
   getFY,
   getFyMonths,
   convertToFyData,
   getMonthWiseData,
-  indianCurrencyFormatter
+  indianCurrencyFormatter,
+  getInvoicesPageTabs
 } from "utils/utilites";
+import commonStyles from "utils/commonStyles";
 
 import SalesStats from "./SalesStats";
 import TopThreeStats from "./TopThreeStats";
@@ -32,16 +37,26 @@ import ChartTemplate from "./ChartTemplate";
 
 const styles = {
   box: {
+    width: "100%",
+    minHeight: "100vh",
+    maxHeight: "max-content",
+    bgcolor: (theme) =>
+      theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.grey[50]
+  },
+  stack: {
+    py: 1,
+    px: 3,
+    top: 50,
+    zIndex: 1,
+    position: "sticky",
+    bgcolor: (theme) =>
+      theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.grey[50]
+  },
+  stack1: {
     p: 3,
     gap: 5,
     flexGrow: 1,
-    width: "100%",
-    display: "flex",
-    minHeight: "100vh",
-    maxHeight: "max-content",
-    flexDirection: "column",
-    bgcolor: (theme) =>
-      theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.grey[50]
+    width: "100%"
   },
   dataGrid: {
     ...(commonStyles?.dataGrid ?? {}),
@@ -70,18 +85,17 @@ const Dashboard = () => {
   const [yearlyData, setYearlyData] = useState([]);
   const [sourceData, setSourceData] = useState({});
   const [currentFyTopProducts, setCurrentFyTopProducts] = useState([]);
-  const [currentStartYear, setCurrentStartYear] = useState(null);
-  const [currentEndYear, setCurrentEndYear] = useState(null);
+
+  const fyList = getInvoicesPageTabs();
+  const [selectedFY, setSelectedFY] = useState(fyList?.[0] ?? {});
 
   const { loading = false } = useOutletContext();
   const { invoices } = useSelector((state) => state.invoices);
   const { customers = [], sourceList = [] } = useSelector((state) => state?.customers);
   const { startYear: sy, endYear: ey, month: currentMonth } = getFY();
 
-  useEffect(() => {
-    setCurrentStartYear(sy);
-    setCurrentEndYear(ey);
-  }, [sy, ey]);
+  const currentStartYear = String(selectedFY?.sy || sy);
+  const currentEndYear = String(selectedFY?.ey || ey);
 
   useEffect(() => {
     if (sourceList && Array.isArray(sourceList) && sourceList.length > 0) {
@@ -276,6 +290,11 @@ const Dashboard = () => {
 
   const valueFormatter = (value) => (value ? indianCurrencyFormatter(value) : `₹0`);
 
+  const handleSelectChange = ({ target: { name, value } }, list) => {
+    const selectedOption = list.find((option) => option.value === value);
+    setSelectedFY(selectedOption);
+  };
+
   const fyMonthsWithYrSuffix = getFyMonths(currentStartYear, currentEndYear);
 
   const cwTdCols = [
@@ -342,219 +361,241 @@ const Dashboard = () => {
 
   return (
     <Box sx={styles.box}>
-      <Grid container spacing={{ xs: 3, md: 5 }}>
-        <Grid item xs={12} sm={12} md={4}>
-          <SalesStats
-            loader={loader}
-            currentFySales={currentFySales}
-            currentMonthSales={currentMonthSales}
-          />
+      <Stack flexDirection="row" justifyContent="flex-end" sx={styles.stack}>
+        <FormControl size="small" margin="dense">
+          <InputLabel id="fy">FY</InputLabel>
+          <Select
+            id="fy"
+            name="fy"
+            label="FY"
+            disabled={loader}
+            value={selectedFY?.value ?? ""}
+            onChange={(e) => handleSelectChange(e, fyList)}>
+            {fyList &&
+              Array.isArray(fyList) &&
+              fyList.map((item) => (
+                <MenuItem key={item?.value} value={item?.value}>
+                  {item?.label}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+      </Stack>
+      <Stack sx={styles.stack1}>
+        <Grid container spacing={{ xs: 3, md: 5 }}>
+          <Grid item xs={12} sm={12} md={4}>
+            <SalesStats
+              loader={loader}
+              currentFySales={currentFySales}
+              currentMonthSales={currentMonthSales}
+            />
+          </Grid>
+          <Grid item xs={12} sm={12} md={4}>
+            <TopThreeStats
+              showAmount
+              loader={loader}
+              title="Customers"
+              icon={<PersonIcon />}
+              avatarBgColor="warning.main"
+              list={currentFyTopCustomers}
+            />
+          </Grid>
+          <Grid item xs={12} sm={12} md={4}>
+            <TopThreeStats
+              loader={loader}
+              title="Products"
+              icon={<ShoppingBagIcon />}
+              avatarBgColor="secondary.main"
+              list={currentFyTopProducts}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={12} md={4}>
-          <TopThreeStats
-            showAmount
-            loader={loader}
-            title="Customers"
-            icon={<PersonIcon />}
-            avatarBgColor="warning.main"
-            list={currentFyTopCustomers}
-          />
-        </Grid>
-        <Grid item xs={12} sm={12} md={4}>
-          <TopThreeStats
-            loader={loader}
-            title="Products"
-            icon={<ShoppingBagIcon />}
-            avatarBgColor="secondary.main"
-            list={currentFyTopProducts}
-          />
-        </Grid>
-      </Grid>
-      <Grid container spacing={{ xs: 3, md: 5 }}>
-        <Grid item xs={12} sm={12} md={6}>
-          <ChartTemplate title="FY-wise sales" loader={loader}>
-            {yearlyData.length > 0 ? (
-              <BarChart
-                height={400}
-                margin={{ left: 45, right: 20 }}
-                xAxis={[
-                  {
-                    label: "FY",
-                    scaleType: "band",
-                    data: yearlyData.map((item) => item.id)
-                  }
-                ]}
-                yAxis={[
-                  {
-                    valueFormatter: (value) => `₹${value / 1000}k`
-                  }
-                ]}
-                series={[
-                  {
-                    label: "Sales",
-                    data: yearlyData.map((item) => item.sales),
+        <Grid container spacing={{ xs: 3, md: 5 }}>
+          <Grid item xs={12} sm={12} md={6}>
+            <ChartTemplate title="FY-wise sales" loader={loader}>
+              {yearlyData.length > 0 ? (
+                <BarChart
+                  height={400}
+                  margin={{ left: 45, right: 20 }}
+                  xAxis={[
+                    {
+                      label: "FY",
+                      scaleType: "band",
+                      data: yearlyData.map((item) => item.id)
+                    }
+                  ]}
+                  yAxis={[
+                    {
+                      valueFormatter: (value) => `₹${value / 1000}k`
+                    }
+                  ]}
+                  series={[
+                    {
+                      label: "Sales",
+                      data: yearlyData.map((item) => item.sales),
+                      valueFormatter
+                    }
+                  ]}
+                  slotProps={{
+                    legend: {
+                      hidden: true
+                    }
+                  }}
+                />
+              ) : null}
+            </ChartTemplate>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <ChartTemplate title="Monthwise sales" loader={loader}>
+              {yearlyData.length > 0 ? (
+                <LineChart
+                  height={400}
+                  colors={["#da00ff"]}
+                  margin={{ left: 40, right: 20 }}
+                  xAxis={[
+                    {
+                      data: fyMonthsWithYrSuffix,
+                      label: "Months",
+                      scaleType: "point"
+                    }
+                  ]}
+                  yAxis={[
+                    {
+                      valueFormatter: (value) => `₹${value / 1000}k`
+                    }
+                  ]}
+                  series={[
+                    {
+                      area: true,
+                      showMark: false,
+                      label: "Monthly Sales",
+                      data: currentFyMonthlySales,
+                      valueFormatter
+                    }
+                  ]}
+                  slotProps={{
+                    legend: {
+                      hidden: true
+                    }
+                  }}
+                />
+              ) : null}
+            </ChartTemplate>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <ChartTemplate title="Monthwise invoices" loader={loader}>
+              {yearlyData.length > 0 ? (
+                <BarChart
+                  height={400}
+                  colors={["#2e96ff"]}
+                  layout="horizontal"
+                  margin={{ left: 60, right: 20 }}
+                  yAxis={[
+                    {
+                      data: fyMonthsWithYrSuffix,
+                      scaleType: "band"
+                    }
+                  ]}
+                  series={[
+                    {
+                      label: "Invoices",
+                      data: currentFyMonthlyInvoiceCount
+                    }
+                  ]}
+                  slotProps={{
+                    legend: {
+                      hidden: true
+                    }
+                  }}
+                />
+              ) : null}
+            </ChartTemplate>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <ChartTemplate title="Sourcewise invoices & sales" loader={loader}>
+              {yearlyData.length > 0 && currentFySources.length > 0 ? (
+                <PieChart
+                  height={400}
+                  series={[
+                    {
+                      data: currentFySources.map(({ id, name: label, invoiceCount: value }) => ({
+                        id,
+                        label,
+                        value
+                      })),
+                      ...pieChartParams,
+                      cx: 140
+                    },
+                    {
+                      data: currentFySources.map(({ id, name: label, total: value }, index) => ({
+                        id: `${id}-${index}`,
+                        label,
+                        value
+                      })),
+                      ...pieChartParams,
+                      valueFormatter: (data) => indianCurrencyFormatter(data.value),
+                      cx: 400
+                    }
+                  ]}
+                  slotProps={{
+                    legend: {
+                      hidden: true
+                    }
+                  }}
+                />
+              ) : null}
+            </ChartTemplate>
+          </Grid>
+          <Grid item xs={12}>
+            <ChartTemplate title="Monthwise sales of sources" loader={loader}>
+              {yearlyData.length > 0 ? (
+                <BarChart
+                  height={400}
+                  margin={{ left: 45, right: 20 }}
+                  dataset={currentFyMonthlySources}
+                  xAxis={[
+                    {
+                      data: fyMonthsWithYrSuffix,
+                      label: "Months",
+                      scaleType: "band"
+                    }
+                  ]}
+                  series={sourceList.map((source) => ({
+                    dataKey: source.value,
+                    label: source.label,
                     valueFormatter
-                  }
-                ]}
-                slotProps={{
-                  legend: {
-                    hidden: true
-                  }
-                }}
-              />
-            ) : null}
-          </ChartTemplate>
+                  }))}
+                  slotProps={{
+                    legend: {
+                      hidden: true
+                    }
+                  }}
+                />
+              ) : null}
+            </ChartTemplate>
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={12} md={6}>
-          <ChartTemplate title="Monthwise sales" loader={loader}>
-            {yearlyData.length > 0 ? (
-              <LineChart
-                height={400}
-                colors={["#da00ff"]}
-                margin={{ left: 40, right: 20 }}
-                xAxis={[
-                  {
-                    data: fyMonthsWithYrSuffix,
-                    label: "Months",
-                    scaleType: "point"
-                  }
-                ]}
-                yAxis={[
-                  {
-                    valueFormatter: (value) => `₹${value / 1000}k`
-                  }
-                ]}
-                series={[
-                  {
-                    area: true,
-                    showMark: false,
-                    label: "Monthly Sales",
-                    data: currentFyMonthlySales,
-                    valueFormatter
-                  }
-                ]}
-                slotProps={{
-                  legend: {
-                    hidden: true
-                  }
-                }}
-              />
-            ) : null}
-          </ChartTemplate>
-        </Grid>
-        <Grid item xs={12} sm={12} md={6}>
-          <ChartTemplate title="Monthwise invoices" loader={loader}>
-            {yearlyData.length > 0 ? (
-              <BarChart
-                height={400}
-                colors={["#2e96ff"]}
-                layout="horizontal"
-                margin={{ left: 60, right: 20 }}
-                yAxis={[
-                  {
-                    data: fyMonthsWithYrSuffix,
-                    scaleType: "band"
-                  }
-                ]}
-                series={[
-                  {
-                    label: "Invoices",
-                    data: currentFyMonthlyInvoiceCount
-                  }
-                ]}
-                slotProps={{
-                  legend: {
-                    hidden: true
-                  }
-                }}
-              />
-            ) : null}
-          </ChartTemplate>
-        </Grid>
-        <Grid item xs={12} sm={12} md={6}>
-          <ChartTemplate title="Sourcewise invoices & sales" loader={loader}>
-            {yearlyData.length > 0 ? (
-              <PieChart
-                height={400}
-                series={[
-                  {
-                    data: currentFySources.map(({ id, name: label, invoiceCount: value }) => ({
-                      id,
-                      label,
-                      value
-                    })),
-                    ...pieChartParams,
-                    cx: 140
-                  },
-                  {
-                    data: currentFySources.map(({ id, name: label, total: value }, index) => ({
-                      id: `${id}-${index}`,
-                      label,
-                      value
-                    })),
-                    ...pieChartParams,
-                    valueFormatter: (data) => indianCurrencyFormatter(data.value),
-                    cx: 400
-                  }
-                ]}
-                slotProps={{
-                  legend: {
-                    hidden: true
-                  }
-                }}
-              />
-            ) : null}
-          </ChartTemplate>
-        </Grid>
-        <Grid item xs={12}>
-          <ChartTemplate title="Monthwise sales of sources" loader={loader}>
-            {yearlyData.length > 0 ? (
-              <BarChart
-                height={400}
-                margin={{ left: 45, right: 20 }}
-                dataset={currentFyMonthlySources}
-                xAxis={[
-                  {
-                    data: fyMonthsWithYrSuffix,
-                    label: "Months",
-                    scaleType: "band"
-                  }
-                ]}
-                series={sourceList.map((source) => ({
-                  dataKey: source.value,
-                  label: source.label,
-                  valueFormatter
-                }))}
-                slotProps={{
-                  legend: {
-                    hidden: true
-                  }
-                }}
-              />
-            ) : null}
-          </ChartTemplate>
-        </Grid>
-      </Grid>
 
-      <Stack>
-        <Typography variant="h6">Monthwise customers info</Typography>
-        {!loading &&
-        customerWiseTableData &&
-        Array.isArray(customerWiseTableData) &&
-        customerWiseTableData.length > 0 ? (
-          <DataGrid
-            sx={styles.dataGrid}
-            rows={customerWiseTableData}
-            columns={cwTdCols}
-            pageSizeOptions={[10]}
-            initialState={{
-              pagination: {
-                paginationModel: { page: 0, pageSize: 10 }
-              }
-            }}
-            disableColumnMenu
-          />
-        ) : null}
+        <Stack>
+          <Typography variant="h6">Monthwise customers info</Typography>
+          {!loading &&
+          customerWiseTableData &&
+          Array.isArray(customerWiseTableData) &&
+          customerWiseTableData.length > 0 ? (
+            <DataGrid
+              sx={styles.dataGrid}
+              rows={customerWiseTableData}
+              columns={cwTdCols}
+              pageSizeOptions={[10]}
+              initialState={{
+                pagination: {
+                  paginationModel: { page: 0, pageSize: 10 }
+                }
+              }}
+              disableColumnMenu
+            />
+          ) : null}
+        </Stack>
       </Stack>
     </Box>
   );
