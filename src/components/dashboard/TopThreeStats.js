@@ -10,8 +10,11 @@ import { indianCurrencyFormatter } from "utils/utilites";
 
 const styles = {
   paper: {
-    p: 2,
+    p: 3,
     height: "100%"
+  },
+  stack1: {
+    minHeight: "152px"
   },
   stack2: {
     width: "calc(100% - 50px)"
@@ -75,15 +78,13 @@ const TopThreeStats = ({
           {skeletonContent}
         </Stack>
       ) : (
-        <Stack gap={2}>
+        <Stack gap={2} sx={styles.stack1}>
           {list.map((item, index) => (
             <Stack direction="row" gap={1} alignItems="center" key={`${item.name}-${item.amount}`}>
               <Avatar sx={styles.avatar2}>{index + 1}</Avatar>
               <Stack sx={styles.stack2} justifyContent="center">
                 <Typography sx={styles.amount}>
-                  {showAmount
-                    ? indianCurrencyFormatter(item.total || 0)
-                    : `${item.invoiceCount} pcs`}
+                  {showAmount ? indianCurrencyFormatter(item.total || 0) : `${item.pcs} pcs`}
                 </Typography>
                 <Tooltip title={item.name}>
                   <Typography variant="subtitle1" sx={styles.name}>

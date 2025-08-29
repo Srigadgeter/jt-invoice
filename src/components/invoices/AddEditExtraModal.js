@@ -15,9 +15,9 @@ import InputAdornment from "@mui/material/InputAdornment";
 
 import commonStyles from "utils/commonStyles";
 import AppModal from "components/common/AppModal";
-import { generateKeyValuePair, isMobile } from "utils/utilites";
 import { addExtra, editExtra } from "store/slices/invoicesSlice";
 import addEditExtraSchema from "validationSchemas/addEditExtraSchema";
+import { commonSelectOnChangeHandler, generateKeyValuePair, isMobile } from "utils/utilites";
 
 const styles = {
   fullWidth: {
@@ -96,16 +96,8 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
     handleClose();
   };
 
-  const handleSelectChange = ({ target: { name, value } }, list) => {
-    if (value === "") {
-      setFieldValue(name, { label: "", value: "" });
-    } else if (value === "new") {
-      setFieldValue(name, { label: "New", value: "new" });
-    } else {
-      const selectedOption = list.find((option) => option.value === value);
-      setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
-    }
-  };
+  const handleSelectChange = ({ target: { name, value } }, list) =>
+    commonSelectOnChangeHandler(name, value, list, setFieldValue);
 
   const footerContent = () => (
     <Stack direction="row" justifyContent="flex-end" alignItems="center">
