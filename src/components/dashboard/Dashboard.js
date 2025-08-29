@@ -121,7 +121,7 @@ const Dashboard = () => {
       setLoader(true);
       if (invoices.length > 0 && currentStartYear && currentEndYear) {
         invoices.forEach((invoice) => {
-          const invoiceDate = dayjs(invoice.createdAt);
+          const invoiceDate = dayjs(invoice.invoiceDate);
           const monthOfInvoice = invoiceDate.format("M");
 
           const invoiceFY = `${invoice.startYear}-${invoice.endYear}`;
@@ -278,7 +278,7 @@ const Dashboard = () => {
 
   const currentFyTopCustomers = currentFyCustomersSalesInDescOrder.slice(0, 3);
   const currentFyProductsSalesInDescOrder = currentFyDataObj?.products
-    ? Object.values(currentFyDataObj?.products).sort((a, b) => b.startYear - a.startYear)
+    ? Object.values(currentFyDataObj?.products).sort((a, b) => b.pcs - a.pcs)
     : [];
 
   const currentFyTopProducts = currentFyProductsSalesInDescOrder.slice(0, 3);
@@ -410,7 +410,9 @@ const Dashboard = () => {
     <Stack width="100%">
       <Stack flexDirection="row" justifyContent="center" gap={0.25}>
         <Chip size="small" variant="outlined" label={`${pcs} p`} />
-        {mtrs ? <Chip size="small" variant="outlined" label={`${mtrs} m`} /> : null}
+        {mtrs && typeof mtrs === "number" ? (
+          <Chip size="small" variant="outlined" label={`${mtrs} m`} />
+        ) : null}
       </Stack>
       <Typography variant="subtitle2" sx={styles.gridCellAmount}>
         {amount ? indianCurrencyFormatter(amount) : `₹0`}
