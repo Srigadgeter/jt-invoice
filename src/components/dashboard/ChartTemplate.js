@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 
 const styles = {
   paper: {
-    p: 2
+    p: 3
   }
 };
 

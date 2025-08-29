@@ -10,7 +10,7 @@ import { indianCurrencyFormatter } from "utils/utilites";
 
 const styles = {
   paper: {
-    p: 2,
+    p: 3,
     height: "100%"
   },
   avatar: {

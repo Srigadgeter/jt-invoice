@@ -23,6 +23,13 @@ import { useDispatch, useSelector } from "react-redux";
 import FormHelperText from "@mui/material/FormHelperText";
 
 import {
+  commonSelectOnChangeHandler,
+  formatDate,
+  generateKeyValuePair,
+  getNow,
+  isMobile
+} from "utils/utilites";
+import {
   addDocToFirestore,
   deleteDocFromFirestore,
   editDocInFirestore
@@ -37,7 +44,6 @@ import customerSchema from "validationSchemas/customerSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addNotification } from "store/slices/notificationsSlice";
 import { updateMatchedCustomerInAllInvoices } from "store/slices/invoicesSlice";
-import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
 import { addCustomer, deleteCustomer, editCustomer } from "store/slices/customersSlice";
 
 const styles = {
@@ -245,16 +251,8 @@ const Customers = () => {
     }
   });
 
-  const handleSelectChange = ({ target: { name, value } }, list) => {
-    if (value === "") {
-      setFieldValue(name, { label: "None", value: "" });
-    } else if (value === "new") {
-      setFieldValue(name, { label: "New", value: "new" });
-    } else {
-      const selectedOption = list.find((option) => option.value === value);
-      setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
-    }
-  };
+  const handleSelectChange = ({ target: { name, value } }, list) =>
+    commonSelectOnChangeHandler(name, value, list, setFieldValue);
 
   const handleCancel = () => {
     // reset the form
