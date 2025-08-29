@@ -27,6 +27,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import {
+  commonSelectOnChangeHandler,
   formatDateForInputField,
   formatDateToISOString,
   generateKeyValuePair,
@@ -519,16 +520,8 @@ const Invoice = () => {
     });
   };
 
-  const handleSelectChange = ({ target: { name, value } }, list) => {
-    if (value === "") {
-      setFieldValue(name, { label: "None", value: "" });
-    } else if (value === "new") {
-      setFieldValue(name, { label: "New", value: "new" });
-    } else {
-      const selectedOption = list.find((option) => option.value === value);
-      setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
-    }
-  };
+  const handleSelectChange = ({ target: { name, value } }, list) =>
+    commonSelectOnChangeHandler(name, value, list, setFieldValue);
 
   const handleChangePageMode = (selectedMode) => {
     dispatch(setPageMode(selectedMode));

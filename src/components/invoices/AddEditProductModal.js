@@ -14,12 +14,18 @@ import { useDispatch, useSelector } from "react-redux";
 import FormHelperText from "@mui/material/FormHelperText";
 import InputAdornment from "@mui/material/InputAdornment";
 
+import {
+  commonSelectOnChangeHandler,
+  generateKeyValuePair,
+  getNow,
+  isMobile,
+  sortByStringProperty
+} from "utils/utilites";
 import commonStyles from "utils/commonStyles";
 import { GST_PERCENTAGE } from "utils/constants";
 import AppModal from "components/common/AppModal";
 import { addProduct, editProduct } from "store/slices/invoicesSlice";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
-import { generateKeyValuePair, getNow, isMobile, sortByStringProperty } from "utils/utilites";
 
 const styles = {
   fullWidth: {
@@ -151,16 +157,8 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
     handleClose();
   };
 
-  const handleSelectChange = ({ target: { name, value } }, list) => {
-    if (value === "") {
-      setFieldValue(name, { label: "None", value: "" });
-    } else if (value === "new") {
-      setFieldValue(name, { label: "New", value: "new" });
-    } else {
-      const selectedOption = list.find((option) => option.value === value);
-      setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
-    }
-  };
+  const handleSelectChange = ({ target: { name, value } }, list) =>
+    commonSelectOnChangeHandler(name, value, list, setFieldValue);
 
   const footerContent = () => (
     <Stack direction="row" justifyContent="space-between" alignItems="center">

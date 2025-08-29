@@ -179,3 +179,14 @@ export const getFyMonths = (startYear, endYear, divider = " ") =>
         ...[...fyMonths.slice(-3)].map((month) => `${month}${divider}${endYear}`)
       ]
     : [];
+
+export const commonSelectOnChangeHandler = (name, value, list, setFieldValue) => {
+  if (value === "") {
+    setFieldValue(name, { label: "None", value: "" });
+  } else if (value === "new") {
+    setFieldValue(name, { label: "New", value: "new" });
+  } else {
+    const selectedOption = list.find((option) => option.value === value);
+    setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
+  }
+};
