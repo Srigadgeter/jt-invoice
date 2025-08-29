@@ -61,15 +61,19 @@ const styles = {
   dataGrid: {
     ...(commonStyles?.dataGrid ?? {}),
     ".MuiDataGrid-virtualScroller": {
-      height: "calc(100vh - 363px)"
+      height: "calc(100vh - 364px)"
     },
     "& .MuiDataGrid-cell:not(:last-child)": {
-      borderRight: (theme) =>
-        `1px solid ${
+      borderRight: "1px solid",
+      borderColor: (theme) =>
+        `${
           theme.palette.mode === "dark" ? "rgba(81, 81, 81, 1)" : "rgba(224, 224, 224, 1)"
-        }`,
+        } !important`,
       justifyContent: "space-between",
       alignItems: "center"
+    },
+    "& .MuiDataGrid-cell:first-child, & .MuiDataGrid-cell:nth-last-child(2)": {
+      borderRight: "3px solid"
     }
   },
   gridCellAmount: {
@@ -300,6 +304,15 @@ const Dashboard = () => {
 
   const fyMonthsWithYrSuffix = getFyMonths(currentStartYear, currentEndYear);
 
+  const cwTdCell = (count, amount) => (
+    <Stack width="100%">
+      <Chip size="small" variant="outlined" label={`${count} invoice${count === 1 ? "" : "s"}`} />
+      <Typography variant="subtitle2" sx={styles.gridCellAmount}>
+        {amount ? indianCurrencyFormatter(amount) : `₹0`}
+      </Typography>
+    </Stack>
+  );
+
   const cwTdCols = [
     {
       field: "name",
@@ -333,24 +346,21 @@ const Dashboard = () => {
     ...fyMonthsWithYrSuffix.map((m, index) => ({
       field: m.toLowerCase(),
       headerName: m,
-      width: 130,
+      width: 120,
       sortable: false,
       renderCell: ({ row }) =>
-        row?.months?.[index] ? (
-          <Stack width="100%">
-            <Chip
-              size="small"
-              variant="outlined"
-              label={`${row.months[index]?.invoiceCount} invoice${
-                row.months[index]?.invoiceCount === 1 ? "" : "s"
-              }`}
-            />
-            <Typography variant="subtitle2" sx={styles.gridCellAmount}>
-              {row.months[index]?.total ? indianCurrencyFormatter(row.months[index]?.total) : `₹0`}
-            </Typography>
-          </Stack>
-        ) : null
-    }))
+        row?.months?.[index]
+          ? cwTdCell(row.months[index]?.invoiceCount, row.months[index]?.total)
+          : null
+    })),
+    {
+      field: "total",
+      headerName: "Total",
+      width: 120,
+      sortable: false,
+      renderCell: ({ row }) =>
+        row?.invoiceCount && row?.total ? cwTdCell(row?.invoiceCount, row?.total) : null
+    }
   ];
 
   const pieChartParams = {
