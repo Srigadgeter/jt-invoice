@@ -64,7 +64,10 @@ const styles = {
       height: "calc(100vh - 363px)"
     },
     "& .MuiDataGrid-cell:not(:last-child)": {
-      borderRight: "1px solid rgba(224, 224, 224, 1)",
+      borderRight: (theme) =>
+        `1px solid ${
+          theme.palette.mode === "dark" ? "rgba(81, 81, 81, 1)" : "rgba(224, 224, 224, 1)"
+        }`,
       justifyContent: "space-between",
       alignItems: "center"
     }
