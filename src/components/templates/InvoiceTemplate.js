@@ -380,7 +380,7 @@ const InvoiceTemplate = ({ reference, dataId }) => {
             </Typography>
             <Stack>
               {NOTES.map((item, index) => (
-                <Typography key={item}>
+                <Typography key={item} variant="subtitle2" sx={styles.textTransformNone}>
                   {index + 1}. {item}
                 </Typography>
               ))}
