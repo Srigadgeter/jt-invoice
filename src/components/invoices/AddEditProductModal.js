@@ -18,12 +18,12 @@ import {
   commonSelectOnChangeHandler,
   generateKeyValuePair,
   getNow,
-  isMobile,
   sortByStringProperty
 } from "utils/utilites";
 import commonStyles from "utils/commonStyles";
 import { GST_PERCENTAGE } from "utils/constants";
 import AppModal from "components/common/AppModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import { addProduct, editProduct } from "store/slices/invoicesSlice";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
 
@@ -51,6 +51,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
   const [amount, setAmount] = useState(0);
 
   const dispatch = useDispatch();
+  const { isMobile } = useBreakpoints();
 
   const { products = [] } = useSelector((state) => state?.products);
   const productList = sortByStringProperty([...products], "value");
@@ -176,7 +177,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -184,7 +185,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Save
         </Button>
       </Stack>

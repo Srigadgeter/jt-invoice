@@ -15,9 +15,10 @@ import InputAdornment from "@mui/material/InputAdornment";
 
 import commonStyles from "utils/commonStyles";
 import AppModal from "components/common/AppModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import { addExtra, editExtra } from "store/slices/invoicesSlice";
 import addEditExtraSchema from "validationSchemas/addEditExtraSchema";
-import { commonSelectOnChangeHandler, generateKeyValuePair, isMobile } from "utils/utilites";
+import { commonSelectOnChangeHandler, generateKeyValuePair } from "utils/utilites";
 
 const styles = {
   fullWidth: {
@@ -38,6 +39,7 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
   const { extrasList = [] } = useSelector((state) => state?.invoices);
 
   const dispatch = useDispatch();
+  const { isMobile } = useBreakpoints();
 
   const {
     dirty,
@@ -106,7 +108,7 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -114,7 +116,7 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Save
         </Button>
       </Stack>
