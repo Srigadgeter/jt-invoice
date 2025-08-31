@@ -3,10 +3,10 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 
 const useBreakpoints = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.between("mobile", "tablet"));
-  const isTablet = useMediaQuery(theme.breakpoints.between("tablet", "laptop"));
-  const isLaptop = useMediaQuery(theme.breakpoints.between("laptop", "desktop"));
-  const isDesktop = useMediaQuery(theme.breakpoints.up("desktop"));
+  const isMobile = useMediaQuery(theme.breakpoints.between("xs", "sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const isLaptop = useMediaQuery(theme.breakpoints.between("md", "xl"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("xl"));
 
   return { isMobile, isTablet, isLaptop, isDesktop };
 };
