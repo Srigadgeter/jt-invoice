@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { Fragment } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";

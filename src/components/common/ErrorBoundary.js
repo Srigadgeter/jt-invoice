@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { Component } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -33,6 +32,7 @@ class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error(error);
+    // eslint-disable-next-line no-console
     console.info(info);
   }
 

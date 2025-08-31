@@ -1,10 +1,10 @@
-/* eslint-disable no-restricted-globals */
 import dayjs from "dayjs";
 import { fyMonths } from "./constants";
 
 export const trimString = (text) => (typeof text === "string" ? text.trim() : text);
 
 export const indianCurrencyFormatter = (number) => {
+  // eslint-disable-next-line no-restricted-globals
   if (!isNaN(number))
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
