@@ -27,6 +27,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import {
+  commonSelectOnChangeHandler,
   formatDateForInputField,
   formatDateToISOString,
   generateKeyValuePair,
@@ -147,7 +148,7 @@ const Invoice = () => {
     transportDestinationList = [],
     selectedInvoiceInitialValue = {}
   } = useSelector((state) => state?.invoices);
-  const { customers } = useSelector((state) => state?.customers);
+  const { customers, sourceList = [] } = useSelector((state) => state?.customers);
 
   // INITIAL_VALUES constant placed here in order to get new datatime value for invoiceDate & lrDate fields
   // when user frequently creates multiple invoice
@@ -164,6 +165,8 @@ const Invoice = () => {
     newTransportDestination: "",
     customerName: { value: "", label: "" },
     newCustomerName: "",
+    newCustomerSource: { value: "", label: "" },
+    newCustomerNewSource: "",
     newCustomerGSTNumber: "",
     newCustomerPhoneNumber: "",
     newCustomerAddress: ""
@@ -277,6 +280,16 @@ const Invoice = () => {
               "newCustomerName:This customer name already exists with the same address"
             );
           else {
+            if (val?.newCustomerSource?.value === "new" && val?.newCustomerNewSource) {
+              const sourceData = generateKeyValuePair(val?.newCustomerNewSource);
+              const isSourceAlreadyPresent = sourceList.some(
+                (item) => item?.value === sourceData?.value
+              );
+              if (isSourceAlreadyPresent)
+                throw new Error("newSource:This source name already exists");
+              else customerFormValues.source = sourceData;
+            } else customerFormValues.source = val?.newCustomerSource;
+
             customerFormValues.name = customerNameData;
             customerFormValues.address = val?.newCustomerAddress || null;
             customerFormValues.gstNumber = val?.newCustomerGSTNumber || null;
@@ -509,16 +522,8 @@ const Invoice = () => {
     });
   };
 
-  const handleSelectChange = ({ target: { name, value } }, list) => {
-    if (value === "") {
-      setFieldValue(name, { label: "None", value: "" });
-    } else if (value === "new") {
-      setFieldValue(name, { label: "New", value: "new" });
-    } else {
-      const selectedOption = list.find((option) => option.value === value);
-      setFieldValue(name, { label: selectedOption?.label, value: selectedOption?.value });
-    }
-  };
+  const handleSelectChange = ({ target: { name, value } }, list) =>
+    commonSelectOnChangeHandler(name, value, list, setFieldValue);
 
   const handleChangePageMode = (selectedMode) => {
     dispatch(setPageMode(selectedMode));
@@ -1096,6 +1101,67 @@ const Invoice = () => {
               </Stack>
               {values?.customerName?.value === "new" && !isViewMode && (
                 <>
+                  <Stack direction="row" spacing={2}>
+                    <FormControl
+                      fullWidth
+                      size="small"
+                      margin="dense"
+                      error={
+                        touched?.newCustomerSource && Boolean(errors?.newCustomerSource?.value)
+                      }>
+                      <InputLabel id="newCustomerSource">Source of New Customer</InputLabel>
+                      <Select
+                        id="newCustomerSource"
+                        name="newCustomerSource"
+                        label="Source of New Customer"
+                        onBlur={handleBlur}
+                        disabled={isLoading}
+                        value={values?.newCustomerSource?.value ?? ""}
+                        MenuProps={{ sx: styles.selectDropdownMenuStyle }}
+                        onChange={(e) => handleSelectChange(e, sourceList)}>
+                        <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
+                          <em>None</em>
+                        </MenuItem>
+                        <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
+                          <em>New</em>
+                        </MenuItem>
+                        {sourceList &&
+                          Array.isArray(sourceList) &&
+                          sourceList.map((item) => (
+                            <MenuItem key={item?.value} value={item?.value}>
+                              {item?.label}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                      {touched?.newCustomerSource && Boolean(errors?.newCustomerSource?.value) && (
+                        <FormHelperText
+                          htmlFor="form-selector"
+                          error={
+                            touched?.newCustomerSource && Boolean(errors?.newCustomerSource?.value)
+                          }>
+                          {errors?.newCustomerSource?.value}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                    {values?.newCustomerSource?.value === "new" && (
+                      <TextField
+                        fullWidth
+                        id="newCustomerNewSource"
+                        name="newCustomerNewSource"
+                        label="New Source of New Customer"
+                        margin="dense"
+                        size="small"
+                        onBlur={handleBlur}
+                        disabled={isLoading}
+                        onChange={handleChange}
+                        value={values?.newCustomerNewSource ?? ""}
+                        helperText={touched?.newCustomerNewSource && errors?.newCustomerNewSource}
+                        error={
+                          touched?.newCustomerNewSource && Boolean(errors?.newCustomerNewSource)
+                        }
+                      />
+                    )}
+                  </Stack>
                   <Stack direction="row" spacing={2}>
                     <TextField
                       fullWidth

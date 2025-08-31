@@ -59,6 +59,21 @@ export const LOCALSTORAGE_KEYS = {
   LS_CUSTOMERS: "customers"
 };
 
+export const fyMonths = [
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+  "Jan",
+  "Feb",
+  "Mar"
+];
+
 // Threshold values
 export const GST_LEN = 15;
 export const PRODUCT_NAME_MIN_LEN = 3;

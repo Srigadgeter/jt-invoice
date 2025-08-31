@@ -88,6 +88,18 @@ const invoiceSchema = yup.object({
         )
         .trim()
   }),
+  newCustomerSource: yup.object().when("customerName.value", {
+    is: "new",
+    then: () =>
+      yup.object({
+        label: yup.string().trim(),
+        value: yup.string().trim().required("Source is required")
+      })
+  }),
+  newCustomerNewSource: yup.string().when("newCustomerSource.value", {
+    is: "new",
+    then: (schema) => schema.required("New Source is required").trim()
+  }),
   newCustomerGSTNumber: yup.string().when("customerName.value", {
     is: "new",
     then: (schema) =>
@@ -104,7 +116,7 @@ const invoiceSchema = yup.object({
     is: "new",
     then: (schema) =>
       schema
-        .nullable()
+        .required("Phone Number is required")
         .trim()
         .matches(
           /^(\+91[-\s]?)?[6-9]\d{9}$|^(0\d{2,4}[-\s]?)?\d{6,8}$/,

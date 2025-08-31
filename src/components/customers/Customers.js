@@ -3,8 +3,10 @@ import { useFormik } from "formik";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import Select from "@mui/material/Select";
 import Tooltip from "@mui/material/Tooltip";
 import { DataGrid } from "@mui/x-data-grid";
+import MenuItem from "@mui/material/MenuItem";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DoneIcon from "@mui/icons-material/Done";
@@ -12,11 +14,20 @@ import TextField from "@mui/material/TextField";
 import { collection } from "firebase/firestore";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
 import { useOutletContext } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import FormHelperText from "@mui/material/FormHelperText";
 
+import {
+  commonSelectOnChangeHandler,
+  formatDate,
+  generateKeyValuePair,
+  getNow
+} from "utils/utilites";
 import {
   addDocToFirestore,
   deleteDocFromFirestore,
@@ -33,7 +44,6 @@ import customerSchema from "validationSchemas/customerSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addNotification } from "store/slices/notificationsSlice";
 import { updateMatchedCustomerInAllInvoices } from "store/slices/invoicesSlice";
-import { formatDate, generateKeyValuePair, getNow } from "utils/utilites";
 import { addCustomer, deleteCustomer, editCustomer } from "store/slices/customersSlice";
 
 const styles = {
@@ -53,14 +63,19 @@ const styles = {
     whiteSpace: "normal",
     wordWrap: "break-word",
     overflow: "hidden"
-  }
+  },
+  selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
+  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
+  selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
 const INITIAL_VALUES = {
   name: "",
   gstNumber: "",
   phoneNumber: "",
-  address: ""
+  address: "",
+  source: "",
+  newSource: ""
 };
 
 const Customers = () => {
@@ -76,7 +91,7 @@ const Customers = () => {
   const { EDIT } = MODES;
   const { CUSTOMERS } = FIREBASE_COLLECTIONS;
   const { invoices = [] } = useSelector((state) => state?.invoices);
-  const { customers = [] } = useSelector((state) => state?.customers);
+  const { customers = [], sourceList = [] } = useSelector((state) => state?.customers);
   const dispatch = useDispatch();
 
   const customersCollectionRef = collection(db, CUSTOMERS);
@@ -95,7 +110,8 @@ const Customers = () => {
       name: customer?.name?.label,
       gstNumber: customer?.gstNumber,
       phoneNumber: customer?.phoneNumber,
-      address: customer?.address
+      address: customer?.address,
+      source: customer?.source
     });
     setSelectedCustomer(customer);
     setSelectedCustomerId(customer?.id ?? null);
@@ -151,7 +167,8 @@ const Customers = () => {
     resetForm,
     handleBlur,
     handleChange,
-    handleSubmit
+    handleSubmit,
+    setFieldValue
   } = useFormik({
     initialValues,
     enableReinitialize: true,
@@ -172,6 +189,16 @@ const Customers = () => {
             phoneNumber: val?.phoneNumber,
             address: val?.address
           };
+
+          if (val?.source?.value === "new" && val?.newSource) {
+            const sourceData = generateKeyValuePair(val?.newSource);
+            const isSourceAlreadyPresent = sourceList.some(
+              (item) => item?.value === sourceData?.value
+            );
+            if (isSourceAlreadyPresent)
+              throw new Error("newSource:This source name already exists");
+            else formValues.source = sourceData;
+          } else formValues.source = val?.source;
 
           if (selectedCustomerId) {
             formValues.createdAt = selectedCustomer?.createdAt;
@@ -226,6 +253,9 @@ const Customers = () => {
     }
   });
 
+  const handleSelectChange = ({ target: { name, value } }, list) =>
+    commonSelectOnChangeHandler(name, value, list, setFieldValue);
+
   const handleCancel = () => {
     // reset the form
     resetForm();
@@ -260,6 +290,12 @@ const Customers = () => {
       field: "phoneNumber",
       headerName: "Phone / Landline",
       width: 120
+    },
+    {
+      field: "source",
+      headerName: "Source",
+      width: 150,
+      renderCell: ({ value }) => <Box>{value?.label ?? ""}</Box>
     },
     {
       field: "address",
@@ -381,11 +417,67 @@ const Customers = () => {
           margin="dense"
           size="small"
           onBlur={handleBlur}
+          disabled={loading || isLoading}
           onChange={handleChange}
           value={values?.name ?? ""}
           helperText={touched?.name && errors?.name}
           error={touched?.name && Boolean(errors?.name)}
         />
+        <Stack direction="row" spacing={2}>
+          <FormControl
+            fullWidth
+            size="small"
+            margin="dense"
+            error={touched?.source && Boolean(errors?.source?.value)}>
+            <InputLabel id="source">Source</InputLabel>
+            <Select
+              id="source"
+              name="source"
+              label="Source"
+              onBlur={handleBlur}
+              disabled={loading || isLoading}
+              value={values?.source?.value ?? ""}
+              MenuProps={{ sx: styles.selectDropdownMenuStyle }}
+              onChange={(e) => handleSelectChange(e, sourceList)}>
+              <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
+                <em>None</em>
+              </MenuItem>
+              <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
+                <em>New</em>
+              </MenuItem>
+              {sourceList &&
+                Array.isArray(sourceList) &&
+                sourceList.map((item) => (
+                  <MenuItem key={item?.value} value={item?.value}>
+                    {item?.label}
+                  </MenuItem>
+                ))}
+            </Select>
+            {touched?.source && Boolean(errors?.source?.value) && (
+              <FormHelperText
+                htmlFor="form-selector"
+                error={touched?.source && Boolean(errors?.source?.value)}>
+                {errors?.source?.value}
+              </FormHelperText>
+            )}
+          </FormControl>
+          {values?.source?.value === "new" && (
+            <TextField
+              fullWidth
+              id="newSource"
+              name="newSource"
+              label="New Source"
+              margin="dense"
+              size="small"
+              onBlur={handleBlur}
+              disabled={loading || isLoading}
+              onChange={handleChange}
+              value={values?.newSource ?? ""}
+              helperText={touched?.newSource && errors?.newSource}
+              error={touched?.newSource && Boolean(errors?.newSource)}
+            />
+          )}
+        </Stack>
         <TextField
           fullWidth
           id="gstNumber"

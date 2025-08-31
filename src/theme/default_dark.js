@@ -21,6 +21,8 @@ const Options = {
       error: "#FEE2E2",
       success1: "#315345",
       error1: "#991B1B",
+      gold: "#ffd235",
+      bronze: "#ce8946",
       shadowColor: "#c0bfbf59",
       dividerBorder: "rgba(0, 0, 0, 0.12)",
       tableBorder: "rgba(224, 224, 224, 1)"
