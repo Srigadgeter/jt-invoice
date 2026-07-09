@@ -20,6 +20,10 @@ export const PAGE_INFO = {
   CUSTOMERS: {
     title: "Customers",
     description: "Heart of our business"
+  },
+  PROFILE: {
+    title: "Profile",
+    description: "Manage company information"
   }
 };
 
@@ -47,8 +51,11 @@ export const GST_PERCENTAGE = 5;
 export const FIREBASE_COLLECTIONS = {
   INVOICES: "invoices",
   PRODUCTS: "products",
-  CUSTOMERS: "customers"
+  CUSTOMERS: "customers",
+  PROFILE: "profile"
 };
+
+export const PROFILE_DOC_ID = "company";
 
 export const RECORDS_LIMIT_COUNT = 15;
 
@@ -56,7 +63,8 @@ export const LOCALSTORAGE_KEYS = {
   LS_USER: "user",
   LS_INVOICES: "invoices",
   LS_PRODUCTS: "products",
-  LS_CUSTOMERS: "customers"
+  LS_CUSTOMERS: "customers",
+  LS_PROFILE: "profile"
 };
 
 export const fyMonths = [
@@ -88,3 +96,5 @@ export const LOGISTICS_NAME_MIN_LEN = 2;
 export const LOGISTICS_NAME_MAX_LEN = 15;
 export const TRANSPORT_DESTINATION_NAME_MIN_LEN = 3;
 export const TRANSPORT_DESTINATION_NAME_MAX_LEN = 15;
+export const COMPANY_ADDRESS_MIN_LEN = 10;
+export const COMPANY_ADDRESS_MAX_LEN = 150;

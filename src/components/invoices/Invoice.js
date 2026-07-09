@@ -36,7 +36,8 @@ import {
   getNow,
   indianCurrencyFormatter,
   isMobile,
-  sortByStringProperty
+  sortByStringProperty,
+  getCompanyAddressForDate
 } from "utils/utilites";
 import {
   MODES,
@@ -149,6 +150,7 @@ const Invoice = () => {
     selectedInvoiceInitialValue = {}
   } = useSelector((state) => state?.invoices);
   const { customers, sourceList = [] } = useSelector((state) => state?.customers);
+  const { profile = {} } = useSelector((state) => state?.profile);
 
   // INITIAL_VALUES constant placed here in order to get new datatime value for invoiceDate & lrDate fields
   // when user frequently creates multiple invoice
@@ -414,6 +416,10 @@ const Invoice = () => {
 
         formValues.createdAt = isEditMode ? currentPageData?.createdAt : getNow();
         formValues.updatedAt = isEditMode ? [...(currentPageData?.updatedAt || []), getNow()] : [];
+
+        // Snapshot the company address based on the selected invoiceDate
+        const addresses = profile?.addresses || [];
+        formValues.companyAddress = getCompanyAddressForDate(addresses, val.invoiceDate);
 
         if (
           formValues?.products?.length > 0 &&
