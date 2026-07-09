@@ -15,11 +15,8 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "yarn"
 
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Clean install dependencies
-        run: rm -rf node_modules && yarn --immutable
+        run: rm -rf node_modules && yarn
 
       - name: Run ESlint
         run: yarn lint
