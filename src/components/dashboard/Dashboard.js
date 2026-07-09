@@ -83,8 +83,17 @@ const styles = {
   star: (color) => ({
     color,
     fontSize: "20px"
+  }),
+  noDataBox: (minHeight) => ({
+    minHeight,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   })
 };
+
+const NoChartData = () => <Box sx={styles.noDataBox(400)}>No Data</Box>;
+const NoStatData = () => <Box sx={styles.noDataBox(130)}>No Data</Box>;
 
 const Dashboard = () => {
   const [isLoading, setLoader] = useState(false);
@@ -96,8 +105,9 @@ const Dashboard = () => {
 
   const { loading = false } = useOutletContext();
   const { invoices } = useSelector((state) => state.invoices);
-  const { products = [] } = useSelector((state) => state?.products);
-  const { customers = [], sourceList = [] } = useSelector((state) => state?.customers);
+  const { products = [] } = useSelector((state) => state?.products ?? {});
+  const { customers = [], sourceList = [] } = useSelector((state) => state?.customers ?? {});
+  const safeSourceList = Array.isArray(sourceList) ? sourceList : [];
   const { startYear: sy, endYear: ey, month: currentMonth } = getFY();
 
   const currentStartYear = String(selectedFY?.sy || sy);
@@ -263,14 +273,12 @@ const Dashboard = () => {
   );
   const currentFySales = currentFyDataObj?.sales ?? 0;
   const currentFyMonthlySalesObj = currentFyDataObj?.months ?? null;
-  const currentFyMonthlySalesArr = getMonthWiseData(currentFyMonthlySalesObj, "sales");
-  const currentMonthSales = currentFyMonthlySalesArr[currentMonth - 1];
-  const currentFyMonthlySales = convertToFyData(currentFyMonthlySalesArr);
-  const currentFyMonthlyInvoiceCountArr = getMonthWiseData(
-    currentFyMonthlySalesObj,
-    "invoiceCount"
-  );
-  const currentFyMonthlyInvoiceCount = convertToFyData(currentFyMonthlyInvoiceCountArr);
+  const currentFyMonthlySalesArr = getMonthWiseData(currentFyMonthlySalesObj, "sales") ?? [];
+  const currentMonthSales = currentFyMonthlySalesArr[currentMonth - 1] ?? 0;
+  const currentFyMonthlySales = convertToFyData(currentFyMonthlySalesArr) ?? [];
+  const currentFyMonthlyInvoiceCountArr =
+    getMonthWiseData(currentFyMonthlySalesObj, "invoiceCount") ?? [];
+  const currentFyMonthlyInvoiceCount = convertToFyData(currentFyMonthlyInvoiceCountArr) ?? [];
 
   const currentFyCustomersSalesInDescOrder = currentFyDataObj?.customers
     ? Object.values(currentFyDataObj?.customers).sort((a, b) => b.total - a.total)
@@ -284,16 +292,18 @@ const Dashboard = () => {
   const currentFyTopProducts = currentFyProductsSalesInDescOrder.slice(0, 3);
   const currentFySources = currentFyDataObj?.sources
     ? Object.values(currentFyDataObj?.sources)
-    : null;
-  const currentFyMonthlySourcesArr = getMonthWiseData(currentFyMonthlySalesObj, "sources");
-  const currentFyMonthlySources = convertToFyData(currentFyMonthlySourcesArr).map((item) => {
-    if (item === 0) return sourceData;
-    const sObj = { ...sourceData };
-    Object.entries(item).forEach(([k, v]) => {
-      sObj[k] = v?.total ?? 0;
-    });
-    return sObj;
-  });
+    : [];
+  const currentFyMonthlySourcesArr = getMonthWiseData(currentFyMonthlySalesObj, "sources") ?? [];
+  const currentFyMonthlySources = (convertToFyData(currentFyMonthlySourcesArr) ?? []).map(
+    (item) => {
+      if (item === 0) return sourceData;
+      const sObj = { ...sourceData };
+      Object.entries(item).forEach(([k, v]) => {
+        sObj[k] = v?.total ?? 0;
+      });
+      return sObj;
+    }
+  );
 
   const getTableData = (list, currentFyMonthwiseItems, currentFyItemsSalesInDescOrder) => {
     if (list.length > 0 && currentFyMonthwiseItems.length > 0) {
@@ -345,7 +355,7 @@ const Dashboard = () => {
     setSelectedFY(selectedOption);
   };
 
-  const fyMonthsWithYrSuffix = getFyMonths(currentStartYear, currentEndYear);
+  const fyMonthsWithYrSuffix = getFyMonths(currentStartYear, currentEndYear) || [];
 
   const cwTdCell = (count, amount) => (
     <Stack width="100%">
@@ -520,6 +530,7 @@ const Dashboard = () => {
               icon={<PersonIcon />}
               avatarBgColor="warning.main"
               list={currentFyTopCustomers}
+              noDataContent={<NoStatData />}
             />
           </Grid>
           <Grid item xs={12} sm={12} md={4}>
@@ -529,6 +540,7 @@ const Dashboard = () => {
               icon={<ShoppingBagIcon />}
               avatarBgColor="secondary.main"
               list={currentFyTopProducts}
+              noDataContent={<NoStatData />}
             />
           </Grid>
         </Grid>
@@ -569,7 +581,9 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
             <ChartTemplate title="Monthwise sales" loader={loader}>
-              {yearlyData.length > 0 ? (
+              {yearlyData.length > 0 &&
+              currentFyMonthlySales.length > 0 &&
+              fyMonthsWithYrSuffix.length > 0 ? (
                 <LineChart
                   height={400}
                   colors={["#da00ff"]}
@@ -601,12 +615,16 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
             <ChartTemplate title="Monthwise invoices" loader={loader}>
-              {yearlyData.length > 0 ? (
+              {yearlyData.length > 0 &&
+              currentFyMonthlyInvoiceCount.length > 0 &&
+              fyMonthsWithYrSuffix.length > 0 ? (
                 <BarChart
                   height={400}
                   colors={["#2e96ff"]}
@@ -630,7 +648,9 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
@@ -665,12 +685,17 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12}>
             <ChartTemplate title="Monthwise sales of sources" loader={loader}>
-              {yearlyData.length > 0 ? (
+              {yearlyData.length > 0 &&
+              safeSourceList.length > 0 &&
+              currentFyMonthlySources.length > 0 &&
+              fyMonthsWithYrSuffix.length > 0 ? (
                 <BarChart
                   height={400}
                   margin={{ left: 45, right: 20 }}
@@ -682,7 +707,7 @@ const Dashboard = () => {
                       scaleType: "band"
                     }
                   ]}
-                  series={sourceList.map((source) => ({
+                  series={safeSourceList.map((source) => ({
                     dataKey: source.value,
                     label: source.label,
                     valueFormatter
@@ -693,7 +718,9 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
         </Grid>

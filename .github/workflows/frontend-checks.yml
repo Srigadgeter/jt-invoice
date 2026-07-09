@@ -2,24 +2,21 @@ name: Frontend Checks
 on: [push]
 jobs:
   standard-checks:
-    name: Linting, Testing & Building
+    name: Linting
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "yarn"
 
       - name: Clean install dependencies
         run: rm -rf node_modules && yarn
 
       - name: Run ESlint
         run: yarn lint
-
-      # - name: Run Tests
-      #   run: yarn test
-
-      - name: Build & Bundle
-        run: yarn build

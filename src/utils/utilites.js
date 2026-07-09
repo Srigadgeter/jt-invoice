@@ -4,6 +4,31 @@ import { fyMonths } from "./constants";
 
 export const isMobile = () => window.innerWidth <= 768;
 
+export const getCompanyAddressForDate = (addresses, invoiceDate) => {
+  if (!addresses || addresses.length === 0) return "";
+  const targetTime = invoiceDate ? new Date(invoiceDate).getTime() : Date.now();
+
+  // Find all addresses that became effective on or before the invoice date
+  const validAddresses = addresses.filter((entry) => {
+    const effectiveTime = new Date(entry.effectiveFrom).getTime();
+    return effectiveTime <= targetTime;
+  });
+
+  if (validAddresses.length > 0) {
+    // Sort descending by effectiveFrom time to get the latest one
+    validAddresses.sort(
+      (a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime()
+    );
+    return validAddresses[0].address;
+  }
+
+  // If no address was effective before the invoice date, return the oldest one
+  const sortedAll = [...addresses].sort(
+    (a, b) => new Date(a.effectiveFrom).getTime() - new Date(b.effectiveFrom).getTime()
+  );
+  return sortedAll[0]?.address || "";
+};
+
 export const trimString = (text) => (typeof text === "string" ? text.trim() : text);
 
 export const indianCurrencyFormatter = (number) => {
