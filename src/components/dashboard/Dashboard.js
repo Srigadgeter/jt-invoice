@@ -83,8 +83,17 @@ const styles = {
   star: (color) => ({
     color,
     fontSize: "20px"
+  }),
+  noDataBox: (minHeight) => ({
+    minHeight,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   })
 };
+
+const NoChartData = () => <Box sx={styles.noDataBox(400)}>No Data</Box>;
+const NoStatData = () => <Box sx={styles.noDataBox(130)}>No Data</Box>;
 
 const Dashboard = () => {
   const [isLoading, setLoader] = useState(false);
@@ -521,6 +530,7 @@ const Dashboard = () => {
               icon={<PersonIcon />}
               avatarBgColor="warning.main"
               list={currentFyTopCustomers}
+              noDataContent={<NoStatData />}
             />
           </Grid>
           <Grid item xs={12} sm={12} md={4}>
@@ -530,6 +540,7 @@ const Dashboard = () => {
               icon={<ShoppingBagIcon />}
               avatarBgColor="secondary.main"
               list={currentFyTopProducts}
+              noDataContent={<NoStatData />}
             />
           </Grid>
         </Grid>
@@ -604,7 +615,9 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
@@ -635,7 +648,9 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
@@ -670,7 +685,9 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12}>
@@ -701,7 +718,9 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
         </Grid>
