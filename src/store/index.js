@@ -4,6 +4,7 @@ import appReducer from "./slices/appSlice";
 import invoicesReducer from "./slices/invoicesSlice";
 import productsReducer from "./slices/productsSlice";
 import customersReducer from "./slices/customersSlice";
+import profileReducer from "./slices/profileSlice";
 import notificationsReducer from "./slices/notificationsSlice";
 
 const store = configureStore({
@@ -12,6 +13,7 @@ const store = configureStore({
     invoices: invoicesReducer,
     products: productsReducer,
     customers: customersReducer,
+    profile: profileReducer,
     notifications: notificationsReducer
   },
   middleware: (getDefaultMiddleware) =>

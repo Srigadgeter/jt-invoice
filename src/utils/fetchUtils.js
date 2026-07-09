@@ -1,14 +1,15 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 
 import { db } from "integrations/firebase";
 import { clearAppSlice, setUser } from "store/slices/appSlice";
 import { clearInvoicesSlice, setInvoices } from "store/slices/invoicesSlice";
 import { clearProductsSlice, setProducts } from "store/slices/productsSlice";
 import { clearCustomersSlice, setCustomers } from "store/slices/customersSlice";
+import { clearProfileSlice, setProfile } from "store/slices/profileSlice";
 import { firebaseDateToISOString, getItemFromLS } from "utils/utilites";
-import { FIREBASE_COLLECTIONS, LOCALSTORAGE_KEYS } from "utils/constants";
+import { FIREBASE_COLLECTIONS, LOCALSTORAGE_KEYS, PROFILE_DOC_ID } from "utils/constants";
 
-const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
+const { INVOICES, PRODUCTS, CUSTOMERS, PROFILE } = FIREBASE_COLLECTIONS;
 
 const invoicesCollectionRef = collection(db, INVOICES);
 const productsCollectionRef = collection(db, PRODUCTS);
@@ -64,9 +65,33 @@ const serializeInvoiceData = (dispatch, productArray, customerArray, invoiceArra
   dispatch(setInvoices(serializedInvoices));
 };
 
+// Fetch or seed the profile document (addresses array only)
+export const fetchProfile = async (dispatch) => {
+  try {
+    const profileDocRef = doc(db, PROFILE, PROFILE_DOC_ID);
+    const profileSnap = await getDoc(profileDocRef);
+
+    if (profileSnap.exists()) {
+      dispatch(setProfile({ id: profileSnap.id, ...profileSnap.data() }));
+    } else {
+      // Seed with empty address list on first load — user fills it in via Profile page
+      const seedData = {
+        addresses: []
+      };
+      await setDoc(profileDocRef, seedData);
+      dispatch(setProfile({ id: PROFILE_DOC_ID, ...seedData }));
+    }
+  } catch (err) {
+    console.error("fetchProfile error:", err);
+  }
+};
+
 export const fetchData = async (dispatch, setLoader, invoices, products, customers) => {
   setLoader(true);
   try {
+    // Fetch profile
+    await fetchProfile(dispatch);
+
     // Function to get all products
     const fetchedProducts = [...products];
 
@@ -120,17 +145,19 @@ export const fetchData = async (dispatch, setLoader, invoices, products, custome
 
 // restore the redux store from localStorage
 export const restoreAppData = (dispatch) => {
-  const { LS_USER, LS_INVOICES, LS_PRODUCTS, LS_CUSTOMERS } = LOCALSTORAGE_KEYS;
+  const { LS_USER, LS_INVOICES, LS_PRODUCTS, LS_CUSTOMERS, LS_PROFILE } = LOCALSTORAGE_KEYS;
 
   const storedUser = getItemFromLS(LS_USER, true) || {};
   const storedInvoices = getItemFromLS(LS_INVOICES, true) || [];
   const storedProducts = getItemFromLS(LS_PRODUCTS, true) || [];
   const storedCustomers = getItemFromLS(LS_CUSTOMERS, true) || [];
+  const storedProfile = getItemFromLS(LS_PROFILE, true) || {};
 
   dispatch(setUser(storedUser));
   if (LS_INVOICES.length > 0) dispatch(setInvoices(storedInvoices));
   if (LS_PRODUCTS.length > 0) dispatch(setProducts(storedProducts));
   if (LS_CUSTOMERS.length > 0) dispatch(setCustomers(storedCustomers));
+  if (LS_PROFILE.length > 0) dispatch(setProfile(storedProfile));
 };
 
 export const clearAllStoreData = (dispatch) => {
@@ -138,4 +165,5 @@ export const clearAllStoreData = (dispatch) => {
   dispatch(clearInvoicesSlice());
   dispatch(clearProductsSlice());
   dispatch(clearCustomersSlice());
+  dispatch(clearProfileSlice());
 };
