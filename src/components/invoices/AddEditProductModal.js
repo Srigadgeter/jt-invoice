@@ -135,9 +135,11 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
     let amt = 0;
     if (values) {
       if (Object.keys(values).length > 0) {
-        if (
-          !(errors?.productQuantityPieces || errors?.productQuantityMeters || errors.productRate)
-        ) {
+        if (!(
+          errors?.productQuantityPieces ||
+          errors?.productQuantityMeters ||
+          errors.productRate
+        )) {
           amt =
             (values?.productQuantityPieces || 1) *
             (values?.productQuantityMeters || 1) *

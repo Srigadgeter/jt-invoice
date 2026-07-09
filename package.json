@@ -2,7 +2,6 @@
   "name": "jt-invoice",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "yarn@4.17.1",
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
@@ -22,7 +21,7 @@
     "react-router-dom": "^6.19.0",
     "react-scripts": "5.0.1",
     "react-to-pdf": "^1.0.1",
-    "react-to-print": "^3.0.2",
+    "react-to-print": "^3.3.0",
     "yup": "^1.4.0"
   },
   "scripts": {
@@ -65,6 +64,7 @@
     "eslint": "^7.32.0 || ^8.2.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.0.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-prettier": "^5.0.1",
