@@ -558,6 +558,7 @@ const Dashboard = () => {
                 <BarChart
                   height={400}
                   margin={{ left: 45, right: 20 }}
+                  colors={["#ff9800", "#02b2af"]}
                   xAxis={[
                     {
                       label: "FY",
@@ -572,49 +573,21 @@ const Dashboard = () => {
                   ]}
                   series={[
                     {
-                      label: "Sales",
-                      data: yearlyData.map((item) => item.sales),
-                      valueFormatter
-                    }
-                  ]}
-                  slotProps={{
-                    legend: {
-                      hidden: true
-                    }
-                  }}
-                />
-              ) : null}
-            </ChartTemplate>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <ChartTemplate title="FY-wise own product sales" loader={loader}>
-              {yearlyData.length > 0 ? (
-                <BarChart
-                  height={400}
-                  colors={["#ff9800"]}
-                  margin={{ left: 45, right: 20 }}
-                  xAxis={[
-                    {
-                      label: "FY",
-                      scaleType: "band",
-                      data: yearlyData.map((item) => item.id)
-                    }
-                  ]}
-                  yAxis={[
-                    {
-                      valueFormatter: (value) => `₹${value / 1000}k`
-                    }
-                  ]}
-                  series={[
-                    {
-                      label: "Own Sales",
+                      label: "Own Product Sales",
                       data: yearlyData.map((item) => item.ownSales || 0),
+                      stack: "total",
+                      valueFormatter
+                    },
+                    {
+                      label: "Others",
+                      data: yearlyData.map((item) => item.sales - (item.ownSales || 0)),
+                      stack: "total",
                       valueFormatter
                     }
                   ]}
                   slotProps={{
                     legend: {
-                      hidden: true
+                      hidden: false
                     }
                   }}
                 />
