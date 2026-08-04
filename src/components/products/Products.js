@@ -374,7 +374,7 @@ const Products = () => {
               color="primary"
             />
           }
-          label="Is Own"
+          label="Is this Ours?"
           sx={{ mt: 1 }}
         />
       </AppModal>
