@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
+import Paper from "@mui/material/Paper";
 import { useSelector } from "react-redux";
 import Select from "@mui/material/Select";
 import { DataGrid } from "@mui/x-data-grid";
@@ -89,11 +90,77 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
-  })
+  }),
+  chartTooltipTotal: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    mt: 0.5,
+    pt: 0.5,
+    borderTop: "1px solid",
+    borderColor: "divider"
+  },
+  chartTooltipPaper: { p: 1.5, minWidth: 150, boxShadow: 3 },
+  chartTooltipContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 0.5,
+    pt: 1,
+    borderTop: "1px solid",
+    borderColor: "divider"
+  },
+  chartTooltipRow: { display: "flex", alignItems: "center", justifyContent: "space-between" },
+  chartTooltipLabel: { display: "flex", alignItems: "center", gap: 1 },
+  chartTooltipMark: (color) => ({ width: 10, height: 10, borderRadius: "50%", bgcolor: color }),
+  chartTooltipValue: { ml: 2 }
 };
 
 const NoChartData = () => <Box sx={styles.noDataBox(400)}>No Data</Box>;
 const NoStatData = () => <Box sx={styles.noDataBox(130)}>No Data</Box>;
+
+const CustomFyTooltip = (props) => {
+  const { series, axisValue, dataIndex } = props;
+  if (dataIndex == null) return null;
+
+  const totalRevenue = series.reduce((acc, curr) => acc + (curr.data?.[dataIndex] ?? 0), 0);
+
+  return (
+    <Paper sx={styles.chartTooltipPaper}>
+      {axisValue != null && (
+        <Typography variant="body2" fontWeight={600} mb={1}>
+          {axisValue}
+        </Typography>
+      )}
+      <Box sx={styles.chartTooltipContent}>
+        {series.map(({ color, id, label, valueFormatter, data }) => {
+          const formattedValue = valueFormatter ? valueFormatter(data[dataIndex]) : data[dataIndex];
+          if (formattedValue == null) return null;
+          return (
+            <Box key={id} sx={styles.chartTooltipRow}>
+              <Box sx={styles.chartTooltipLabel}>
+                <Box sx={styles.chartTooltipMark(color)} />
+                {label ? <Typography variant="body2">{label}</Typography> : null}
+              </Box>
+              <Typography variant="body2" sx={styles.chartTooltipValue}>
+                {formattedValue}
+              </Typography>
+            </Box>
+          );
+        })}
+        <Box sx={styles.chartTooltipTotal}>
+          <Box sx={styles.chartTooltipLabel}>
+            <Typography variant="body2" fontWeight={600}>
+              Total Revenue
+            </Typography>
+          </Box>
+          <Typography variant="body2" fontWeight={600} sx={styles.chartTooltipValue}>
+            {indianCurrencyFormatter(totalRevenue)}
+          </Typography>
+        </Box>
+      </Box>
+    </Paper>
+  );
+};
 
 const Dashboard = () => {
   const [isLoading, setLoader] = useState(false);
@@ -592,6 +659,10 @@ const Dashboard = () => {
                       valueFormatter
                     }
                   ]}
+                  tooltip={{ trigger: "axis" }}
+                  slots={{
+                    axisContent: CustomFyTooltip
+                  }}
                   slotProps={{
                     legend: {
                       hidden: true
