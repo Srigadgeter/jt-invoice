@@ -594,7 +594,7 @@ const Dashboard = () => {
                   ]}
                   slotProps={{
                     legend: {
-                      hidden: false
+                      hidden: true
                     }
                   }}
                 />
