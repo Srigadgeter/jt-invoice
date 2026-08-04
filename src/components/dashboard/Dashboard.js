@@ -136,6 +136,12 @@ const Dashboard = () => {
 
           const invoiceFY = `${invoice.startYear}-${invoice.endYear}`;
           const invoiceYearData = ylyData.get(invoiceFY);
+
+          const invoiceOwnSales = invoice.products.reduce((acc, curr) => {
+            const isOwn = products.find((p) => p.id === curr.productName.id)?.isOwn;
+            return isOwn ? acc + curr.productAmountInclGST : acc;
+          }, 0);
+
           ylyData.set(invoiceFY, {
             ...invoiceYearData,
             id: invoiceFY,
@@ -143,6 +149,7 @@ const Dashboard = () => {
             endYear: invoice.endYear,
             invoiceCount: (invoiceYearData?.invoiceCount ?? 0) + 1,
             sales: (invoiceYearData?.sales ?? 0) + invoice.totalAmount,
+            ownSales: (invoiceYearData?.ownSales ?? 0) + invoiceOwnSales,
             sources: {
               ...(invoiceYearData?.sources ?? {}),
               [invoice.customer.source.value]: {
@@ -175,6 +182,8 @@ const Dashboard = () => {
                 invoiceCount: (invoiceYearData?.months?.[monthOfInvoice]?.invoiceCount ?? 0) + 1,
                 sales:
                   (invoiceYearData?.months?.[monthOfInvoice]?.sales ?? 0) + invoice.totalAmount,
+                ownSales:
+                  (invoiceYearData?.months?.[monthOfInvoice]?.ownSales ?? 0) + invoiceOwnSales,
                 sources: {
                   ...(invoiceYearData?.months?.[monthOfInvoice]?.sources ?? {}),
                   [invoice.customer.source.value]: {
@@ -266,7 +275,7 @@ const Dashboard = () => {
     } finally {
       setLoader(false);
     }
-  }, [invoices, currentStartYear, currentEndYear]);
+  }, [invoices, currentStartYear, currentEndYear, products]);
 
   const currentFyDataObj = yearlyData?.find(
     (item) => item.startYear === currentStartYear && item.endYear === currentEndYear
@@ -276,6 +285,11 @@ const Dashboard = () => {
   const currentFyMonthlySalesArr = getMonthWiseData(currentFyMonthlySalesObj, "sales") ?? [];
   const currentMonthSales = currentFyMonthlySalesArr[currentMonth - 1] ?? 0;
   const currentFyMonthlySales = convertToFyData(currentFyMonthlySalesArr) ?? [];
+  const currentFyMonthlyOwnSalesArr = getMonthWiseData(currentFyMonthlySalesObj, "ownSales") ?? [];
+  const currentFyMonthlyOwnSales = convertToFyData(currentFyMonthlyOwnSalesArr) ?? [];
+  const currentFyMonthlyOtherSales = currentFyMonthlySales.map(
+    (total, idx) => total - (currentFyMonthlyOwnSales[idx] || 0)
+  );
   const currentFyMonthlyInvoiceCountArr =
     getMonthWiseData(currentFyMonthlySalesObj, "invoiceCount") ?? [];
   const currentFyMonthlyInvoiceCount = convertToFyData(currentFyMonthlyInvoiceCountArr) ?? [];
@@ -551,6 +565,7 @@ const Dashboard = () => {
                 <BarChart
                   height={400}
                   margin={{ left: 45, right: 20 }}
+                  colors={["#ff9800", "#02b2af"]}
                   xAxis={[
                     {
                       label: "FY",
@@ -565,8 +580,15 @@ const Dashboard = () => {
                   ]}
                   series={[
                     {
-                      label: "Sales",
-                      data: yearlyData.map((item) => item.sales),
+                      label: "Ours",
+                      data: yearlyData.map((item) => item.ownSales || 0),
+                      stack: "total",
+                      valueFormatter
+                    },
+                    {
+                      label: "Others",
+                      data: yearlyData.map((item) => item.sales - (item.ownSales || 0)),
+                      stack: "total",
                       valueFormatter
                     }
                   ]}
@@ -586,7 +608,7 @@ const Dashboard = () => {
               fyMonthsWithYrSuffix.length > 0 ? (
                 <LineChart
                   height={400}
-                  colors={["#da00ff"]}
+                  colors={["#ff9800", "#02b2af", "#da00ff"]}
                   margin={{ left: 40, right: 20 }}
                   xAxis={[
                     {
@@ -602,9 +624,23 @@ const Dashboard = () => {
                   ]}
                   series={[
                     {
-                      area: true,
+                      area: false,
                       showMark: false,
-                      label: "Monthly Sales",
+                      label: "Ours",
+                      data: currentFyMonthlyOwnSales,
+                      valueFormatter
+                    },
+                    {
+                      area: false,
+                      showMark: false,
+                      label: "Others",
+                      data: currentFyMonthlyOtherSales,
+                      valueFormatter
+                    },
+                    {
+                      area: false,
+                      showMark: false,
+                      label: "Total",
                       data: currentFyMonthlySales,
                       valueFormatter
                     }
