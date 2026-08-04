@@ -182,6 +182,8 @@ const Dashboard = () => {
                 invoiceCount: (invoiceYearData?.months?.[monthOfInvoice]?.invoiceCount ?? 0) + 1,
                 sales:
                   (invoiceYearData?.months?.[monthOfInvoice]?.sales ?? 0) + invoice.totalAmount,
+                ownSales:
+                  (invoiceYearData?.months?.[monthOfInvoice]?.ownSales ?? 0) + invoiceOwnSales,
                 sources: {
                   ...(invoiceYearData?.months?.[monthOfInvoice]?.sources ?? {}),
                   [invoice.customer.source.value]: {
@@ -283,6 +285,11 @@ const Dashboard = () => {
   const currentFyMonthlySalesArr = getMonthWiseData(currentFyMonthlySalesObj, "sales") ?? [];
   const currentMonthSales = currentFyMonthlySalesArr[currentMonth - 1] ?? 0;
   const currentFyMonthlySales = convertToFyData(currentFyMonthlySalesArr) ?? [];
+  const currentFyMonthlyOwnSalesArr = getMonthWiseData(currentFyMonthlySalesObj, "ownSales") ?? [];
+  const currentFyMonthlyOwnSales = convertToFyData(currentFyMonthlyOwnSalesArr) ?? [];
+  const currentFyMonthlyOtherSales = currentFyMonthlySales.map(
+    (total, idx) => total - (currentFyMonthlyOwnSales[idx] || 0)
+  );
   const currentFyMonthlyInvoiceCountArr =
     getMonthWiseData(currentFyMonthlySalesObj, "invoiceCount") ?? [];
   const currentFyMonthlyInvoiceCount = convertToFyData(currentFyMonthlyInvoiceCountArr) ?? [];
@@ -601,7 +608,7 @@ const Dashboard = () => {
               fyMonthsWithYrSuffix.length > 0 ? (
                 <LineChart
                   height={400}
-                  colors={["#da00ff"]}
+                  colors={["#ff9800", "#02b2af", "#da00ff"]}
                   margin={{ left: 40, right: 20 }}
                   xAxis={[
                     {
@@ -617,9 +624,23 @@ const Dashboard = () => {
                   ]}
                   series={[
                     {
-                      area: true,
+                      area: false,
                       showMark: false,
-                      label: "Monthly Sales",
+                      label: "Ours",
+                      data: currentFyMonthlyOwnSales,
+                      valueFormatter
+                    },
+                    {
+                      area: false,
+                      showMark: false,
+                      label: "Others",
+                      data: currentFyMonthlyOtherSales,
+                      valueFormatter
+                    },
+                    {
+                      area: false,
+                      showMark: false,
+                      label: "Total",
                       data: currentFyMonthlySales,
                       valueFormatter
                     }
