@@ -573,7 +573,7 @@ const Dashboard = () => {
                   ]}
                   series={[
                     {
-                      label: "Own Product Sales",
+                      label: "Ours",
                       data: yearlyData.map((item) => item.ownSales || 0),
                       stack: "total",
                       valueFormatter
