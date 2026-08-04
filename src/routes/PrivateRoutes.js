@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { lazy, useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
 
@@ -7,10 +7,10 @@ import { drawerList } from "utils/drawerList";
 import { getItemFromLS } from "utils/utilites";
 import { LOCALSTORAGE_KEYS } from "utils/constants";
 import { fetchData, restoreAppData } from "utils/fetchUtils";
+import Header from "components/common/Header";
+import SideDrawer from "components/common/SideDrawer";
+import Loader from "components/common/Loader";
 import routes from "./routes";
-
-const Header = lazy(() => import("components/common/Header"));
-const SideDrawer = lazy(() => import("components/common/SideDrawer"));
 
 const PrivateRoutes = () => {
   const [isLoading, setLoader] = useState(false);
@@ -43,7 +43,9 @@ const PrivateRoutes = () => {
     <>
       <SideDrawer open={openDrawer} handleClose={() => setOpenDrawer(false)} list={drawerList} />
       <Header setOpenDrawer={setOpenDrawer} />
-      <Outlet context={{ loading: isLoading }} />
+      <Suspense fallback={<Loader />}>
+        <Outlet context={{ loading: isLoading }} />
+      </Suspense>
     </>
   );
 
