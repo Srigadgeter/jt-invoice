@@ -136,6 +136,12 @@ const Dashboard = () => {
 
           const invoiceFY = `${invoice.startYear}-${invoice.endYear}`;
           const invoiceYearData = ylyData.get(invoiceFY);
+
+          const invoiceOwnSales = invoice.products.reduce((acc, curr) => {
+            const isOwn = products.find((p) => p.id === curr.productName.id)?.isOwn;
+            return isOwn ? acc + curr.productAmountInclGST : acc;
+          }, 0);
+
           ylyData.set(invoiceFY, {
             ...invoiceYearData,
             id: invoiceFY,
@@ -143,6 +149,7 @@ const Dashboard = () => {
             endYear: invoice.endYear,
             invoiceCount: (invoiceYearData?.invoiceCount ?? 0) + 1,
             sales: (invoiceYearData?.sales ?? 0) + invoice.totalAmount,
+            ownSales: (invoiceYearData?.ownSales ?? 0) + invoiceOwnSales,
             sources: {
               ...(invoiceYearData?.sources ?? {}),
               [invoice.customer.source.value]: {
@@ -266,7 +273,7 @@ const Dashboard = () => {
     } finally {
       setLoader(false);
     }
-  }, [invoices, currentStartYear, currentEndYear]);
+  }, [invoices, currentStartYear, currentEndYear, products]);
 
   const currentFyDataObj = yearlyData?.find(
     (item) => item.startYear === currentStartYear && item.endYear === currentEndYear
@@ -567,6 +574,41 @@ const Dashboard = () => {
                     {
                       label: "Sales",
                       data: yearlyData.map((item) => item.sales),
+                      valueFormatter
+                    }
+                  ]}
+                  slotProps={{
+                    legend: {
+                      hidden: true
+                    }
+                  }}
+                />
+              ) : null}
+            </ChartTemplate>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <ChartTemplate title="FY-wise own product sales" loader={loader}>
+              {yearlyData.length > 0 ? (
+                <BarChart
+                  height={400}
+                  colors={["#ff9800"]}
+                  margin={{ left: 45, right: 20 }}
+                  xAxis={[
+                    {
+                      label: "FY",
+                      scaleType: "band",
+                      data: yearlyData.map((item) => item.id)
+                    }
+                  ]}
+                  yAxis={[
+                    {
+                      valueFormatter: (value) => `₹${value / 1000}k`
+                    }
+                  ]}
+                  series={[
+                    {
+                      label: "Own Sales",
+                      data: yearlyData.map((item) => item.ownSales || 0),
                       valueFormatter
                     }
                   ]}
