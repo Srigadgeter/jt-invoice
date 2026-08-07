@@ -60,9 +60,12 @@ const styles = {
 const ProductCards = ({ products, handleEditProduct, handleDelete, loading = false }) => {
   if (!products.length) return null;
 
+  // Sort Products in Alphabetical order
+  const sortedList = [...products].sort((a, b) => a.label - b.label);
+
   return (
     <Stack gap={2} pt={2} sx={styles.cardList}>
-      {products.map((product) => (
+      {sortedList.map((product) => (
         <Box sx={styles.card} key={product.id}>
           <Stack sx={styles.stack1}>
             <Typography sx={styles.typo1}>{product?.label}</Typography>

@@ -60,9 +60,12 @@ const styles = {
 const CustomerCards = ({ customers, handleEditCustomer, handleDelete, loading = false }) => {
   if (!customers.length) return null;
 
+  // Sort Customers in Alphabetical order
+  const sortedList = [...customers].sort((a, b) => a.name.label - b.name.label);
+
   return (
     <Stack gap={2} pt={2} sx={styles.cardList}>
-      {customers.map((customer) => (
+      {sortedList.map((customer) => (
         <Box sx={styles.card} key={customer.id}>
           <Stack sx={styles.stack1}>
             <Typography sx={styles.typo1}>{customer?.name?.label}</Typography>
