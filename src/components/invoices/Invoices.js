@@ -88,7 +88,7 @@ const styles = {
     }
   }),
   modalStyle: {
-    width: "fit-content",
+    width: { xs: "90%", sm: "90%", md: "auto" },
     bgcolor: (theme) => theme.palette.common.white,
     "& #header": {
       color: (theme) => theme.palette.common.black
