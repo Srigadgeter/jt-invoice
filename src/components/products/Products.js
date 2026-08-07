@@ -9,6 +9,8 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DoneIcon from "@mui/icons-material/Done";
 import TextField from "@mui/material/TextField";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import { collection } from "firebase/firestore";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
@@ -51,7 +53,8 @@ const styles = {
 };
 
 const INITIAL_VALUES = {
-  productName: ""
+  productName: "",
+  isOwn: false
 };
 
 const Products = () => {
@@ -83,7 +86,8 @@ const Products = () => {
 
   const handleEditProduct = (product) => {
     setInitialValues({
-      productName: product?.label
+      productName: product?.label,
+      isOwn: product?.isOwn ?? false
     });
     setSelectedProduct(product);
     setSelectedProductId(product?.id ?? null);
@@ -158,7 +162,8 @@ const Products = () => {
         if (isValidForm) {
           // frame the form values
           const formValues = {
-            ...productNameObj
+            ...productNameObj,
+            isOwn: val?.isOwn ?? false
           };
 
           if (selectedProductId) {
@@ -235,6 +240,12 @@ const Products = () => {
       field: "label",
       headerName: "Name",
       flex: 1
+    },
+    {
+      field: "isOwn",
+      headerName: "Is Own",
+      width: 100,
+      renderCell: (params) => (params.value ? "Yes" : "No")
     },
     {
       field: "createdAt",
@@ -354,6 +365,20 @@ const Products = () => {
           value={values?.productName ?? ""}
           helperText={touched?.productName && errors?.productName}
           error={touched?.productName && Boolean(errors?.productName)}
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              id="isOwn"
+              name="isOwn"
+              checked={values?.isOwn ?? false}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              color="primary"
+            />
+          }
+          label="Is this Ours?"
+          sx={{ mt: 1 }}
         />
       </AppModal>
     </Box>

@@ -13,7 +13,12 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 import { GST_PERCENTAGE } from "utils/constants";
 import CustomDataGridFooter from "components/common/CustomDataGridFooter";
-import { formatDate, formatInvoiceNumber, indianCurrencyFormatter } from "utils/utilites";
+import {
+  formatDate,
+  formatInvoiceNumber,
+  indianCurrencyFormatter,
+  getCompanyAddressForDate
+} from "utils/utilites";
 
 import Logo from "assets/png/Logo-Outlined.png";
 
@@ -117,8 +122,12 @@ const styles = {
 
 const InvoiceTemplate = ({ reference, dataId }) => {
   const { invoices = [] } = useSelector((state) => state?.invoices);
+  const { profile = {} } = useSelector((state) => state?.profile);
 
   const selectedInvoice = invoices.find((item) => item?.id === dataId);
+  const companyAddress =
+    selectedInvoice?.companyAddress ||
+    getCompanyAddressForDate(profile?.addresses || [], selectedInvoice?.invoiceDate);
   const products = [...(selectedInvoice?.products || [])];
 
   const isDirectSource = selectedInvoice?.customer?.source?.value === "direct";
@@ -228,12 +237,12 @@ const InvoiceTemplate = ({ reference, dataId }) => {
           <Typography fontWeight={700} fontSize={45} letterSpacing={5}>
             {process.env.REACT_APP_INVOICE_TEMPLATE_COMPANY_NAME.toUpperCase()}
           </Typography>
-          <Stack direction="row" alignItems="center" gap={0.5}>
-            <LocationOnIcon fontSize="small" />
-            <Typography sx={styles.textTransformNone}>
-              {process.env.REACT_APP_INVOICE_TEMPLATE_ADDRESS}
-            </Typography>
-          </Stack>
+          {companyAddress && (
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <LocationOnIcon fontSize="small" />
+              <Typography sx={styles.textTransformNone}>{companyAddress}</Typography>
+            </Stack>
+          )}
           <Stack direction="row" gap={1}>
             <Typography>GSTIN</Typography>
             <Typography fontWeight={600}>{process.env.REACT_APP_INVOICE_TEMPLATE_GST}</Typography>

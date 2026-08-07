@@ -7,6 +7,7 @@ const Invoices = lazy(() => import("components/invoices/Invoices"));
 const Products = lazy(() => import("components/products/Products"));
 const Dashboard = lazy(() => import("components/dashboard/Dashboard"));
 const Customers = lazy(() => import("components/customers/Customers"));
+const Profile = lazy(() => import("components/profile/Profile"));
 
 const routes = {
   SIGN_IN: {
@@ -48,6 +49,11 @@ const routes = {
     path: "/customers",
     to: () => "/customers",
     component: Customers
+  },
+  PROFILE: {
+    path: "/profile",
+    to: () => "/profile",
+    component: Profile
   }
 };
 

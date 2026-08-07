@@ -62,8 +62,9 @@ const TopThreeStats = ({
   icon,
   avatarBgColor,
   list = [],
+  loader = false,
   showAmount = false,
-  loader = false
+  noDataContent = null
 }) => (
   <Paper elevation={2} sx={styles.paper}>
     <Stack gap={1}>
@@ -79,21 +80,27 @@ const TopThreeStats = ({
         </Stack>
       ) : (
         <Stack gap={2} sx={styles.stack1}>
-          {list.map((item, index) => (
-            <Stack direction="row" gap={1} alignItems="center" key={`${item.name}-${item.amount}`}>
-              <Avatar sx={styles.avatar2}>{index + 1}</Avatar>
-              <Stack sx={styles.stack2} justifyContent="center">
-                <Typography sx={styles.amount}>
-                  {showAmount ? indianCurrencyFormatter(item.total || 0) : `${item.pcs} pcs`}
-                </Typography>
-                <Tooltip title={item.name}>
-                  <Typography variant="subtitle1" sx={styles.name}>
-                    {item.name}
-                  </Typography>
-                </Tooltip>
-              </Stack>
-            </Stack>
-          ))}
+          {list.length > 0
+            ? list.map((item, index) => (
+                <Stack
+                  gap={1}
+                  direction="row"
+                  alignItems="center"
+                  key={`${item.name}-${item.amount}`}>
+                  <Avatar sx={styles.avatar2}>{index + 1}</Avatar>
+                  <Stack sx={styles.stack2} justifyContent="center">
+                    <Typography sx={styles.amount}>
+                      {showAmount ? indianCurrencyFormatter(item.total || 0) : `${item.pcs} pcs`}
+                    </Typography>
+                    <Tooltip title={item.name}>
+                      <Typography variant="subtitle1" sx={styles.name}>
+                        {item.name}
+                      </Typography>
+                    </Tooltip>
+                  </Stack>
+                </Stack>
+              ))
+            : noDataContent}
         </Stack>
       )}
     </Stack>

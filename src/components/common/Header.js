@@ -13,12 +13,15 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import { useDispatch, useSelector } from "react-redux";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { auth } from "integrations/firebase";
 import { isEveningNow } from "utils/utilites";
 import { clearAllStoreData } from "utils/fetchUtils";
 import { DEFAULT_DARK, DEFAULT_LIGHT } from "utils/constants";
 import { setTheme, toggleTheme } from "store/slices/appSlice";
+import routes from "routes/routes";
 
 import Logo from "assets/svg/logo.svg";
 
@@ -43,7 +46,8 @@ const styles = {
   avatar: {
     bgcolor: "primary.main",
     width: 34,
-    height: 34
+    height: 34,
+    cursor: "pointer"
   },
   menu: {
     mt: 1.2
@@ -102,7 +106,10 @@ const Header = ({ setOpenDrawer }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { appTheme } = useSelector((state) => state?.app);
+  const { PROFILE } = routes;
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -162,7 +169,24 @@ const Header = ({ setOpenDrawer }) => {
           MenuListProps={{
             "aria-labelledby": "basic-button"
           }}>
-          <MenuItem onClick={handleSignOut}>
+          {location.pathname !== PROFILE.path && (
+            <MenuItem
+              id="menu-profile"
+              onClick={() => {
+                handleClose();
+                navigate(PROFILE.to());
+              }}>
+              <ListItemIcon>
+                <ManageAccountsIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Profile</ListItemText>
+            </MenuItem>
+          )}
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              handleSignOut();
+            }}>
             <ListItemIcon>
               <ExitToAppIcon fontSize="small" />
             </ListItemIcon>

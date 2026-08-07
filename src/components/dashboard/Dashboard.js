@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
+import Paper from "@mui/material/Paper";
 import { useSelector } from "react-redux";
 import Select from "@mui/material/Select";
 import { DataGrid } from "@mui/x-data-grid";
@@ -83,7 +84,82 @@ const styles = {
   star: (color) => ({
     color,
     fontSize: "20px"
-  })
+  }),
+  noDataBox: (minHeight) => ({
+    minHeight,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  }),
+  chartTooltipTotal: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    mt: 0.5,
+    pt: 0.5,
+    borderTop: "1px solid",
+    borderColor: "divider"
+  },
+  chartTooltipPaper: { p: 1.5, minWidth: 150, boxShadow: 3 },
+  chartTooltipContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 0.5,
+    pt: 1,
+    borderTop: "1px solid",
+    borderColor: "divider"
+  },
+  chartTooltipRow: { display: "flex", alignItems: "center", justifyContent: "space-between" },
+  chartTooltipLabel: { display: "flex", alignItems: "center", gap: 1 },
+  chartTooltipMark: (color) => ({ width: 10, height: 10, borderRadius: "50%", bgcolor: color }),
+  chartTooltipValue: { ml: 2 }
+};
+
+const NoChartData = () => <Box sx={styles.noDataBox(400)}>No Data</Box>;
+const NoStatData = () => <Box sx={styles.noDataBox(130)}>No Data</Box>;
+
+const CustomFyTooltip = (props) => {
+  const { series, axisValue, dataIndex } = props;
+  if (dataIndex == null) return null;
+
+  const totalRevenue = series.reduce((acc, curr) => acc + (curr.data?.[dataIndex] ?? 0), 0);
+
+  return (
+    <Paper sx={styles.chartTooltipPaper}>
+      {axisValue != null && (
+        <Typography variant="body2" fontWeight={600} mb={1}>
+          {axisValue}
+        </Typography>
+      )}
+      <Box sx={styles.chartTooltipContent}>
+        {series.map(({ color, id, label, valueFormatter, data }) => {
+          const formattedValue = valueFormatter ? valueFormatter(data[dataIndex]) : data[dataIndex];
+          if (formattedValue == null) return null;
+          return (
+            <Box key={id} sx={styles.chartTooltipRow}>
+              <Box sx={styles.chartTooltipLabel}>
+                <Box sx={styles.chartTooltipMark(color)} />
+                {label ? <Typography variant="body2">{label}</Typography> : null}
+              </Box>
+              <Typography variant="body2" sx={styles.chartTooltipValue}>
+                {formattedValue}
+              </Typography>
+            </Box>
+          );
+        })}
+        <Box sx={styles.chartTooltipTotal}>
+          <Box sx={styles.chartTooltipLabel}>
+            <Typography variant="body2" fontWeight={600}>
+              Total Revenue
+            </Typography>
+          </Box>
+          <Typography variant="body2" fontWeight={600} sx={styles.chartTooltipValue}>
+            {indianCurrencyFormatter(totalRevenue)}
+          </Typography>
+        </Box>
+      </Box>
+    </Paper>
+  );
 };
 
 const Dashboard = () => {
@@ -96,8 +172,9 @@ const Dashboard = () => {
 
   const { loading = false } = useOutletContext();
   const { invoices } = useSelector((state) => state.invoices);
-  const { products = [] } = useSelector((state) => state?.products);
-  const { customers = [], sourceList = [] } = useSelector((state) => state?.customers);
+  const { products = [] } = useSelector((state) => state?.products ?? {});
+  const { customers = [], sourceList = [] } = useSelector((state) => state?.customers ?? {});
+  const safeSourceList = Array.isArray(sourceList) ? sourceList : [];
   const { startYear: sy, endYear: ey, month: currentMonth } = getFY();
 
   const currentStartYear = String(selectedFY?.sy || sy);
@@ -126,6 +203,12 @@ const Dashboard = () => {
 
           const invoiceFY = `${invoice.startYear}-${invoice.endYear}`;
           const invoiceYearData = ylyData.get(invoiceFY);
+
+          const invoiceOwnSales = invoice.products.reduce((acc, curr) => {
+            const isOwn = products.find((p) => p.id === curr.productName.id)?.isOwn;
+            return isOwn ? acc + curr.productAmountInclGST : acc;
+          }, 0);
+
           ylyData.set(invoiceFY, {
             ...invoiceYearData,
             id: invoiceFY,
@@ -133,6 +216,7 @@ const Dashboard = () => {
             endYear: invoice.endYear,
             invoiceCount: (invoiceYearData?.invoiceCount ?? 0) + 1,
             sales: (invoiceYearData?.sales ?? 0) + invoice.totalAmount,
+            ownSales: (invoiceYearData?.ownSales ?? 0) + invoiceOwnSales,
             sources: {
               ...(invoiceYearData?.sources ?? {}),
               [invoice.customer.source.value]: {
@@ -165,6 +249,8 @@ const Dashboard = () => {
                 invoiceCount: (invoiceYearData?.months?.[monthOfInvoice]?.invoiceCount ?? 0) + 1,
                 sales:
                   (invoiceYearData?.months?.[monthOfInvoice]?.sales ?? 0) + invoice.totalAmount,
+                ownSales:
+                  (invoiceYearData?.months?.[monthOfInvoice]?.ownSales ?? 0) + invoiceOwnSales,
                 sources: {
                   ...(invoiceYearData?.months?.[monthOfInvoice]?.sources ?? {}),
                   [invoice.customer.source.value]: {
@@ -256,21 +342,24 @@ const Dashboard = () => {
     } finally {
       setLoader(false);
     }
-  }, [invoices, currentStartYear, currentEndYear]);
+  }, [invoices, currentStartYear, currentEndYear, products]);
 
   const currentFyDataObj = yearlyData?.find(
     (item) => item.startYear === currentStartYear && item.endYear === currentEndYear
   );
   const currentFySales = currentFyDataObj?.sales ?? 0;
   const currentFyMonthlySalesObj = currentFyDataObj?.months ?? null;
-  const currentFyMonthlySalesArr = getMonthWiseData(currentFyMonthlySalesObj, "sales");
-  const currentMonthSales = currentFyMonthlySalesArr[currentMonth - 1];
-  const currentFyMonthlySales = convertToFyData(currentFyMonthlySalesArr);
-  const currentFyMonthlyInvoiceCountArr = getMonthWiseData(
-    currentFyMonthlySalesObj,
-    "invoiceCount"
+  const currentFyMonthlySalesArr = getMonthWiseData(currentFyMonthlySalesObj, "sales") ?? [];
+  const currentMonthSales = currentFyMonthlySalesArr[currentMonth - 1] ?? 0;
+  const currentFyMonthlySales = convertToFyData(currentFyMonthlySalesArr) ?? [];
+  const currentFyMonthlyOwnSalesArr = getMonthWiseData(currentFyMonthlySalesObj, "ownSales") ?? [];
+  const currentFyMonthlyOwnSales = convertToFyData(currentFyMonthlyOwnSalesArr) ?? [];
+  const currentFyMonthlyOtherSales = currentFyMonthlySales.map(
+    (total, idx) => total - (currentFyMonthlyOwnSales[idx] || 0)
   );
-  const currentFyMonthlyInvoiceCount = convertToFyData(currentFyMonthlyInvoiceCountArr);
+  const currentFyMonthlyInvoiceCountArr =
+    getMonthWiseData(currentFyMonthlySalesObj, "invoiceCount") ?? [];
+  const currentFyMonthlyInvoiceCount = convertToFyData(currentFyMonthlyInvoiceCountArr) ?? [];
 
   const currentFyCustomersSalesInDescOrder = currentFyDataObj?.customers
     ? Object.values(currentFyDataObj?.customers).sort((a, b) => b.total - a.total)
@@ -284,16 +373,18 @@ const Dashboard = () => {
   const currentFyTopProducts = currentFyProductsSalesInDescOrder.slice(0, 3);
   const currentFySources = currentFyDataObj?.sources
     ? Object.values(currentFyDataObj?.sources)
-    : null;
-  const currentFyMonthlySourcesArr = getMonthWiseData(currentFyMonthlySalesObj, "sources");
-  const currentFyMonthlySources = convertToFyData(currentFyMonthlySourcesArr).map((item) => {
-    if (item === 0) return sourceData;
-    const sObj = { ...sourceData };
-    Object.entries(item).forEach(([k, v]) => {
-      sObj[k] = v?.total ?? 0;
-    });
-    return sObj;
-  });
+    : [];
+  const currentFyMonthlySourcesArr = getMonthWiseData(currentFyMonthlySalesObj, "sources") ?? [];
+  const currentFyMonthlySources = (convertToFyData(currentFyMonthlySourcesArr) ?? []).map(
+    (item) => {
+      if (item === 0) return sourceData;
+      const sObj = { ...sourceData };
+      Object.entries(item).forEach(([k, v]) => {
+        sObj[k] = v?.total ?? 0;
+      });
+      return sObj;
+    }
+  );
 
   const getTableData = (list, currentFyMonthwiseItems, currentFyItemsSalesInDescOrder) => {
     if (list.length > 0 && currentFyMonthwiseItems.length > 0) {
@@ -345,7 +436,7 @@ const Dashboard = () => {
     setSelectedFY(selectedOption);
   };
 
-  const fyMonthsWithYrSuffix = getFyMonths(currentStartYear, currentEndYear);
+  const fyMonthsWithYrSuffix = getFyMonths(currentStartYear, currentEndYear) || [];
 
   const cwTdCell = (count, amount) => (
     <Stack width="100%">
@@ -520,6 +611,7 @@ const Dashboard = () => {
               icon={<PersonIcon />}
               avatarBgColor="warning.main"
               list={currentFyTopCustomers}
+              noDataContent={<NoStatData />}
             />
           </Grid>
           <Grid item xs={12} sm={12} md={4}>
@@ -529,6 +621,7 @@ const Dashboard = () => {
               icon={<ShoppingBagIcon />}
               avatarBgColor="secondary.main"
               list={currentFyTopProducts}
+              noDataContent={<NoStatData />}
             />
           </Grid>
         </Grid>
@@ -539,6 +632,7 @@ const Dashboard = () => {
                 <BarChart
                   height={400}
                   margin={{ left: 45, right: 20 }}
+                  colors={["#ff9800", "#02b2af"]}
                   xAxis={[
                     {
                       label: "FY",
@@ -553,11 +647,22 @@ const Dashboard = () => {
                   ]}
                   series={[
                     {
-                      label: "Sales",
-                      data: yearlyData.map((item) => item.sales),
+                      label: "Ours",
+                      data: yearlyData.map((item) => item.ownSales || 0),
+                      stack: "total",
+                      valueFormatter
+                    },
+                    {
+                      label: "Others",
+                      data: yearlyData.map((item) => item.sales - (item.ownSales || 0)),
+                      stack: "total",
                       valueFormatter
                     }
                   ]}
+                  tooltip={{ trigger: "axis" }}
+                  slots={{
+                    axisContent: CustomFyTooltip
+                  }}
                   slotProps={{
                     legend: {
                       hidden: true
@@ -569,10 +674,12 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
             <ChartTemplate title="Monthwise sales" loader={loader}>
-              {yearlyData.length > 0 ? (
+              {yearlyData.length > 0 &&
+              currentFyMonthlySales.length > 0 &&
+              fyMonthsWithYrSuffix.length > 0 ? (
                 <LineChart
                   height={400}
-                  colors={["#da00ff"]}
+                  colors={["#ff9800", "#02b2af", "#da00ff"]}
                   margin={{ left: 40, right: 20 }}
                   xAxis={[
                     {
@@ -588,9 +695,23 @@ const Dashboard = () => {
                   ]}
                   series={[
                     {
-                      area: true,
+                      area: false,
                       showMark: false,
-                      label: "Monthly Sales",
+                      label: "Ours",
+                      data: currentFyMonthlyOwnSales,
+                      valueFormatter
+                    },
+                    {
+                      area: false,
+                      showMark: false,
+                      label: "Others",
+                      data: currentFyMonthlyOtherSales,
+                      valueFormatter
+                    },
+                    {
+                      area: false,
+                      showMark: false,
+                      label: "Total",
                       data: currentFyMonthlySales,
                       valueFormatter
                     }
@@ -601,12 +722,16 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
             <ChartTemplate title="Monthwise invoices" loader={loader}>
-              {yearlyData.length > 0 ? (
+              {yearlyData.length > 0 &&
+              currentFyMonthlyInvoiceCount.length > 0 &&
+              fyMonthsWithYrSuffix.length > 0 ? (
                 <BarChart
                   height={400}
                   colors={["#2e96ff"]}
@@ -630,7 +755,9 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
@@ -665,12 +792,17 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
           <Grid item xs={12}>
             <ChartTemplate title="Monthwise sales of sources" loader={loader}>
-              {yearlyData.length > 0 ? (
+              {yearlyData.length > 0 &&
+              safeSourceList.length > 0 &&
+              currentFyMonthlySources.length > 0 &&
+              fyMonthsWithYrSuffix.length > 0 ? (
                 <BarChart
                   height={400}
                   margin={{ left: 45, right: 20 }}
@@ -682,7 +814,7 @@ const Dashboard = () => {
                       scaleType: "band"
                     }
                   ]}
-                  series={sourceList.map((source) => ({
+                  series={safeSourceList.map((source) => ({
                     dataKey: source.value,
                     label: source.label,
                     valueFormatter
@@ -693,7 +825,9 @@ const Dashboard = () => {
                     }
                   }}
                 />
-              ) : null}
+              ) : (
+                <NoChartData />
+              )}
             </ChartTemplate>
           </Grid>
         </Grid>
