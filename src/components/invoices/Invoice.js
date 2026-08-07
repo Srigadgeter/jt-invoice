@@ -932,7 +932,7 @@ const Invoice = () => {
                   value={values?.lrDate ? formatDateForInputField(values?.lrDate) : ""}
                 />
               </Stack>
-              <Stack direction="row" spacing={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <FormControl
                   fullWidth
                   size="small"
@@ -987,7 +987,7 @@ const Invoice = () => {
                   />
                 )}
               </Stack>
-              <Stack direction="row" spacing={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <FormControl
                   fullWidth
                   size="small"
