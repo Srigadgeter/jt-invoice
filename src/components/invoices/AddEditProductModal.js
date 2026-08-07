@@ -31,8 +31,17 @@ const styles = {
   fullWidth: {
     width: "100%"
   },
+  xsFullWidth: (theme) => ({
+    [theme.breakpoints.down("sm")]: {
+      width: "100%"
+    }
+  }),
   amount: {
     fontWeight: 400
+  },
+  modalStyle: {
+    width: { xs: "90%", sm: "65%", md: "50%", lg: "40%" },
+    minHeight: "fit-content"
   },
   selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
   selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
@@ -164,7 +173,11 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
     commonSelectOnChangeHandler(name, value, list, setFieldValue);
 
   const footerContent = () => (
-    <Stack direction="row" justifyContent="space-between" alignItems="center">
+    <Stack
+      direction={{ xs: "column", sm: "row" }}
+      justifyContent="space-between"
+      alignItems="center"
+      gap={{ xs: 1, sm: 1 }}>
       <Stack direction="row" spacing={1}>
         <Typography variant="h6" style={styles.amount}>
           Amount:
@@ -174,11 +187,12 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
         </Typography>
       </Stack>
 
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={1} sx={styles.xsFullWidth}>
         <Button
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
+          fullWidth={{ xs: true, sm: false }}
           size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
@@ -187,6 +201,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
+          fullWidth={{ xs: true, sm: false }}
           size={isMobile ? "small" : "medium"}>
           Save
         </Button>
@@ -199,9 +214,10 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
       open={open}
       footer={footerContent()}
       handleClose={handleCancel}
+      modalStyle={styles.modalStyle}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Product`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
-        <Stack direction="row" spacing={2} sx={styles.fullWidth}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={styles.fullWidth}>
           <FormControl
             fullWidth
             size="small"

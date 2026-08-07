@@ -24,6 +24,15 @@ const styles = {
   fullWidth: {
     width: "100%"
   },
+  xsFullWidth: (theme) => ({
+    [theme.breakpoints.down("sm")]: {
+      width: "100%"
+    }
+  }),
+  modalStyle: {
+    width: { xs: "90%", sm: "65%", md: "50%", lg: "40%" },
+    minHeight: "fit-content"
+  },
   selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
   selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
   selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
@@ -103,11 +112,12 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
 
   const footerContent = () => (
     <Stack direction="row" justifyContent="flex-end" alignItems="center">
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={1} sx={styles.xsFullWidth}>
         <Button
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
+          fullWidth={{ xs: true, sm: false }}
           size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
@@ -116,6 +126,7 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
+          fullWidth={{ xs: true, sm: false }}
           size={isMobile ? "small" : "medium"}>
           Save
         </Button>
@@ -128,9 +139,10 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
       open={open}
       footer={footerContent()}
       handleClose={handleCancel}
+      modalStyle={styles.modalStyle}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Extra`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
-        <Stack direction="row" spacing={2} sx={styles.fullWidth}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={styles.fullWidth}>
           <FormControl
             fullWidth
             size="small"
