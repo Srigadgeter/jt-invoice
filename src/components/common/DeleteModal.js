@@ -7,6 +7,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AppModal from "components/common/AppModal";
 import useBreakpoints from "hooks/useBreakpoints";
 
+const styles = {
+  modalStyle: {
+    width: { xs: "90%", sm: "65%", md: "fit-content" },
+    minHeight: "fit-content"
+  }
+};
+
 const DeleteModal = ({
   open,
   handleClose,
@@ -22,18 +29,18 @@ const DeleteModal = ({
       <Stack direction="row" spacing={1}>
         <Button
           variant="outlined"
-          startIcon={<CloseIcon />}
-          onClick={handleClose}
           disabled={isLoading}
+          onClick={handleClose}
+          startIcon={<CloseIcon />}
           size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
           color="error"
           variant="contained"
-          startIcon={<DeleteIcon />}
-          onClick={handleDelete}
           disabled={isLoading}
+          onClick={handleDelete}
+          startIcon={<DeleteIcon />}
           size={isMobile ? "small" : "medium"}>
           Delete
         </Button>
@@ -47,7 +54,7 @@ const DeleteModal = ({
       title={title}
       footer={footerContent()}
       handleClose={handleClose}
-      modalStyle={{ width: { xs: "90%", sm: "65%", md: "fit-content" }, minHeight: "fit-content" }}>
+      modalStyle={styles.modalStyle}>
       {description}
     </AppModal>
   );
