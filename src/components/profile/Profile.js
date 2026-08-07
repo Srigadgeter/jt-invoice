@@ -245,7 +245,6 @@ const Profile = () => {
                   {values.addresses.length > 1 && (
                     <IconButton
                       size="small"
-                      color="error"
                       aria-label={`remove-address-${index}`}
                       onClick={() => {
                         setDeleteIndex(index);
