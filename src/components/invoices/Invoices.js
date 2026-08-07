@@ -36,6 +36,7 @@ import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import DeleteModal from "components/common/DeleteModal";
 import useBreakpoints from "hooks/useBreakpoints";
 import TitleBanner from "components/common/TitleBanner";
 import PdfGenerator from "components/common/PdfGenerator";
@@ -108,6 +109,8 @@ const styles = {
 
 const Invoices = () => {
   const [isLoading, setLoader] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
@@ -209,6 +212,30 @@ const Invoices = () => {
 
   const handleNew = () => {
     navigate(INVOICE_NEW.to(currentSY, currentEY));
+  };
+
+  const handleDelete = (params) => {
+    setItemToDelete(params);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setItemToDelete(null);
+    setOpenDeleteModal(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    await deleteDocFromFirestore(
+      itemToDelete?.row,
+      INVOICES,
+      setLoader,
+      dispatch,
+      deleteInvoice,
+      `Successfully deleted invoice '${itemToDelete?.row?.invoiceNumber}'`,
+      "There is an issue with deleting the invoice"
+    );
+    handleCloseDeleteModal();
   };
 
   useEffect(() => {
@@ -316,17 +343,7 @@ const Invoices = () => {
                   size="large"
                   aria-label="delete"
                   disabled={loading || isLoading}
-                  onClick={() =>
-                    deleteDocFromFirestore(
-                      params?.row,
-                      INVOICES,
-                      setLoader,
-                      dispatch,
-                      deleteInvoice,
-                      `Successfully deleted invoice '${params?.row?.invoiceNumber}'`,
-                      "There is an issue with deleting the invoice"
-                    )
-                  }>
+                  onClick={() => handleDelete(params)}>
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>
@@ -425,10 +442,10 @@ const Invoices = () => {
       {isMobile && invoices && Array.isArray(invoices) && invoices.length > 0 && (
         <InvoiceCards
           invoices={invoices}
-          setLoader={setLoader}
           handleOpen={handleOpen}
           isCurrentFY={isCurrentFY}
           handleViewPDF={handleViewPDF}
+          handleDelete={handleDelete}
           loading={loading || isLoading}
         />
       )}
@@ -454,6 +471,23 @@ const Invoices = () => {
           <ClickNew prefixMessage="Click here to create your" hightlightedText="invoices" />
         )
       ) : null}
+
+      <DeleteModal
+        open={openDeleteModal}
+        handleClose={handleCloseDeleteModal}
+        title="Delete Invoice"
+        description={
+          <Typography>
+            Are you sure you want to delete the invoice{" "}
+            <Typography component="span" fontWeight={600}>
+              {itemToDelete?.row?.invoiceNumber}
+            </Typography>{" "}
+            ?
+          </Typography>
+        }
+        handleDelete={confirmDelete}
+        isLoading={isLoading}
+      />
 
       <AppModal
         open={openModal}

@@ -9,6 +9,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DoneIcon from "@mui/icons-material/Done";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { collection } from "firebase/firestore";
@@ -29,6 +30,7 @@ import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import DeleteModal from "components/common/DeleteModal";
 import useBreakpoints from "hooks/useBreakpoints";
 import TitleBanner from "components/common/TitleBanner";
 import productSchema from "validationSchemas/productSchema";
@@ -96,27 +98,41 @@ const Products = () => {
     handleOpenModal();
   };
 
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
   const handleDelete = (params) => {
+    setItemToDelete(params);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setItemToDelete(null);
+    setOpenDeleteModal(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
     const isReferencedArr = [];
     invoices.forEach((item) => {
-      const isPresent = item?.products.filter((p) => p?.productName?.id === params?.row?.id);
+      const isPresent = item?.products.filter((p) => p?.productName?.id === itemToDelete?.row?.id);
       isReferencedArr.push(isPresent);
     });
 
     const isReferenced = isReferencedArr.flat();
 
-    if (!isReferenced.length)
-      deleteDocFromFirestore(
-        params?.row,
+    if (!isReferenced.length) {
+      await deleteDocFromFirestore(
+        itemToDelete?.row,
         PRODUCTS,
         setLoader,
         dispatch,
         deleteProduct,
-        `Successfully deleted a product, '${params?.row?.label}'`,
+        `Successfully deleted a product, '${itemToDelete?.row?.label}'`,
         "There is an issue with deleting the product"
       );
-    else {
-      const message = `Cannot delete the product '${params.row?.label}' since it is referenced in one or more invoices`;
+    } else {
+      const message = `Cannot delete the product '${itemToDelete.row?.label}' since it is referenced in one or more invoices`;
       dispatch(
         addNotification({
           message,
@@ -124,6 +140,7 @@ const Products = () => {
         })
       );
     }
+    handleCloseDeleteModal();
   };
 
   const validateForm = (field) => {
@@ -359,6 +376,23 @@ const Products = () => {
           />
         )
       ) : null}
+
+      <DeleteModal
+        open={openDeleteModal}
+        handleClose={handleCloseDeleteModal}
+        title="Delete Product"
+        description={
+          <Typography>
+            Are you sure you want to delete the product{" "}
+            <Typography component="span" fontWeight={600}>
+              {itemToDelete?.row?.label}
+            </Typography>{" "}
+            ?
+          </Typography>
+        }
+        handleDelete={confirmDelete}
+        isLoading={isLoading}
+      />
 
       <AppModal
         open={openModal}

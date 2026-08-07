@@ -11,9 +11,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import DescriptionIcon from "@mui/icons-material/Description";
 
 import { formatDate, indianCurrencyFormatter } from "utils/utilites";
-import { FIREBASE_COLLECTIONS, MODES } from "utils/constants";
-import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
-import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
+import { MODES } from "utils/constants";
+import { setInvoice } from "store/slices/invoicesSlice";
 
 const styles = {
   cardList: {
@@ -77,14 +76,13 @@ const styles = {
 
 const InvoiceCards = ({
   invoices,
-  setLoader,
   handleOpen,
   isCurrentFY,
   handleViewPDF,
+  handleDelete,
   loading = false
 }) => {
   const { VIEW, EDIT } = MODES;
-  const { INVOICES } = FIREBASE_COLLECTIONS;
 
   const dispatch = useDispatch();
 
@@ -140,17 +138,7 @@ const InvoiceCards = ({
                     size="small"
                     aria-label="delete"
                     disabled={loading}
-                    onClick={() =>
-                      deleteDocFromFirestore(
-                        invoice,
-                        INVOICES,
-                        setLoader,
-                        dispatch,
-                        deleteInvoice,
-                        `Successfully deleted invoice '${invoice?.invoiceNumber}'`,
-                        "There is an issue with deleting the invoice"
-                      )
-                    }>
+                    onClick={() => handleDelete({ row: invoice })}>
                     <DeleteIcon sx={styles.icon} />
                   </IconButton>
                 </Fragment>
