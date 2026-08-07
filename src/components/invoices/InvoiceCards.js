@@ -1,5 +1,6 @@
 import React, { Fragment } from "react";
 import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
@@ -15,19 +16,25 @@ import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
 import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
 
 const styles = {
+  cardList: {
+    overflowY: "overlay",
+    height: "calc(100vh - 200px)"
+  },
   card: {
-    boxShadow: 2,
-    borderRadius: 3,
+    flexShrink: 0,
+    borderRadius: 4,
     overflow: "hidden",
     position: "relative",
-    color: "common.blue6"
+    bgcolor: "background.paper",
+    border: "1px solid",
+    borderColor: "divider",
+    boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)"
   },
   stack1: {
     px: 2,
     py: 1,
-    bgcolor: (theme) => (theme.palette.mode === "dark" ? "common.blue4" : "common.blue2"),
-    borderTopLeftRadius: "12px",
-    borderTopRightRadius: "12px"
+    borderBottom: "1px dashed",
+    borderColor: "divider"
   },
   typo1: {
     fontWeight: 600,
@@ -35,10 +42,9 @@ const styles = {
     whiteSpace: "nowrap",
     textOverflow: "ellipsis"
   },
-
   stack2: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     justifyContent: "space-between"
   },
   status: (isPaid) => ({
@@ -50,14 +56,22 @@ const styles = {
     py: 1,
     alignItems: "center",
     flexDirection: "row",
-    bgcolor: (theme) => (theme.palette.mode === "dark" ? "common.blue2" : "common.blue1"),
+    bgcolor: (theme) =>
+      theme.palette.mode === "dark" ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
     borderBottomLeftRadius: "12px",
     borderBottomRightRadius: "12px",
     justifyContent: "space-around"
   },
+  chip: (isPaid) => ({
+    width: "auto",
+    height: "auto",
+    borderRadius: 10,
+    color: isPaid ? "common.success" : "common.error",
+    bgcolor: isPaid ? "background.success" : "background.error"
+  }),
   icon: {
     fontSize: "20px",
-    color: (theme) => (theme.palette.mode === "dark" ? "common.blue5" : "common.blue3")
+    color: "text.secondary"
   }
 };
 
@@ -76,11 +90,12 @@ const InvoiceCards = ({
 
   if (!invoices.length) return null;
 
-  const reversedList = [...invoices].reverse();
+  // Sort Invoices in Descending order
+  const sortedList = [...invoices].sort((a, b) => b.invoiceNumber - a.invoiceNumber);
 
   return (
-    <Stack gap={2} pt={2}>
-      {reversedList.map((invoice) => {
+    <Stack gap={2} pt={2} sx={styles.cardList}>
+      {sortedList.map((invoice) => {
         const isPaid = invoice?.paymentStatus === "paid";
 
         return (
@@ -88,14 +103,12 @@ const InvoiceCards = ({
             <Stack sx={styles.stack1}>
               <Typography sx={styles.typo1}>{invoice?.customerName?.label}</Typography>
               <Stack sx={styles.stack2}>
-                <Typography variant="body2" color="common.blue5">
+                <Typography variant="body2" color="text.secondary">
                   #{invoice?.invoiceNumber}&nbsp;&nbsp;&middot;&nbsp;&nbsp;
                   {formatDate(invoice?.invoiceDate)}&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                  <Typography variant="body2" component="span" sx={styles.status(isPaid)}>
-                    {isPaid ? "Paid" : "Unpaid"}
-                  </Typography>
+                  <Chip label={isPaid ? "Paid" : "Unpaid"} sx={styles.chip(isPaid)} />
                 </Typography>
-                <Typography fontWeight={600} color="common.black">
+                <Typography fontWeight={600} color="primary.main">
                   {indianCurrencyFormatter(invoice?.totalAmount || 0)}
                 </Typography>
               </Stack>
