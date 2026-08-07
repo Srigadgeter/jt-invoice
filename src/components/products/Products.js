@@ -51,6 +51,7 @@ const styles = {
     justifyContent: "flex-end"
   },
   modalStyle: {
+    width: { xs: "95%", sm: "80%", md: "fit-content" },
     minHeight: "fit-content"
   },
   dataGrid: commonStyles?.dataGrid ?? {}
