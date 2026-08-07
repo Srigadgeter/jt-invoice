@@ -15,6 +15,7 @@ import { collection } from "firebase/firestore";
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
+import Typography from "@mui/material/Typography";
 import FormControl from "@mui/material/FormControl";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
@@ -26,8 +27,7 @@ import {
   commonSelectOnChangeHandler,
   formatDate,
   generateKeyValuePair,
-  getNow,
-  isMobile
+  getNow
 } from "utils/utilites";
 import {
   addDocToFirestore,
@@ -39,12 +39,16 @@ import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import DeleteModal from "components/common/DeleteModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import TitleBanner from "components/common/TitleBanner";
 import customerSchema from "validationSchemas/customerSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addNotification } from "store/slices/notificationsSlice";
 import { updateMatchedCustomerInAllInvoices } from "store/slices/invoicesSlice";
 import { addCustomer, deleteCustomer, editCustomer } from "store/slices/customersSlice";
+
+import CustomerCards from "./CustomerCards";
 
 const styles = {
   titleIcon: {
@@ -55,6 +59,7 @@ const styles = {
     justifyContent: "flex-end"
   },
   modalStyle: {
+    width: { xs: "95%", sm: "80%", md: "50%", lg: "40%" },
     minHeight: "fit-content"
   },
   dataGrid: commonStyles?.dataGrid ?? {},
@@ -84,6 +89,8 @@ const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [initialValues, setInitialValues] = useState(INITIAL_VALUES);
+
+  const { isMobile } = useBreakpoints();
 
   const { loading = false } = useOutletContext();
   const { EDIT } = MODES;
@@ -116,21 +123,35 @@ const Customers = () => {
     handleOpenModal();
   };
 
-  const handleDelete = (params) => {
-    const isReferenced = invoices.filter((item) => item?.customer?.id === params?.row?.id);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
-    if (!isReferenced.length)
-      deleteDocFromFirestore(
-        params?.row,
+  const handleDelete = (params) => {
+    setItemToDelete(params);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setItemToDelete(null);
+    setOpenDeleteModal(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    const isReferenced = invoices.filter((item) => item?.customer?.id === itemToDelete?.row?.id);
+
+    if (!isReferenced.length) {
+      await deleteDocFromFirestore(
+        itemToDelete?.row,
         CUSTOMERS,
         setLoader,
         dispatch,
         deleteCustomer,
-        `Successfully deleted a customer, '${params?.row?.name?.label}'`,
+        `Successfully deleted a customer, '${itemToDelete?.row?.name?.label}'`,
         "There is an issue with deleting the customer"
       );
-    else {
-      const message = `Cannot delete the customer '${params.row?.name?.label}' since it is referenced in one or more invoices`;
+    } else {
+      const message = `Cannot delete the customer '${itemToDelete.row?.name?.label}' since it is referenced in one or more invoices`;
       dispatch(
         addNotification({
           message,
@@ -138,6 +159,7 @@ const Customers = () => {
         })
       );
     }
+    handleCloseDeleteModal();
   };
 
   const validateForm = (field1, field2) => {
@@ -346,7 +368,7 @@ const Customers = () => {
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -354,7 +376,7 @@ const Customers = () => {
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Save
         </Button>
       </Stack>
@@ -377,29 +399,57 @@ const Customers = () => {
         </Button>
       </Box>
 
-      {!loading && customers && Array.isArray(customers) && customers.length > 0 ? (
-        <DataGrid
-          sx={styles.dataGrid}
-          rows={customers}
-          columns={columns}
-          pageSizeOptions={[10]}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: "name", sort: "asc" }]
-            },
-            pagination: {
-              paginationModel: { page: 0, pageSize: 10 }
-            }
-          }}
-          disableColumnMenu
-        />
-      ) : (
-        <ClickNew
-          prefixMessage="Start add your"
-          hightlightedText="customers"
-          suffixMessage="here"
+      {isMobile && customers && Array.isArray(customers) && customers.length > 0 && (
+        <CustomerCards
+          customers={customers}
+          handleEditCustomer={handleEditCustomer}
+          handleDelete={handleDelete}
+          loading={loading || isLoading}
         />
       )}
+
+      {!isMobile ? (
+        !loading && customers && Array.isArray(customers) && customers.length > 0 ? (
+          <DataGrid
+            sx={styles.dataGrid}
+            rows={customers}
+            columns={columns}
+            pageSizeOptions={[10]}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "name", sort: "asc" }]
+              },
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 }
+              }
+            }}
+            disableColumnMenu
+          />
+        ) : (
+          <ClickNew
+            prefixMessage="Start add your"
+            hightlightedText="customers"
+            suffixMessage="here"
+          />
+        )
+      ) : null}
+
+      <DeleteModal
+        open={openDeleteModal}
+        handleClose={handleCloseDeleteModal}
+        title="Delete Customer"
+        description={
+          <Typography>
+            Are you sure you want to delete the customer{" "}
+            <Typography component="span" fontWeight={600}>
+              {itemToDelete?.row?.name?.label}
+            </Typography>{" "}
+            ?
+          </Typography>
+        }
+        handleDelete={confirmDelete}
+        isLoading={isLoading}
+      />
 
       <AppModal
         open={openModal}

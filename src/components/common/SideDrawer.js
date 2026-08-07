@@ -4,11 +4,11 @@ import Avatar from "@mui/material/Avatar";
 import Drawer from "@mui/material/Drawer";
 import Divider from "@mui/material/Divider";
 import ListItem from "@mui/material/ListItem";
-import { useNavigate } from "react-router-dom";
 import Typography from "@mui/material/Typography";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import Logo from "assets/svg/logo.svg";
 import { getFY } from "utils/utilites";
@@ -24,7 +24,9 @@ const styles = {
   },
   listButton: {
     px: 3,
-    gap: 3
+    gap: 3,
+    mx: 1,
+    borderRadius: 2
   },
   listIcon: {
     minWidth: "fit-content"
@@ -33,7 +35,14 @@ const styles = {
 
 const SideDrawer = ({ list, handleClose, anchor = "left", open = false }) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { startYear: sy, endYear: ey } = getFY();
+
+  const checkIsActive = (key) => {
+    if (key === "dashboard") return pathname === "/";
+    if (key === "invoices") return pathname.includes("/invoice");
+    return pathname.includes(`/${key}`);
+  };
 
   return (
     <Drawer anchor={anchor} open={open} onClose={handleClose}>
@@ -52,6 +61,7 @@ const SideDrawer = ({ list, handleClose, anchor = "left", open = false }) => {
         <ListItem sx={styles.listItem} key={item?.key} disablePadding>
           <ListItemButton
             sx={styles.listButton}
+            selected={checkIsActive(item?.key)}
             onClick={() => {
               handleClose();
               // setTimeout to avoid flickering since the routes are loaded lazily

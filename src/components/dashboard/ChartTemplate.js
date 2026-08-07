@@ -6,7 +6,8 @@ import Typography from "@mui/material/Typography";
 
 const styles = {
   paper: {
-    p: 3
+    p: 3,
+    borderRadius: 4
   }
 };
 
@@ -15,7 +16,9 @@ const skeletonContent = <Skeleton animation="wave" variant="rounded" height={400
 const ChartTemplate = ({ title, children, loader = false }) => (
   <Paper elevation={2} sx={styles.paper}>
     <Stack gap={1}>
-      <Typography variant="h6">{title}</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        {title}
+      </Typography>
       {loader ? skeletonContent : children}
     </Stack>
   </Paper>

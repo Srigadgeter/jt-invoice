@@ -23,6 +23,7 @@ import { formatDateForInputField } from "utils/utilites";
 import profileAddressSchema from "validationSchemas/profileAddressSchema";
 import TitleBanner from "components/common/TitleBanner";
 import Loader from "components/common/Loader";
+import DeleteModal from "components/common/DeleteModal";
 
 const { PROFILE } = FIREBASE_COLLECTIONS;
 
@@ -76,6 +77,8 @@ const styles = {
 const Profile = () => {
   const dispatch = useDispatch();
   const [isLoading, setLoader] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
 
   const { profile = {} } = useSelector((state) => state?.profile);
   const storedAddresses = profile?.addresses || [];
@@ -91,7 +94,7 @@ const Profile = () => {
     [storedAddresses]
   );
 
-  const { values, errors, touched, handleBlur, handleChange, handleSubmit, setFieldValue } =
+  const { values, errors, touched, dirty, handleBlur, handleChange, handleSubmit, setFieldValue } =
     useFormik({
       initialValues: { addresses: sortedAddresses },
       enableReinitialize: true,
@@ -137,6 +140,14 @@ const Profile = () => {
   const handleRemoveAddress = (index) => {
     const updated = values.addresses.filter((_, i) => i !== index);
     setFieldValue("addresses", updated);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteIndex !== null) {
+      handleRemoveAddress(deleteIndex);
+      setDeleteModalOpen(false);
+      setDeleteIndex(null);
+    }
   };
 
   return (
@@ -234,9 +245,11 @@ const Profile = () => {
                   {values.addresses.length > 1 && (
                     <IconButton
                       size="small"
-                      color="error"
                       aria-label={`remove-address-${index}`}
-                      onClick={() => handleRemoveAddress(index)}>
+                      onClick={() => {
+                        setDeleteIndex(index);
+                        setDeleteModalOpen(true);
+                      }}>
                       <DeleteIcon />
                     </IconButton>
                   )}
@@ -251,12 +264,24 @@ const Profile = () => {
             type="submit"
             variant="contained"
             startIcon={<SaveIcon />}
-            disabled={isLoading}
+            disabled={isLoading || !dirty}
             id="save-profile-btn">
             Save
           </Button>
         </Stack>
       </Box>
+      <DeleteModal
+        open={deleteModalOpen}
+        handleClose={() => setDeleteModalOpen(false)}
+        title="Delete Address"
+        description={
+          <Stack>
+            <Typography>Are you sure you want to delete this address?</Typography>
+            <Typography fontWeight={600}>{values?.addresses?.[deleteIndex]?.address}</Typography>
+          </Stack>
+        }
+        handleDelete={handleConfirmDelete}
+      />
     </Box>
   );
 };
