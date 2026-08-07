@@ -1,4 +1,5 @@
 import React from "react";
+import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Paper from "@mui/material/Paper";
 import Avatar from "@mui/material/Avatar";
@@ -9,10 +10,14 @@ import Typography from "@mui/material/Typography";
 import { indianCurrencyFormatter } from "utils/utilites";
 
 const styles = {
-  paper: {
+  paper: (borderColor) => ({
     p: 3,
-    height: "100%"
-  },
+    height: "100%",
+    borderRadius: 4,
+    position: "relative",
+    borderBottom: "5px solid",
+    borderColor
+  }),
   stack1: {
     minHeight: "152px"
   },
@@ -21,6 +26,13 @@ const styles = {
   },
   avatar: (avatarBgColor) => ({
     bgcolor: avatarBgColor
+  }),
+  box: (borderColor) => ({
+    right: 25,
+    position: "absolute",
+    borderRadius: "50%",
+    border: "8px solid transparent",
+    background: `radial-gradient(circle, ${borderColor}80, ${borderColor}0a) border-box`
   }),
   avatar2: {
     color: "grey.600",
@@ -66,11 +78,15 @@ const TopThreeStats = ({
   showAmount = false,
   noDataContent = null
 }) => (
-  <Paper elevation={2} sx={styles.paper}>
-    <Stack gap={1}>
+  <Paper elevation={2} sx={styles.paper(avatarBgColor)}>
+    <Stack gap={2}>
       <Stack direction="row" justifyContent="space-between">
-        <Typography variant="h6">Top 3 {title}</Typography>
-        <Avatar sx={styles.avatar(avatarBgColor)}>{icon}</Avatar>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Top 3 {title}
+        </Typography>
+        <Box sx={styles.box(avatarBgColor === "warning.main" ? "#ed6c02" : "#9c27b0")}>
+          <Avatar sx={styles.avatar(avatarBgColor)}>{icon}</Avatar>
+        </Box>
       </Stack>
       {loader ? (
         <Stack gap={1}>

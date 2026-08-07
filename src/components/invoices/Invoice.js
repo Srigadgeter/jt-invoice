@@ -35,7 +35,6 @@ import {
   getNewInvoiceNumber,
   getNow,
   indianCurrencyFormatter,
-  isMobile,
   sortByStringProperty,
   getCompanyAddressForDate
 } from "utils/utilites";
@@ -60,6 +59,7 @@ import {
 import { db } from "integrations/firebase";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
+import useBreakpoints from "hooks/useBreakpoints";
 import { addProduct } from "store/slices/productsSlice";
 import { addCustomer } from "store/slices/customersSlice";
 import invoiceSchema from "validationSchemas/invoiceSchema";
@@ -112,6 +112,18 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "flex-end"
+  },
+  mobileCard: {
+    p: 2,
+    borderRadius: 2,
+    border: "1px solid",
+    borderColor: "divider"
+  },
+  cardDataTitle: {
+    width: "80%",
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    textOverflow: "ellipsis"
   },
   dataGrid: {
     ...(commonStyles?.dataGridHeader || {}),
@@ -183,6 +195,8 @@ const Invoice = () => {
   const [selectedExtraIndex, setSelectedExtraIndex] = useState(null);
 
   const initialValuesRef = useRef(false);
+
+  const { isMobile } = useBreakpoints();
 
   const { INVOICES, PRODUCTS, CUSTOMERS } = FIREBASE_COLLECTIONS;
   const invoicesCollectionRef = collection(db, INVOICES);
@@ -791,7 +805,7 @@ const Invoice = () => {
               variant="contained"
               disabled={isLoading}
               startIcon={<EditIcon />}
-              size={isMobile() ? "small" : "medium"}
+              size={isMobile ? "small" : "medium"}
               onClick={() => handleChangePageMode(EDIT)}>
               Edit
             </Button>
@@ -801,7 +815,7 @@ const Invoice = () => {
             disabled={isLoading}
             onClick={() => handleBack()}
             startIcon={<ArrowBackIosNewIcon />}
-            size={isMobile() ? "small" : "medium"}>
+            size={isMobile ? "small" : "medium"}>
             Back
           </Button>
         </Stack>
@@ -817,7 +831,7 @@ const Invoice = () => {
               </Typography>
             </Stack>
             <Stack direction="column" spacing={2}>
-              <Stack direction="row" spacing={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
                   fullWidth
                   id="invoiceDate"
@@ -884,7 +898,7 @@ const Invoice = () => {
                   <Typography>Paid</Typography>
                 </Stack>
               </Stack>
-              <Stack direction="row" spacing={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
                   fullWidth
                   id="lrNumber"
@@ -918,7 +932,7 @@ const Invoice = () => {
                   value={values?.lrDate ? formatDateForInputField(values?.lrDate) : ""}
                 />
               </Stack>
-              <Stack direction="row" spacing={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <FormControl
                   fullWidth
                   size="small"
@@ -973,7 +987,7 @@ const Invoice = () => {
                   />
                 )}
               </Stack>
-              <Stack direction="row" spacing={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <FormControl
                   fullWidth
                   size="small"
@@ -1047,7 +1061,7 @@ const Invoice = () => {
               </Typography>
             </Stack>
             <Stack direction="column" spacing={2}>
-              <Stack direction="row" spacing={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <FormControl
                   fullWidth
                   size="small"
@@ -1166,7 +1180,7 @@ const Invoice = () => {
                       />
                     )}
                   </Stack>
-                  <Stack direction="row" spacing={2}>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                     <TextField
                       fullWidth
                       id="newCustomerGSTNumber"
@@ -1233,28 +1247,129 @@ const Invoice = () => {
                   variant="text"
                   startIcon={<AddIcon />}
                   disabled={disableAddProductExtraBtns}
-                  size={isMobile() ? "small" : "medium"}
+                  size={isMobile ? "small" : "medium"}
                   onClick={() => handleOpenAddEditProductModal()}>
                   Add &nbsp; Product
                 </Button>
               )}
             </Stack>
-            <DataGrid
-              disableColumnMenu
-              sx={styles.dataGrid}
-              slots={{
-                footer: CustomDataGridFooter
-              }}
-              slotProps={{
-                footer: {
-                  columns: productTableColumns,
-                  rows: currentPageData?.products || []
-                }
-              }}
-              columns={productTableColumns}
-              rows={currentPageData?.products || []}
-              getRowId={(row) => row?.productName?.value}
-            />
+            {!isMobile ? (
+              <DataGrid
+                disableColumnMenu
+                sx={styles.dataGrid}
+                slots={{
+                  footer: CustomDataGridFooter
+                }}
+                slotProps={{
+                  footer: {
+                    columns: productTableColumns,
+                    rows: currentPageData?.products || []
+                  }
+                }}
+                columns={productTableColumns}
+                rows={currentPageData?.products || []}
+                getRowId={(row) => row?.productName?.value}
+              />
+            ) : (
+              <Stack spacing={2}>
+                {currentPageData?.products?.map((product, index) => (
+                  <Box
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={index}
+                    sx={styles.mobileCard}>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="flex-start"
+                      mb={1}>
+                      <Typography fontWeight={600} variant="subtitle1" sx={styles.cardDataTitle}>
+                        {index + 1}. {product.productName?.label}
+                      </Typography>
+                      {!isViewMode && (
+                        <Stack direction="row" spacing={0.5}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditProduct(product, index)}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => dispatch(removeProduct(product))}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      )}
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between" mb={0.5}>
+                      <Typography variant="body2" color="text.secondary">
+                        {product.productQuantityPieces || 0}
+                        {product.productQuantityPieces === 1 ? "pc" : "pcs"}
+                        &nbsp;&nbsp;/&nbsp;&nbsp;
+                        {product.productQuantityMeters || 0}
+                        {product.productQuantityMeters === 1 ? "mtr" : "mtrs"}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Rate: {indianCurrencyFormatter(product.productRate)}
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between" mb={0.5}>
+                      <Typography variant="body2" color="text.secondary">
+                        Amount: {indianCurrencyFormatter(product.productAmount)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        GST: {indianCurrencyFormatter(product.producGstAmount)}
+                      </Typography>
+                    </Stack>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      mt={1}
+                      pt={1}
+                      borderTop="1px dashed"
+                      borderColor="divider">
+                      <Typography variant="body2" fontWeight={600}>
+                        Total (Incl. GST)
+                      </Typography>
+                      <Typography variant="subtitle2" fontWeight={600} color="primary.main">
+                        {indianCurrencyFormatter(product.productAmountInclGST)}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+                {currentPageData?.products?.length > 0 && (
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: "action.hover" }}>
+                    <Stack direction="row" justifyContent="space-between" mb={0.5}>
+                      <Typography variant="body2" fontWeight={600}>
+                        Total Quantity:
+                      </Typography>
+                      <Typography variant="body2">
+                        {currentPageData?.products.reduce(
+                          (acc, curr) => acc + (Number(curr.productQuantityPieces) || 0),
+                          0
+                        )}
+                        pcs&nbsp;&nbsp;/&nbsp;&nbsp;
+                        {currentPageData?.products.reduce(
+                          (acc, curr) => acc + (Number(curr.productQuantityMeters) || 0),
+                          0
+                        )}
+                        mtrs
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" fontWeight={600}>
+                        Total Amount (Incl. GST):
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        {indianCurrencyFormatter(
+                          currentPageData?.products.reduce(
+                            (acc, curr) => acc + (Number(curr.productAmountInclGST) || 0),
+                            0
+                          )
+                        )}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                )}
+              </Stack>
+            )}
           </Stack>
 
           <Stack>
@@ -1271,28 +1386,90 @@ const Invoice = () => {
                   variant="text"
                   startIcon={<AddIcon />}
                   disabled={disableAddProductExtraBtns}
-                  size={isMobile() ? "small" : "medium"}
+                  size={isMobile ? "small" : "medium"}
                   onClick={() => handleOpenAddEditExtraModal()}>
                   Add &nbsp; Extra
                 </Button>
               )}
             </Stack>
-            <DataGrid
-              disableColumnMenu
-              sx={styles.dataGrid}
-              slots={{
-                footer: CustomDataGridFooter
-              }}
-              slotProps={{
-                footer: {
-                  columns: extraTableColumns,
-                  rows: currentPageData?.extras || []
-                }
-              }}
-              columns={extraTableColumns}
-              rows={currentPageData?.extras || []}
-              getRowId={(row) => row?.reason?.value}
-            />
+            {!isMobile ? (
+              <DataGrid
+                disableColumnMenu
+                sx={styles.dataGrid}
+                slots={{
+                  footer: CustomDataGridFooter
+                }}
+                slotProps={{
+                  footer: {
+                    columns: extraTableColumns,
+                    rows: currentPageData?.extras || []
+                  }
+                }}
+                columns={extraTableColumns}
+                rows={currentPageData?.extras || []}
+                getRowId={(row) => row?.reason?.value}
+              />
+            ) : (
+              <Stack spacing={2}>
+                {currentPageData?.extras?.map((extra, index) => (
+                  <Box
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={index}
+                    sx={{ p: 2, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="flex-start"
+                      mb={1}>
+                      <Typography fontWeight={600} variant="subtitle1" sx={styles.cardDataTitle}>
+                        {index + 1}. {extra.reason?.label}
+                      </Typography>
+                      {!isViewMode && (
+                        <Stack direction="row" spacing={0.5}>
+                          <IconButton size="small" onClick={() => handleEditExtra(extra, index)}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => dispatch(removeExtra(extra))}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      )}
+                    </Stack>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      mt={1}
+                      pt={1}
+                      borderTop="1px dashed"
+                      borderColor="divider">
+                      <Typography variant="body2" fontWeight={600}>
+                        Amount
+                      </Typography>
+                      <Typography variant="subtitle2" fontWeight={600} color="primary.main">
+                        {indianCurrencyFormatter(extra.amount)}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+                {currentPageData?.extras?.length > 0 && (
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: "action.hover" }}>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" fontWeight={600}>
+                        Total Extras:
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        {indianCurrencyFormatter(
+                          currentPageData?.extras.reduce(
+                            (acc, curr) => acc + (Number(curr.amount) || 0),
+                            0
+                          )
+                        )}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                )}
+              </Stack>
+            )}
           </Stack>
         </Box>
       </Box>
@@ -1314,7 +1491,7 @@ const Invoice = () => {
             variant="contained"
             onClick={handleSubmit}
             disabled={!isSubmitEnabled}
-            size={isMobile() ? "small" : "medium"}>
+            size={isMobile ? "small" : "medium"}>
             {isNewMode ? "Submit" : "Save"}
           </Button>
         )}

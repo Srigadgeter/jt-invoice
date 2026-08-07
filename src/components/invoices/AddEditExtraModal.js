@@ -15,13 +15,23 @@ import InputAdornment from "@mui/material/InputAdornment";
 
 import commonStyles from "utils/commonStyles";
 import AppModal from "components/common/AppModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import { addExtra, editExtra } from "store/slices/invoicesSlice";
 import addEditExtraSchema from "validationSchemas/addEditExtraSchema";
-import { commonSelectOnChangeHandler, generateKeyValuePair, isMobile } from "utils/utilites";
+import { commonSelectOnChangeHandler, generateKeyValuePair } from "utils/utilites";
 
 const styles = {
   fullWidth: {
     width: "100%"
+  },
+  xsFullWidth: (theme) => ({
+    [theme.breakpoints.down("sm")]: {
+      width: "100%"
+    }
+  }),
+  modalStyle: {
+    width: { xs: "90%", sm: "65%", md: "50%", lg: "40%" },
+    minHeight: "fit-content"
   },
   selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
   selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
@@ -38,6 +48,7 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
   const { extrasList = [] } = useSelector((state) => state?.invoices);
 
   const dispatch = useDispatch();
+  const { isMobile } = useBreakpoints();
 
   const {
     dirty,
@@ -101,12 +112,13 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
 
   const footerContent = () => (
     <Stack direction="row" justifyContent="flex-end" alignItems="center">
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={1} sx={styles.xsFullWidth}>
         <Button
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
-          size={isMobile() ? "small" : "medium"}>
+          fullWidth={{ xs: true, sm: false }}
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -114,7 +126,8 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
-          size={isMobile() ? "small" : "medium"}>
+          fullWidth={{ xs: true, sm: false }}
+          size={isMobile ? "small" : "medium"}>
           Save
         </Button>
       </Stack>
@@ -126,9 +139,10 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
       open={open}
       footer={footerContent()}
       handleClose={handleCancel}
+      modalStyle={styles.modalStyle}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Extra`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
-        <Stack direction="row" spacing={2} sx={styles.fullWidth}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={styles.fullWidth}>
           <FormControl
             fullWidth
             size="small"

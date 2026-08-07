@@ -18,12 +18,12 @@ import {
   commonSelectOnChangeHandler,
   generateKeyValuePair,
   getNow,
-  isMobile,
   sortByStringProperty
 } from "utils/utilites";
 import commonStyles from "utils/commonStyles";
 import { GST_PERCENTAGE } from "utils/constants";
 import AppModal from "components/common/AppModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import { addProduct, editProduct } from "store/slices/invoicesSlice";
 import addEditProductSchema from "validationSchemas/addEditProductSchema";
 
@@ -31,8 +31,17 @@ const styles = {
   fullWidth: {
     width: "100%"
   },
+  xsFullWidth: (theme) => ({
+    [theme.breakpoints.down("sm")]: {
+      width: "100%"
+    }
+  }),
   amount: {
     fontWeight: 400
+  },
+  modalStyle: {
+    width: { xs: "90%", sm: "65%", md: "50%", lg: "40%" },
+    minHeight: "fit-content"
   },
   selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
   selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
@@ -51,6 +60,7 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
   const [amount, setAmount] = useState(0);
 
   const dispatch = useDispatch();
+  const { isMobile } = useBreakpoints();
 
   const { products = [] } = useSelector((state) => state?.products);
   const productList = sortByStringProperty([...products], "value");
@@ -163,7 +173,11 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
     commonSelectOnChangeHandler(name, value, list, setFieldValue);
 
   const footerContent = () => (
-    <Stack direction="row" justifyContent="space-between" alignItems="center">
+    <Stack
+      direction={{ xs: "column", sm: "row" }}
+      justifyContent="space-between"
+      alignItems="center"
+      gap={{ xs: 1, sm: 1 }}>
       <Stack direction="row" spacing={1}>
         <Typography variant="h6" style={styles.amount}>
           Amount:
@@ -173,12 +187,13 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
         </Typography>
       </Stack>
 
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={1} sx={styles.xsFullWidth}>
         <Button
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
-          size={isMobile() ? "small" : "medium"}>
+          fullWidth={{ xs: true, sm: false }}
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -186,7 +201,8 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
-          size={isMobile() ? "small" : "medium"}>
+          fullWidth={{ xs: true, sm: false }}
+          size={isMobile ? "small" : "medium"}>
           Save
         </Button>
       </Stack>
@@ -198,9 +214,10 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
       open={open}
       footer={footerContent()}
       handleClose={handleCancel}
+      modalStyle={styles.modalStyle}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Product`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
-        <Stack direction="row" spacing={2} sx={styles.fullWidth}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={styles.fullWidth}>
           <FormControl
             fullWidth
             size="small"

@@ -9,6 +9,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DoneIcon from "@mui/icons-material/Done";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { collection } from "firebase/firestore";
@@ -29,13 +30,17 @@ import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import DeleteModal from "components/common/DeleteModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import TitleBanner from "components/common/TitleBanner";
 import productSchema from "validationSchemas/productSchema";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
 import { addNotification } from "store/slices/notificationsSlice";
 import { updateMatchedProductInAllInvoices } from "store/slices/invoicesSlice";
 import { addProduct, deleteProduct, editProduct } from "store/slices/productsSlice";
-import { formatDate, generateKeyValuePair, getNow, isMobile } from "utils/utilites";
+import { formatDate, generateKeyValuePair, getNow } from "utils/utilites";
+
+import ProductCards from "./ProductCards";
 
 const styles = {
   titleIcon: {
@@ -46,6 +51,7 @@ const styles = {
     justifyContent: "flex-end"
   },
   modalStyle: {
+    width: { xs: "95%", sm: "80%", md: "50%", lg: "40%" },
     minHeight: "fit-content"
   },
   dataGrid: commonStyles?.dataGrid ?? {}
@@ -62,6 +68,8 @@ const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [initialValues, setInitialValues] = useState(INITIAL_VALUES);
+
+  const { isMobile } = useBreakpoints();
 
   const { loading = false } = useOutletContext();
   const { EDIT } = MODES;
@@ -91,27 +99,41 @@ const Products = () => {
     handleOpenModal();
   };
 
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
   const handleDelete = (params) => {
+    setItemToDelete(params);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setItemToDelete(null);
+    setOpenDeleteModal(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
     const isReferencedArr = [];
     invoices.forEach((item) => {
-      const isPresent = item?.products.filter((p) => p?.productName?.id === params?.row?.id);
+      const isPresent = item?.products.filter((p) => p?.productName?.id === itemToDelete?.row?.id);
       isReferencedArr.push(isPresent);
     });
 
     const isReferenced = isReferencedArr.flat();
 
-    if (!isReferenced.length)
-      deleteDocFromFirestore(
-        params?.row,
+    if (!isReferenced.length) {
+      await deleteDocFromFirestore(
+        itemToDelete?.row,
         PRODUCTS,
         setLoader,
         dispatch,
         deleteProduct,
-        `Successfully deleted a product, '${params?.row?.label}'`,
+        `Successfully deleted a product, '${itemToDelete?.row?.label}'`,
         "There is an issue with deleting the product"
       );
-    else {
-      const message = `Cannot delete the product '${params.row?.label}' since it is referenced in one or more invoices`;
+    } else {
+      const message = `Cannot delete the product '${itemToDelete.row?.label}' since it is referenced in one or more invoices`;
       dispatch(
         addNotification({
           message,
@@ -119,6 +141,7 @@ const Products = () => {
         })
       );
     }
+    handleCloseDeleteModal();
   };
 
   const validateForm = (field) => {
@@ -240,7 +263,7 @@ const Products = () => {
     },
     {
       field: "isOwn",
-      headerName: "Is Own",
+      headerName: "Ours",
       width: 100,
       renderCell: (params) => (params.value ? "Yes" : "No")
     },
@@ -289,7 +312,7 @@ const Products = () => {
           variant="outlined"
           startIcon={<CloseIcon />}
           onClick={handleCancel}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -297,7 +320,7 @@ const Products = () => {
           startIcon={<DoneIcon />}
           onClick={handleSubmit}
           disabled={!(dirty && isValid)}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Save
         </Button>
       </Stack>
@@ -320,29 +343,57 @@ const Products = () => {
         </Button>
       </Box>
 
-      {!loading && products && Array.isArray(products) && products.length > 0 ? (
-        <DataGrid
-          sx={styles.dataGrid}
-          rows={products}
-          columns={columns}
-          pageSizeOptions={[10]}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: "label", sort: "asc" }]
-            },
-            pagination: {
-              paginationModel: { page: 0, pageSize: 10 }
-            }
-          }}
-          disableColumnMenu
-        />
-      ) : (
-        <ClickNew
-          prefixMessage="Start listing your"
-          hightlightedText="products"
-          suffixMessage="here"
+      {isMobile && products && Array.isArray(products) && products.length > 0 && (
+        <ProductCards
+          products={products}
+          handleEditProduct={handleEditProduct}
+          handleDelete={handleDelete}
+          loading={loading || isLoading}
         />
       )}
+
+      {!isMobile ? (
+        !loading && products && Array.isArray(products) && products.length > 0 ? (
+          <DataGrid
+            sx={styles.dataGrid}
+            rows={products}
+            columns={columns}
+            pageSizeOptions={[10]}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "label", sort: "asc" }]
+              },
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 }
+              }
+            }}
+            disableColumnMenu
+          />
+        ) : (
+          <ClickNew
+            prefixMessage="Start listing your"
+            hightlightedText="products"
+            suffixMessage="here"
+          />
+        )
+      ) : null}
+
+      <DeleteModal
+        open={openDeleteModal}
+        handleClose={handleCloseDeleteModal}
+        title="Delete Product"
+        description={
+          <Typography>
+            Are you sure you want to delete the product{" "}
+            <Typography component="span" fontWeight={600}>
+              {itemToDelete?.row?.label}
+            </Typography>{" "}
+            ?
+          </Typography>
+        }
+        handleDelete={confirmDelete}
+        isLoading={isLoading}
+      />
 
       <AppModal
         open={openModal}

@@ -1,4 +1,5 @@
 import React from "react";
+import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
@@ -11,7 +12,18 @@ import { indianCurrencyFormatter } from "utils/utilites";
 const styles = {
   paper: {
     p: 3,
-    height: "100%"
+    height: "100%",
+    borderRadius: 4,
+    position: "relative",
+    borderBottom: "5px solid",
+    borderColor: "success.main"
+  },
+  box: {
+    right: 25,
+    position: "absolute",
+    borderRadius: "50%",
+    border: "8px solid transparent",
+    background: "radial-gradient(circle, #2e7d3280, #2e7d320a) border-box"
   },
   avatar: {
     bgcolor: "success.main"
@@ -39,12 +51,16 @@ const skeletonContent = (
 
 const SalesStats = ({ loader = false, currentMonthSales = 0, currentFySales = 0 }) => (
   <Paper elevation={2} sx={styles.paper}>
-    <Stack gap={1}>
+    <Stack gap={2}>
       <Stack direction="row" justifyContent="space-between">
-        <Typography variant="h6">Sales</Typography>
-        <Avatar sx={styles.avatar}>
-          <CurrencyRupeeOutlinedIcon />
-        </Avatar>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Sales
+        </Typography>
+        <Box sx={styles.box}>
+          <Avatar sx={styles.avatar}>
+            <CurrencyRupeeOutlinedIcon />
+          </Avatar>
+        </Box>
       </Stack>
       {loader ? (
         <Stack gap={3}>

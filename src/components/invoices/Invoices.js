@@ -29,14 +29,15 @@ import {
   getDaysDiff,
   getFY,
   getInvoicesPageTabs,
-  indianCurrencyFormatter,
-  isMobile
+  indianCurrencyFormatter
 } from "utils/utilites";
 import routes from "routes/routes";
 import Loader from "components/common/Loader";
 import commonStyles from "utils/commonStyles";
 import ClickNew from "components/common/ClickNew";
 import AppModal from "components/common/AppModal";
+import DeleteModal from "components/common/DeleteModal";
+import useBreakpoints from "hooks/useBreakpoints";
 import TitleBanner from "components/common/TitleBanner";
 import PdfGenerator from "components/common/PdfGenerator";
 import { MODES, FIREBASE_COLLECTIONS } from "utils/constants";
@@ -44,6 +45,8 @@ import { addNotification } from "store/slices/notificationsSlice";
 import InvoiceTemplate from "components/templates/InvoiceTemplate";
 import { deleteDocFromFirestore } from "integrations/firestoreHelpers";
 import { deleteInvoice, setInvoice } from "store/slices/invoicesSlice";
+
+import InvoiceCards from "./InvoiceCards";
 
 const styles = {
   box: {
@@ -54,18 +57,31 @@ const styles = {
     borderColor: "divider",
     justifyContent: "space-between"
   },
+  tabList: {
+    width: "100%",
+    ".MuiTabs-scrollButtons": {
+      "&.Mui-disabled": {
+        opacity: 0.3,
+        cursor: "not-allowed",
+        pointerEvents: "auto"
+      }
+    }
+  },
+  newButton: {
+    minWidth: "fit-content"
+  },
   dataGrid: {
     ...(commonStyles?.dataGrid ?? {}),
     ".MuiDataGrid-virtualScroller": {
       height: "calc(100vh - 382px)"
     }
   },
-  chip: (value) => ({
+  chip: (isPaid) => ({
     width: "70px",
     height: "auto",
     borderRadius: 1,
-    color: value === "paid" ? "common.success" : "common.error",
-    bgcolor: value === "paid" ? "background.success" : "background.error",
+    color: isPaid ? "common.success" : "common.error",
+    bgcolor: isPaid ? "background.success" : "background.error",
     ".MuiChip-label": {
       px: 0.75,
       py: 0.5
@@ -93,6 +109,8 @@ const styles = {
 
 const Invoices = () => {
   const [isLoading, setLoader] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
@@ -103,6 +121,8 @@ const Invoices = () => {
 
   const printRef = useRef(null);
   const printTrigger = useReactToPrint({ contentRef: printRef });
+
+  const { isMobile } = useBreakpoints();
 
   const { loading = false } = useOutletContext();
   const { INVOICE_NEW, INVOICE_VIEW, INVOICE_EDIT } = routes;
@@ -194,6 +214,30 @@ const Invoices = () => {
     navigate(INVOICE_NEW.to(currentSY, currentEY));
   };
 
+  const handleDelete = (params) => {
+    setItemToDelete(params);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setItemToDelete(null);
+    setOpenDeleteModal(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    await deleteDocFromFirestore(
+      itemToDelete?.row,
+      INVOICES,
+      setLoader,
+      dispatch,
+      deleteInvoice,
+      `Successfully deleted invoice '${itemToDelete?.row?.invoiceNumber}'`,
+      "There is an issue with deleting the invoice"
+    );
+    handleCloseDeleteModal();
+  };
+
   useEffect(() => {
     if (Array.isArray(storeInvoicesData) && tabValue) {
       const specificFYInvoices = storeInvoicesData.filter(
@@ -230,12 +274,10 @@ const Invoices = () => {
       field: "paymentStatus",
       headerName: "Payment Status",
       width: 120,
-      renderCell: ({ value }) => (
-        <Chip
-          label={value?.toLowerCase() === "paid" ? "Paid" : "Unpaid"}
-          sx={styles.chip(value?.toLowerCase())}
-        />
-      )
+      renderCell: ({ value }) => {
+        const isPaid = value === "paid";
+        return <Chip label={isPaid ? "Paid" : "Unpaid"} sx={styles.chip(isPaid)} />;
+      }
     },
     {
       field: "paymentDate",
@@ -301,17 +343,7 @@ const Invoices = () => {
                   size="large"
                   aria-label="delete"
                   disabled={loading || isLoading}
-                  onClick={() =>
-                    deleteDocFromFirestore(
-                      params?.row,
-                      INVOICES,
-                      setLoader,
-                      dispatch,
-                      deleteInvoice,
-                      `Successfully deleted invoice '${params?.row?.invoiceNumber}'`,
-                      "There is an issue with deleting the invoice"
-                    )
-                  }>
+                  onClick={() => handleDelete(params)}>
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>
@@ -331,8 +363,13 @@ const Invoices = () => {
     }
   ];
 
-  if (isMobile()) {
-    columns.splice(1, 1, { field: "customerName", headerName: "Customer Name", width: 300 });
+  if (isMobile) {
+    columns.splice(1, 1, {
+      field: "customerName",
+      headerName: "Customer Name",
+      width: 300,
+      valueFormatter: ({ value }) => value?.label
+    });
   }
 
   const footerContent = () => (
@@ -343,7 +380,7 @@ const Invoices = () => {
           disabled={isLoading}
           onClick={handleClose}
           startIcon={<CloseIcon />}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Cancel
         </Button>
         <Button
@@ -351,13 +388,13 @@ const Invoices = () => {
           disabled={isLoading}
           onClick={handleDownload}
           startIcon={<DownloadIcon />}
-          size={isMobile() ? "small" : "medium"}>
+          size={isMobile ? "small" : "medium"}>
           Download
         </Button>
         <Button
           variant="contained"
           onClick={handlePrint}
-          size={isMobile() ? "small" : "medium"}
+          size={isMobile ? "small" : "medium"}
           disabled={isLoading || !printRef.current}
           startIcon={<LocalPrintshopOutlinedIcon />}>
           Print
@@ -376,8 +413,9 @@ const Invoices = () => {
         <TabContext value={fy}>
           <Box sx={styles.box}>
             <TabList
-              scrollButtons
               value={fy}
+              scrollButtons
+              sx={styles.tabList}
               variant="scrollable"
               allowScrollButtonsMobile
               onChange={handleTabChange}
@@ -390,6 +428,7 @@ const Invoices = () => {
             {isCurrentFY ? (
               <Button
                 variant="contained"
+                sx={styles.newButton}
                 startIcon={<AddIcon />}
                 onClick={() => handleNew()}
                 disabled={loading || isLoading}>
@@ -400,25 +439,55 @@ const Invoices = () => {
         </TabContext>
       )}
 
-      {invoices && Array.isArray(invoices) && invoices.length > 0 ? (
-        <DataGrid
-          sx={styles.dataGrid}
-          rows={invoices}
-          columns={columns}
-          pageSizeOptions={[10]}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: "invoiceDate", sort: "desc" }]
-            },
-            pagination: {
-              paginationModel: { page: 0, pageSize: 10 }
-            }
-          }}
-          disableColumnMenu
+      {isMobile && invoices && Array.isArray(invoices) && invoices.length > 0 && (
+        <InvoiceCards
+          invoices={invoices}
+          handleOpen={handleOpen}
+          isCurrentFY={isCurrentFY}
+          handleViewPDF={handleViewPDF}
+          handleDelete={handleDelete}
+          loading={loading || isLoading}
         />
-      ) : (
-        <ClickNew prefixMessage="Click here to create your" hightlightedText="invoices" />
       )}
+
+      {!isMobile ? (
+        invoices && Array.isArray(invoices) && invoices.length > 0 ? (
+          <DataGrid
+            sx={styles.dataGrid}
+            rows={invoices}
+            columns={columns}
+            pageSizeOptions={[10]}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "invoiceDate", sort: "desc" }]
+              },
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 }
+              }
+            }}
+            disableColumnMenu
+          />
+        ) : (
+          <ClickNew prefixMessage="Click here to create your" hightlightedText="invoices" />
+        )
+      ) : null}
+
+      <DeleteModal
+        open={openDeleteModal}
+        handleClose={handleCloseDeleteModal}
+        title="Delete Invoice"
+        description={
+          <Typography>
+            Are you sure you want to delete the invoice{" "}
+            <Typography component="span" fontWeight={600}>
+              {itemToDelete?.row?.invoiceNumber}
+            </Typography>{" "}
+            ?
+          </Typography>
+        }
+        handleDelete={confirmDelete}
+        isLoading={isLoading}
+      />
 
       <AppModal
         open={openModal}
