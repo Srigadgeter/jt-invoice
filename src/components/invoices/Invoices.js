@@ -75,12 +75,12 @@ const styles = {
       height: "calc(100vh - 382px)"
     }
   },
-  chip: (value) => ({
+  chip: (isPaid) => ({
     width: "70px",
     height: "auto",
     borderRadius: 1,
-    color: value === "paid" ? "common.success" : "common.error",
-    bgcolor: value === "paid" ? "background.success" : "background.error",
+    color: isPaid ? "common.success" : "common.error",
+    bgcolor: isPaid ? "background.success" : "background.error",
     ".MuiChip-label": {
       px: 0.75,
       py: 0.5
@@ -247,9 +247,10 @@ const Invoices = () => {
       field: "paymentStatus",
       headerName: "Payment Status",
       width: 120,
-      renderCell: ({ value }) => (
-        <Chip label={value === "paid" ? "Paid" : "Unpaid"} sx={styles.chip(value)} />
-      )
+      renderCell: ({ value }) => {
+        const isPaid = value === "paid";
+        return <Chip label={isPaid ? "Paid" : "Unpaid"} sx={styles.chip(isPaid)} />;
+      }
     },
     {
       field: "paymentDate",
