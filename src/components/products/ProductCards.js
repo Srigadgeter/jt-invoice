@@ -1,12 +1,11 @@
 import React from "react";
 import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import DeleteIcon from "@mui/icons-material/Delete";
-
-import { formatDate } from "utils/utilites";
 
 const styles = {
   cardList: {
@@ -26,19 +25,18 @@ const styles = {
   stack1: {
     px: 2,
     py: 1,
+    minHeight: 46,
+    flexDirection: "row",
     borderBottom: "1px dashed",
-    borderColor: "divider"
+    borderColor: "divider",
+    alignItems: "center",
+    justifyContent: "space-between"
   },
   typo1: {
     fontWeight: 600,
     overflow: "hidden",
     whiteSpace: "nowrap",
     textOverflow: "ellipsis"
-  },
-  stack2: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between"
   },
   stack3: {
     px: 2,
@@ -50,6 +48,13 @@ const styles = {
     borderBottomLeftRadius: "12px",
     borderBottomRightRadius: "12px",
     justifyContent: "space-around"
+  },
+  chip: {
+    width: "auto",
+    height: 19,
+    borderRadius: 10,
+    color: "common.success",
+    bgcolor: "background.success"
   },
   icon: {
     fontSize: "20px",
@@ -68,15 +73,8 @@ const ProductCards = ({ products, handleEditProduct, handleDelete, loading = fal
       {sortedList.map((product) => (
         <Box sx={styles.card} key={product.id}>
           <Stack sx={styles.stack1}>
-            <Typography sx={styles.typo1}>{product?.label}</Typography>
-            <Stack sx={styles.stack2}>
-              <Typography variant="body2" color="text.secondary">
-                Ours: {product?.isOwn ? "Yes" : "No"}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                @ {formatDate(product?.createdAt)}
-              </Typography>
-            </Stack>
+            <Typography sx={styles.typo1}>{product?.label}</Typography>{" "}
+            {product?.isOwn ? <Chip label="Ours" sx={styles.chip} /> : ""}
           </Stack>
           <Stack sx={styles.stack3}>
             <IconButton

@@ -6,8 +6,6 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import { formatDate } from "utils/utilites";
-
 const styles = {
   cardList: {
     overflowY: "overlay",
@@ -29,16 +27,29 @@ const styles = {
     borderBottom: "1px dashed",
     borderColor: "divider"
   },
-  typo1: {
+  name: {
     fontWeight: 600,
+    fontSize: "1.05rem",
     overflow: "hidden",
     whiteSpace: "nowrap",
-    textOverflow: "ellipsis"
+    textOverflow: "ellipsis",
+    color: "text.primary"
   },
-  stack2: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between"
+  addressText: {
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    textTransform: "capitalize",
+    fontSize: "0.85rem",
+    lineHeight: 1.4,
+    color: "text.secondary",
+    mb: 0.5
+  },
+  infoText: {
+    fontSize: "0.85rem",
+    color: "text.secondary"
   },
   stack3: {
     px: 2,
@@ -67,23 +78,22 @@ const CustomerCards = ({ customers, handleEditCustomer, handleDelete, loading = 
     <Stack gap={2} pt={2} sx={styles.cardList}>
       {sortedList.map((customer) => (
         <Box sx={styles.card} key={customer.id}>
-          <Stack sx={styles.stack1}>
-            <Typography sx={styles.typo1}>{customer?.name?.label}</Typography>
-            <Stack>
-              <Stack sx={styles.stack2}>
-                <Typography variant="body2" color="text.secondary">
-                  GST: {customer?.gstNumber || "N/A"}
-                </Typography>
-              </Stack>
-              <Stack sx={styles.stack2}>
-                <Typography variant="body2" color="text.secondary">
-                  Phone: {customer?.phoneNumber || "N/A"}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  @ {formatDate(customer?.createdAt)}
-                </Typography>
-              </Stack>
-            </Stack>
+          <Stack sx={styles.stack1} spacing={0.5}>
+            <Typography sx={styles.name}>{customer?.name?.label}</Typography>
+            {customer?.address ? (
+              <Typography sx={styles.addressText}>{customer?.address?.toLowerCase()}</Typography>
+            ) : (
+              ""
+            )}
+            <Typography sx={styles.infoText}>
+              {customer?.gstNumber || ""}
+              {customer?.gstNumber && customer?.phoneNumber ? (
+                <>&nbsp;&nbsp;&middot;&nbsp;&nbsp;</>
+              ) : (
+                ""
+              )}
+              {customer?.phoneNumber || ""}
+            </Typography>
           </Stack>
           <Stack sx={styles.stack3}>
             <IconButton
