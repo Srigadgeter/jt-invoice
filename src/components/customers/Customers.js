@@ -46,6 +46,8 @@ import { addNotification } from "store/slices/notificationsSlice";
 import { updateMatchedCustomerInAllInvoices } from "store/slices/invoicesSlice";
 import { addCustomer, deleteCustomer, editCustomer } from "store/slices/customersSlice";
 
+import CustomerCards from "./CustomerCards";
+
 const styles = {
   titleIcon: {
     fontSize: 70
@@ -379,29 +381,40 @@ const Customers = () => {
         </Button>
       </Box>
 
-      {!loading && customers && Array.isArray(customers) && customers.length > 0 ? (
-        <DataGrid
-          sx={styles.dataGrid}
-          rows={customers}
-          columns={columns}
-          pageSizeOptions={[10]}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: "name", sort: "asc" }]
-            },
-            pagination: {
-              paginationModel: { page: 0, pageSize: 10 }
-            }
-          }}
-          disableColumnMenu
-        />
-      ) : (
-        <ClickNew
-          prefixMessage="Start add your"
-          hightlightedText="customers"
-          suffixMessage="here"
+      {isMobile && customers && Array.isArray(customers) && customers.length > 0 && (
+        <CustomerCards
+          customers={customers}
+          handleEditCustomer={handleEditCustomer}
+          handleDelete={handleDelete}
+          loading={loading || isLoading}
         />
       )}
+
+      {!isMobile ? (
+        !loading && customers && Array.isArray(customers) && customers.length > 0 ? (
+          <DataGrid
+            sx={styles.dataGrid}
+            rows={customers}
+            columns={columns}
+            pageSizeOptions={[10]}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "name", sort: "asc" }]
+              },
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 }
+              }
+            }}
+            disableColumnMenu
+          />
+        ) : (
+          <ClickNew
+            prefixMessage="Start add your"
+            hightlightedText="customers"
+            suffixMessage="here"
+          />
+        )
+      ) : null}
 
       <AppModal
         open={openModal}

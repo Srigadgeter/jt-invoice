@@ -38,6 +38,8 @@ import { updateMatchedProductInAllInvoices } from "store/slices/invoicesSlice";
 import { addProduct, deleteProduct, editProduct } from "store/slices/productsSlice";
 import { formatDate, generateKeyValuePair, getNow } from "utils/utilites";
 
+import ProductCards from "./ProductCards";
+
 const styles = {
   titleIcon: {
     fontSize: 70
@@ -243,7 +245,7 @@ const Products = () => {
     },
     {
       field: "isOwn",
-      headerName: "Is Own",
+      headerName: "Ours",
       width: 100,
       renderCell: (params) => (params.value ? "Yes" : "No")
     },
@@ -323,29 +325,40 @@ const Products = () => {
         </Button>
       </Box>
 
-      {!loading && products && Array.isArray(products) && products.length > 0 ? (
-        <DataGrid
-          sx={styles.dataGrid}
-          rows={products}
-          columns={columns}
-          pageSizeOptions={[10]}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: "label", sort: "asc" }]
-            },
-            pagination: {
-              paginationModel: { page: 0, pageSize: 10 }
-            }
-          }}
-          disableColumnMenu
-        />
-      ) : (
-        <ClickNew
-          prefixMessage="Start listing your"
-          hightlightedText="products"
-          suffixMessage="here"
+      {isMobile && products && Array.isArray(products) && products.length > 0 && (
+        <ProductCards
+          products={products}
+          handleEditProduct={handleEditProduct}
+          handleDelete={handleDelete}
+          loading={loading || isLoading}
         />
       )}
+
+      {!isMobile ? (
+        !loading && products && Array.isArray(products) && products.length > 0 ? (
+          <DataGrid
+            sx={styles.dataGrid}
+            rows={products}
+            columns={columns}
+            pageSizeOptions={[10]}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "label", sort: "asc" }]
+              },
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 }
+              }
+            }}
+            disableColumnMenu
+          />
+        ) : (
+          <ClickNew
+            prefixMessage="Start listing your"
+            hightlightedText="products"
+            suffixMessage="here"
+          />
+        )
+      ) : null}
 
       <AppModal
         open={openModal}
