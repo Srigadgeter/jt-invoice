@@ -205,7 +205,7 @@ export const getFyMonths = (startYear, endYear, divider = " ") =>
 
 export const commonSelectOnChangeHandler = (name, value, list, setFieldValue) => {
   if (value === "") {
-    setFieldValue(name, { label: "None", value: "" });
+    setFieldValue(name, { label: "", value: "" });
   } else if (value === "new") {
     setFieldValue(name, { label: "New", value: "new" });
   } else {
