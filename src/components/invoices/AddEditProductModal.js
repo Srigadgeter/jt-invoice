@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
+import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
-import InputLabel from "@mui/material/InputLabel";
 import Typography from "@mui/material/Typography";
-import FormControl from "@mui/material/FormControl";
+import Autocomplete from "@mui/material/Autocomplete";
 import { useDispatch, useSelector } from "react-redux";
-import FormHelperText from "@mui/material/FormHelperText";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import {
@@ -44,7 +41,6 @@ const styles = {
     minHeight: "fit-content"
   },
   selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
-  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
   selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
@@ -217,43 +213,50 @@ const AddEditProductModal = ({ open, handleClose, itemIndex = null, initialValue
       modalStyle={styles.modalStyle}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Product`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={styles.fullWidth}>
-          <FormControl
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          alignItems="center"
+          sx={styles.fullWidth}>
+          <Autocomplete
+            id="productName"
             fullWidth
             size="small"
-            margin="dense"
-            error={touched?.productName && Boolean(errors?.productName?.value)}>
-            <InputLabel id="productName">Product Name</InputLabel>
-            <Select
-              id="productName"
-              name="productName"
-              label="Product Name"
-              onBlur={handleBlur}
-              value={values?.productName?.value ?? ""}
-              MenuProps={{ sx: styles.selectDropdownMenuStyle }}
-              onChange={(e) => handleSelectChange(e, productList)}>
-              <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
-                <em>None</em>
-              </MenuItem>
-              <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
-                <em>New</em>
-              </MenuItem>
-              {productList &&
-                Array.isArray(productList) &&
-                productList.map((item) => (
-                  <MenuItem key={item?.value} value={item?.value}>
-                    {item?.label}
-                  </MenuItem>
-                ))}
-            </Select>
-            {touched?.productName && Boolean(errors?.productName?.value) && (
-              <FormHelperText
-                htmlFor="form-selector"
-                error={touched?.productName && Boolean(errors?.productName?.value)}>
-                {errors?.productName?.value}
-              </FormHelperText>
+            options={[{ label: "New", value: "new" }, ...(productList || [])]}
+            getOptionLabel={(option) => option.label || ""}
+            isOptionEqualToValue={(option, value) => option.value === value?.value}
+            value={values?.productName?.value !== undefined ? values.productName : null}
+            onChange={(e, newValue) => {
+              handleSelectChange(
+                { target: { name: "productName", value: newValue?.value ?? "" } },
+                productList
+              );
+            }}
+            onBlur={handleBlur}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props;
+              return (
+                <Box
+                  component="li"
+                  key={key}
+                  {...otherProps}
+                  sx={option.value === "new" ? styles.selectDropdownNewMenuItem : undefined}>
+                  {option.label}
+                </Box>
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                name="productName"
+                label="Product Name"
+                margin="dense"
+                sx={{ mt: "5px" }}
+                error={touched?.productName && Boolean(errors?.productName?.value)}
+                helperText={touched?.productName && errors?.productName?.value}
+              />
             )}
-          </FormControl>
+          />
           {values?.productName?.value === "new" && (
             <TextField
               fullWidth
