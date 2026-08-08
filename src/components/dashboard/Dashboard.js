@@ -6,19 +6,17 @@ import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Paper from "@mui/material/Paper";
 import { useSelector } from "react-redux";
-import Select from "@mui/material/Select";
 import { DataGrid } from "@mui/x-data-grid";
 import Tooltip from "@mui/material/Tooltip";
-import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
 import StarIcon from "@mui/icons-material/Star";
 import Typography from "@mui/material/Typography";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
 import { useOutletContext } from "react-router-dom";
 import { LineChart } from "@mui/x-charts/LineChart";
 import PersonIcon from "@mui/icons-material/Person";
+import Autocomplete from "@mui/material/Autocomplete";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
 import {
@@ -432,7 +430,7 @@ const Dashboard = () => {
   const valueFormatter = (value) => (value ? indianCurrencyFormatter(value) : `₹0`);
 
   const handleSelectChange = ({ target: { value } }, list) => {
-    const selectedOption = list.find((option) => option.value === value);
+    const selectedOption = list.find((option) => option.value === value) || list[0]; // Default to Latest FY when clear icon is clicked
     setSelectedFY(selectedOption);
   };
 
@@ -575,24 +573,20 @@ const Dashboard = () => {
   return (
     <Box sx={styles.box}>
       <Stack flexDirection="row" justifyContent="flex-end" sx={styles.stack}>
-        <FormControl size="small" margin="dense">
-          <InputLabel id="fy">FY</InputLabel>
-          <Select
-            id="fy"
-            name="fy"
-            label="FY"
-            disabled={loader}
-            value={selectedFY?.value ?? ""}
-            onChange={(e) => handleSelectChange(e, fyList)}>
-            {fyList &&
-              Array.isArray(fyList) &&
-              fyList.map((item) => (
-                <MenuItem key={item?.value} value={item?.value}>
-                  {item?.label}
-                </MenuItem>
-              ))}
-          </Select>
-        </FormControl>
+        <Autocomplete
+          id="fy"
+          size="small"
+          options={fyList || []}
+          getOptionLabel={(option) => option.label || ""}
+          isOptionEqualToValue={(option, value) => option.value === value?.value}
+          value={selectedFY?.value !== undefined ? selectedFY : null}
+          onChange={(e, newValue) => {
+            handleSelectChange({ target: { name: "fy", value: newValue?.value ?? "" } }, fyList);
+          }}
+          disabled={loader}
+          sx={{ minWidth: 160 }}
+          renderInput={(params) => <TextField {...params} name="fy" label="FY" margin="dense" />}
+        />
       </Stack>
       <Stack sx={styles.stack1}>
         <Grid container spacing={{ xs: 3, md: 5 }}>

@@ -1,16 +1,13 @@
 import React from "react";
 import { useFormik } from "formik";
+import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
+import Autocomplete from "@mui/material/Autocomplete";
 import { useDispatch, useSelector } from "react-redux";
-import FormHelperText from "@mui/material/FormHelperText";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import commonStyles from "utils/commonStyles";
@@ -34,7 +31,6 @@ const styles = {
     minHeight: "fit-content"
   },
   selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
-  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
   selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
@@ -142,43 +138,50 @@ const AddEditExtraModal = ({ open, handleClose, itemIndex = null, initialValues 
       modalStyle={styles.modalStyle}
       title={`${(itemIndex ?? null) === null ? "Add" : "Edit"} Extra`}>
       <Stack direction="column" spacing={2} sx={styles.fullWidth}>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={styles.fullWidth}>
-          <FormControl
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          alignItems="center"
+          sx={styles.fullWidth}>
+          <Autocomplete
+            id="reason"
             fullWidth
             size="small"
-            margin="dense"
-            error={touched?.reason && Boolean(errors?.reason?.value)}>
-            <InputLabel id="reason">Reason</InputLabel>
-            <Select
-              id="reason"
-              name="reason"
-              label="Reason"
-              onBlur={handleBlur}
-              value={values?.reason?.value ?? ""}
-              MenuProps={{ sx: styles.selectDropdownMenuStyle }}
-              onChange={(e) => handleSelectChange(e, extrasList)}>
-              <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
-                <em>None</em>
-              </MenuItem>
-              <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
-                <em>New</em>
-              </MenuItem>
-              {extrasList &&
-                Array.isArray(extrasList) &&
-                extrasList.map((item) => (
-                  <MenuItem key={item?.value} value={item?.value}>
-                    {item?.label}
-                  </MenuItem>
-                ))}
-            </Select>
-            {touched?.reason && Boolean(errors?.reason?.value) && (
-              <FormHelperText
-                htmlFor="form-selector"
-                error={touched?.reason && Boolean(errors?.reason?.value)}>
-                {errors?.reason?.value}
-              </FormHelperText>
+            options={[{ label: "New", value: "new" }, ...(extrasList || [])]}
+            getOptionLabel={(option) => option.label || ""}
+            isOptionEqualToValue={(option, value) => option.value === value?.value}
+            value={values?.reason?.value !== undefined ? values.reason : null}
+            onChange={(e, newValue) => {
+              handleSelectChange(
+                { target: { name: "reason", value: newValue?.value ?? "" } },
+                extrasList
+              );
+            }}
+            onBlur={handleBlur}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props;
+              return (
+                <Box
+                  component="li"
+                  key={key}
+                  {...otherProps}
+                  sx={option.value === "new" ? styles.selectDropdownNewMenuItem : undefined}>
+                  {option.label}
+                </Box>
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                name="reason"
+                label="Reason"
+                margin="dense"
+                sx={{ mt: "5px" }}
+                error={touched?.reason && Boolean(errors?.reason?.value)}
+                helperText={touched?.reason && errors?.reason?.value}
+              />
             )}
-          </FormControl>
+          />
           {values?.reason?.value === "new" && (
             <TextField
               fullWidth

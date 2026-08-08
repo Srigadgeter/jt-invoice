@@ -14,11 +14,9 @@ const commonStyles = {
       }
     }
   },
-  selectDropdownNoneMenuItem: (theme) => ({
-    color: theme.palette.grey[500]
-  }),
   selectDropdownNewMenuItem: {
-    color: "primary.main"
+    color: "primary.main",
+    fontStyle: "italic"
   },
   dataGrid: {
     mt: 1,

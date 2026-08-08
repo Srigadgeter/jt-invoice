@@ -3,22 +3,18 @@ import { useFormik } from "formik";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import Select from "@mui/material/Select";
+import Autocomplete from "@mui/material/Autocomplete";
 import Switch from "@mui/material/Switch";
 import Tooltip from "@mui/material/Tooltip";
 import { DataGrid } from "@mui/x-data-grid";
-import MenuItem from "@mui/material/MenuItem";
 import AddIcon from "@mui/icons-material/Add";
 import TextField from "@mui/material/TextField";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
-import InputLabel from "@mui/material/InputLabel";
 import Typography from "@mui/material/Typography";
-import FormControl from "@mui/material/FormControl";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
 import { useDispatch, useSelector } from "react-redux";
-import FormHelperText from "@mui/material/FormHelperText";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
@@ -145,7 +141,6 @@ const styles = {
       theme.palette.mode === "dark" ? theme.palette.background.custom : theme.palette.common.white
   },
   selectDropdownMenuStyle: commonStyles?.selectDropdownMenuStyle || {},
-  selectDropdownNoneMenuItem: commonStyles?.selectDropdownNoneMenuItem || {},
   selectDropdownNewMenuItem: commonStyles?.selectDropdownNewMenuItem || {}
 };
 
@@ -932,44 +927,47 @@ const Invoice = () => {
                   value={values?.lrDate ? formatDateForInputField(values?.lrDate) : ""}
                 />
               </Stack>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <FormControl
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                <Autocomplete
+                  id="logistics"
                   fullWidth
                   size="small"
-                  margin="dense"
-                  error={touched?.logistics && Boolean(errors?.logistics?.value)}>
-                  <InputLabel id="logistics">Logistics</InputLabel>
-                  <Select
-                    id="logistics"
-                    name="logistics"
-                    label="Logistics"
-                    onBlur={handleBlur}
-                    disabled={isViewMode || isLoading}
-                    value={values?.logistics?.value ?? ""}
-                    MenuProps={{ sx: styles.selectDropdownMenuStyle }}
-                    onChange={(e) => handleSelectChange(e, logisticsList)}>
-                    <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
-                      <em>None</em>
-                    </MenuItem>
-                    <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
-                      <em>New</em>
-                    </MenuItem>
-                    {logisticsList &&
-                      Array.isArray(logisticsList) &&
-                      logisticsList.map((item) => (
-                        <MenuItem key={item?.value} value={item?.value}>
-                          {item?.label}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                  {touched?.logistics && Boolean(errors?.logistics?.value) && (
-                    <FormHelperText
-                      htmlFor="form-selector"
-                      error={touched?.logistics && Boolean(errors?.logistics?.value)}>
-                      {errors?.logistics?.value}
-                    </FormHelperText>
+                  options={[{ label: "New", value: "new" }, ...(logisticsList || [])]}
+                  getOptionLabel={(option) => option.label || ""}
+                  isOptionEqualToValue={(option, value) => option.value === value?.value}
+                  value={values?.logistics?.value !== undefined ? values.logistics : null}
+                  onChange={(e, newValue) => {
+                    handleSelectChange(
+                      { target: { name: "logistics", value: newValue?.value ?? "" } },
+                      logisticsList
+                    );
+                  }}
+                  onBlur={handleBlur}
+                  disabled={isViewMode || isLoading}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box
+                        component="li"
+                        key={key}
+                        {...otherProps}
+                        sx={option.value === "new" ? styles.selectDropdownNewMenuItem : undefined}>
+                        {option.label}
+                      </Box>
+                    );
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      name="logistics"
+                      label="Logistics"
+                      margin="dense"
+                      sx={{ mt: "5px" }}
+                      error={touched?.logistics && Boolean(errors?.logistics?.value)}
+                      helperText={touched?.logistics && errors?.logistics?.value}
+                    />
                   )}
-                </FormControl>
+                />
                 {values?.logistics?.value === "new" && !isViewMode && (
                   <TextField
                     fullWidth
@@ -987,50 +985,56 @@ const Invoice = () => {
                   />
                 )}
               </Stack>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <FormControl
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                <Autocomplete
+                  id="transportDestination"
                   fullWidth
                   size="small"
-                  margin="dense"
-                  error={
-                    touched?.transportDestination && Boolean(errors?.transportDestination?.value)
-                  }>
-                  <InputLabel id="transportDestination">Transport Destination</InputLabel>
-                  <Select
-                    id="transportDestination"
-                    name="transportDestination"
-                    label="Transport Destination"
-                    onBlur={handleBlur}
-                    disabled={isViewMode || isLoading}
-                    value={values?.transportDestination?.value ?? ""}
-                    MenuProps={{ sx: styles.selectDropdownMenuStyle }}
-                    onChange={(e) => handleSelectChange(e, transportDestinationList)}>
-                    <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
-                      <em>None</em>
-                    </MenuItem>
-                    <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
-                      <em>New</em>
-                    </MenuItem>
-                    {transportDestinationList &&
-                      Array.isArray(transportDestinationList) &&
-                      transportDestinationList.map((item) => (
-                        <MenuItem key={item?.value} value={item?.value}>
-                          {item?.label}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                  {touched?.transportDestination &&
-                    Boolean(errors?.transportDestination?.value) && (
-                      <FormHelperText
-                        htmlFor="form-selector"
-                        error={
-                          touched?.transportDestination &&
-                          Boolean(errors?.transportDestination?.value)
-                        }>
-                        {errors?.transportDestination?.value}
-                      </FormHelperText>
-                    )}
-                </FormControl>
+                  options={[{ label: "New", value: "new" }, ...(transportDestinationList || [])]}
+                  getOptionLabel={(option) => option.label || ""}
+                  isOptionEqualToValue={(option, value) => option.value === value?.value}
+                  value={
+                    values?.transportDestination?.value !== undefined
+                      ? values.transportDestination
+                      : null
+                  }
+                  onChange={(e, newValue) => {
+                    handleSelectChange(
+                      { target: { name: "transportDestination", value: newValue?.value ?? "" } },
+                      transportDestinationList
+                    );
+                  }}
+                  onBlur={handleBlur}
+                  disabled={isViewMode || isLoading}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box
+                        component="li"
+                        key={key}
+                        {...otherProps}
+                        sx={option.value === "new" ? styles.selectDropdownNewMenuItem : undefined}>
+                        {option.label}
+                      </Box>
+                    );
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      name="transportDestination"
+                      label="Transport Destination"
+                      margin="dense"
+                      sx={{ mt: "5px" }}
+                      error={
+                        touched?.transportDestination &&
+                        Boolean(errors?.transportDestination?.value)
+                      }
+                      helperText={
+                        touched?.transportDestination && errors?.transportDestination?.value
+                      }
+                    />
+                  )}
+                />
                 {values?.transportDestination?.value === "new" && !isViewMode && (
                   <TextField
                     fullWidth
@@ -1061,45 +1065,54 @@ const Invoice = () => {
               </Typography>
             </Stack>
             <Stack direction="column" spacing={2}>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <FormControl
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                <Autocomplete
+                  id="customerName"
                   fullWidth
                   size="small"
-                  margin="dense"
-                  error={touched?.customerName && Boolean(errors?.customerName?.value)}>
-                  <InputLabel id="customerName">Customer Name</InputLabel>
-                  <Select
-                    id="customerName"
-                    name="customerName"
-                    label="Customer Name"
-                    onBlur={handleBlur}
-                    disabled={isViewMode || isLoading}
-                    value={values?.customerName?.value ?? ""}
-                    MenuProps={{ sx: styles.selectDropdownMenuStyle }}
-                    onChange={(e) => handleSelectChange(e, customerList)}>
-                    <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
-                      <em>None</em>
-                    </MenuItem>
-                    <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
-                      <em>New</em>
-                    </MenuItem>
-                    {customerList &&
-                      Array.isArray(customerList) &&
-                      customerList.map((item) => (
-                        <MenuItem key={item?.value} value={item?.value}>
-                          <strong>{item?.label}</strong>&nbsp;-&nbsp;
-                          {item?.address}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                  {touched?.customerName && Boolean(errors?.customerName?.value) && (
-                    <FormHelperText
-                      htmlFor="form-selector"
-                      error={touched?.customerName && Boolean(errors?.customerName?.value)}>
-                      {errors?.customerName?.value}
-                    </FormHelperText>
+                  options={[{ label: "New", value: "new" }, ...(customerList || [])]}
+                  getOptionLabel={(option) => option.label || ""}
+                  isOptionEqualToValue={(option, value) => option.value === value?.value}
+                  value={values?.customerName?.value !== undefined ? values.customerName : null}
+                  onChange={(e, newValue) => {
+                    handleSelectChange(
+                      { target: { name: "customerName", value: newValue?.value ?? "" } },
+                      customerList
+                    );
+                  }}
+                  onBlur={handleBlur}
+                  disabled={isViewMode || isLoading}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box
+                        component="li"
+                        key={key}
+                        {...otherProps}
+                        sx={option.value === "new" ? styles.selectDropdownNewMenuItem : undefined}>
+                        {option.value === "" || option.value === "new" ? (
+                          option.label
+                        ) : (
+                          <>
+                            <strong>{option.label}</strong>&nbsp;-&nbsp;
+                            {option.address}
+                          </>
+                        )}
+                      </Box>
+                    );
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      name="customerName"
+                      label="Customer Name"
+                      margin="dense"
+                      sx={{ mt: "5px" }}
+                      error={touched?.customerName && Boolean(errors?.customerName?.value)}
+                      helperText={touched?.customerName && errors?.customerName?.value}
+                    />
                   )}
-                </FormControl>
+                />
                 {values?.customerName?.value === "new" && !isViewMode && (
                   <TextField
                     fullWidth
@@ -1119,48 +1132,57 @@ const Invoice = () => {
               </Stack>
               {values?.customerName?.value === "new" && !isViewMode && (
                 <>
-                  <Stack direction="row" spacing={2}>
-                    <FormControl
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                    <Autocomplete
+                      id="newCustomerSource"
                       fullWidth
                       size="small"
-                      margin="dense"
-                      error={
-                        touched?.newCustomerSource && Boolean(errors?.newCustomerSource?.value)
-                      }>
-                      <InputLabel id="newCustomerSource">Source of New Customer</InputLabel>
-                      <Select
-                        id="newCustomerSource"
-                        name="newCustomerSource"
-                        label="Source of New Customer"
-                        onBlur={handleBlur}
-                        disabled={isLoading}
-                        value={values?.newCustomerSource?.value ?? ""}
-                        MenuProps={{ sx: styles.selectDropdownMenuStyle }}
-                        onChange={(e) => handleSelectChange(e, sourceList)}>
-                        <MenuItem value="" sx={styles.selectDropdownNoneMenuItem}>
-                          <em>None</em>
-                        </MenuItem>
-                        <MenuItem value="new" sx={styles.selectDropdownNewMenuItem}>
-                          <em>New</em>
-                        </MenuItem>
-                        {sourceList &&
-                          Array.isArray(sourceList) &&
-                          sourceList.map((item) => (
-                            <MenuItem key={item?.value} value={item?.value}>
-                              {item?.label}
-                            </MenuItem>
-                          ))}
-                      </Select>
-                      {touched?.newCustomerSource && Boolean(errors?.newCustomerSource?.value) && (
-                        <FormHelperText
-                          htmlFor="form-selector"
+                      options={[{ label: "New", value: "new" }, ...(sourceList || [])]}
+                      getOptionLabel={(option) => option.label || ""}
+                      isOptionEqualToValue={(option, value) => option.value === value?.value}
+                      value={
+                        values?.newCustomerSource?.value !== undefined
+                          ? values.newCustomerSource
+                          : null
+                      }
+                      onChange={(e, newValue) => {
+                        handleSelectChange(
+                          { target: { name: "newCustomerSource", value: newValue?.value ?? "" } },
+                          sourceList
+                        );
+                      }}
+                      onBlur={handleBlur}
+                      disabled={isLoading}
+                      renderOption={(props, option) => {
+                        const { key, ...otherProps } = props;
+                        return (
+                          <Box
+                            component="li"
+                            key={key}
+                            {...otherProps}
+                            sx={
+                              option.value === "new" ? styles.selectDropdownNewMenuItem : undefined
+                            }>
+                            {option.label}
+                          </Box>
+                        );
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          name="newCustomerSource"
+                          label="Source of New Customer"
+                          margin="dense"
+                          sx={{ mt: "5px" }}
                           error={
                             touched?.newCustomerSource && Boolean(errors?.newCustomerSource?.value)
-                          }>
-                          {errors?.newCustomerSource?.value}
-                        </FormHelperText>
+                          }
+                          helperText={
+                            touched?.newCustomerSource && errors?.newCustomerSource?.value
+                          }
+                        />
                       )}
-                    </FormControl>
+                    />
                     {values?.newCustomerSource?.value === "new" && (
                       <TextField
                         fullWidth
