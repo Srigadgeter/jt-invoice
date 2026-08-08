@@ -72,7 +72,7 @@ const CustomerCards = ({ customers, handleEditCustomer, handleDelete, loading = 
   if (!customers.length) return null;
 
   // Sort Customers in Alphabetical order
-  const sortedList = [...customers].sort((a, b) => a.name.label - b.name.label);
+  const sortedList = [...customers].sort((a, b) => a.name.label.localeCompare(b.name.label));
 
   return (
     <Stack gap={2} pt={2} sx={styles.cardList}>

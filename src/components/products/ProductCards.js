@@ -66,7 +66,7 @@ const ProductCards = ({ products, handleEditProduct, handleDelete, loading = fal
   if (!products.length) return null;
 
   // Sort Products in Alphabetical order
-  const sortedList = [...products].sort((a, b) => a.label - b.label);
+  const sortedList = [...products].sort((a, b) => a.label.localeCompare(b.label));
 
   return (
     <Stack gap={2} pt={2} sx={styles.cardList}>
