@@ -1132,7 +1132,7 @@ const Invoice = () => {
               </Stack>
               {values?.customerName?.value === "new" && !isViewMode && (
                 <>
-                  <Stack direction="row" spacing={2} alignItems="center">
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
                     <Autocomplete
                       id="newCustomerSource"
                       fullWidth

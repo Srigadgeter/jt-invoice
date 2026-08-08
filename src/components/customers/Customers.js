@@ -466,7 +466,7 @@ const Customers = () => {
           helperText={touched?.name && errors?.name}
           error={touched?.name && Boolean(errors?.name)}
         />
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
           <Autocomplete
             id="source"
             fullWidth
