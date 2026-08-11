@@ -95,7 +95,10 @@ const styles = {
     },
     "& #content": {
       height: "calc(100vh - 280px)",
-      overflowX: "hidden",
+      overflowX: {
+        xs: "overlay",
+        md: "hidden"
+      },
       overflowY: "overlay",
       scrollbarWidth: "7px",
       ":hover": {
