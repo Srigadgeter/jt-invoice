@@ -62,7 +62,7 @@ const CustomDataGridFooter = ({ columns, rows = [], isPdf = false }) => (
               {column?.field === "productQuantityMeters"
                 ? `${total} ${total === 1 ? "mtr" : "mtrs"}`
                 : null}
-              {!isPdf && (column?.field === "productAmount" || column?.field === "producGstAmount")
+              {column?.field === "productAmount" || (!isPdf && column?.field === "producGstAmount")
                 ? indianCurrencyFormatter(total)
                 : null}
               {isPdf && column?.field === "producGstAmount" ? (
